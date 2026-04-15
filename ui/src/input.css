@@ -106,51 +106,44 @@
 
   /* ── Pills / Badges ── */
   .pill {
-    @apply inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium;
-    border: 1px solid transparent;
-    letter-spacing: 0.02em;
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold uppercase;
+    letter-spacing: 0.04em;
   }
   .pill-amber {
-    color: #fbbf24;
-    background: rgba(251,191,36,0.15);
-    border-color: rgba(251,191,36,0.25);
+    color: #fcd34d;
+    background: rgba(251,191,36,0.18);
   }
   .pill-blue {
-    color: #60a5fa;
-    background: rgba(96,165,250,0.15);
-    border-color: rgba(96,165,250,0.25);
+    color: #93c5fd;
+    background: rgba(96,165,250,0.18);
   }
   .pill-emerald {
-    color: #34d399;
-    background: rgba(52,211,153,0.15);
-    border-color: rgba(52,211,153,0.25);
+    color: #6ee7b7;
+    background: rgba(52,211,153,0.18);
   }
   .pill-red {
-    color: #f87171;
-    background: rgba(248,113,113,0.15);
-    border-color: rgba(248,113,113,0.25);
+    color: #fca5a5;
+    background: rgba(248,113,113,0.18);
   }
   .pill-zinc {
-    color: #a1a1aa;
-    background: rgba(161,161,170,0.10);
-    border-color: rgba(161,161,170,0.18);
+    color: #d4d4d8;
+    background: rgba(161,161,170,0.12);
   }
   .tag {
-    @apply inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium text-zinc-400;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.08);
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold text-zinc-300;
+    background: rgba(255,255,255,0.07);
   }
   .count-badge {
-    @apply rounded-full px-1.5 py-px text-[10px] font-semibold tabular-nums;
+    @apply rounded-md px-1.5 py-px text-[10px] font-semibold tabular-nums;
     line-height: 1.4;
   }
   .count-badge-active {
-    background: rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.14);
     @apply text-white;
   }
   .count-badge-muted {
-    background: rgba(255,255,255,0.04);
-    @apply text-zinc-600;
+    background: rgba(255,255,255,0.06);
+    @apply text-zinc-500;
   }
 
   /* ── Stepper ── */

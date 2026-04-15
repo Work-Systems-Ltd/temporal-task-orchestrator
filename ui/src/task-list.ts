@@ -1,5 +1,6 @@
 interface ViewParams {
   type: "view";
+  seq: number;
   tab: string;
   page: number;
   wf_type: string | null;
@@ -8,6 +9,7 @@ interface ViewParams {
 
 interface UpdateMessage {
   type: "update";
+  seq: number;
   tab_bar: string;
   tab_content: string;
 }
@@ -16,6 +18,7 @@ interface TaskListData {
   loading: boolean;
   connected: boolean;
   ws: WebSocket | null;
+  seq: number;
   reconnectTimer: number | null;
   reconnectDelay: number;
   connect(): void;
@@ -26,10 +29,11 @@ interface TaskListData {
   navigateTab(e: Event): void;
 }
 
-function getViewParams(): ViewParams {
+function getViewParams(seq: number): ViewParams {
   const params = new URLSearchParams(window.location.search);
   return {
     type: "view",
+    seq,
     tab: params.get("tab") || "pending",
     page: Math.max(1, parseInt(params.get("page") || "1", 10)),
     wf_type: params.get("type") || null,
@@ -42,6 +46,7 @@ function taskList(): TaskListData {
     loading: false,
     connected: false,
     ws: null,
+    seq: 0,
     reconnectTimer: null,
     reconnectDelay: 1000,
 
@@ -72,7 +77,6 @@ function taskList(): TaskListData {
       ws.onclose = () => {
         this.connected = false;
         this.ws = null;
-        // Reconnect with exponential backoff, max 30s
         if (!this.reconnectTimer) {
           this.reconnectTimer = window.setTimeout(() => {
             this.reconnectTimer = null;
@@ -102,11 +106,14 @@ function taskList(): TaskListData {
 
     sendView(): void {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(JSON.stringify(getViewParams()));
+        this.seq++;
+        this.ws.send(JSON.stringify(getViewParams(this.seq)));
       }
     },
 
     applyUpdate(msg: UpdateMessage): void {
+      // Drop stale updates from before the latest navigation
+      if (msg.seq < this.seq) return;
       if (document.hidden) return;
 
       const tabBar = document.querySelector("[data-tab-bar]");
