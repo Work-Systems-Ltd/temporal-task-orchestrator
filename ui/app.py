@@ -134,7 +134,7 @@ async def _get_tab_counts(wf_type: str | None = None) -> dict[str, int]:
     return counts
 
 
-async def _list_pending(page: int, wf_type: str | None = None) -> tuple[list[dict], bool]:
+async def _list_pending(page: int, wf_type: str | None = None, search: str | None = None) -> tuple[list[dict], bool]:
     all_pending = []
     query = 'ExecutionStatus="Running"'
     if wf_type:
@@ -145,6 +145,10 @@ async def _list_pending(page: int, wf_type: str | None = None) -> tuple[list[dic
             raw = await handle.query("get_pending_task")
             if raw:
                 meta = json.loads(raw)
+                if search:
+                    haystack = f"{wf.id} {meta.get('title', '')} {meta.get('description', '')} {wf.workflow_type or ''}".lower()
+                    if search.lower() not in haystack:
+                        continue
                 meta["workflow_id"] = wf.id
                 meta["workflow_type"] = wf.workflow_type
                 meta["started"] = _relative_time(wf.start_time)
@@ -160,14 +164,19 @@ async def _list_pending(page: int, wf_type: str | None = None) -> tuple[list[dic
     return items, has_next
 
 
-async def _list_workflows(tab: str, page: int, wf_type: str | None = None) -> tuple[list[dict], bool]:
+async def _list_workflows(tab: str, page: int, wf_type: str | None = None, search: str | None = None) -> tuple[list[dict], bool]:
     query = _build_query(STATUS_QUERIES.get(tab), wf_type)
     items = []
     skip = (page - 1) * PAGE_SIZE
     collected = 0
     skipped = 0
 
-    async for wf in temporal_client.list_workflows(query, page_size=PAGE_SIZE * 2):
+    async for wf in temporal_client.list_workflows(query, page_size=PAGE_SIZE * 4):
+        if search:
+            haystack = f"{wf.id} {wf.workflow_type or ''}".lower()
+            if search.lower() not in haystack:
+                continue
+
         if skipped < skip:
             skipped += 1
             continue
@@ -205,13 +214,14 @@ async def task_list(request: Request):
         page = 1
 
     wf_type = request.query_params.get("type") or None
+    search = request.query_params.get("q", "").strip() or None
 
     counts = await _get_tab_counts(wf_type)
 
     if tab == "pending":
-        items, has_next = await _list_pending(page, wf_type)
+        items, has_next = await _list_pending(page, wf_type, search)
     else:
-        items, has_next = await _list_workflows(tab, page, wf_type)
+        items, has_next = await _list_workflows(tab, page, wf_type, search)
 
     return templates.TemplateResponse(
         "task_list.html",
@@ -225,6 +235,7 @@ async def task_list(request: Request):
             "has_next": has_next,
             "has_prev": page > 1,
             "wf_type": wf_type,
+            "search": search or "",
             "workflow_types": _get_workflow_types(),
         },
     )
@@ -304,9 +315,19 @@ async def task_submit(request: Request, workflow_id: str):
 
 @app.get("/start", response_class=HTMLResponse)
 async def start_picker(request: Request):
+    wf_list = [
+        {
+            "key": w.key,
+            "label": w.label,
+            "description": w.description,
+            "input_label": w.input_label,
+            "input_placeholder": w.input_placeholder,
+        }
+        for w in get_all_workflows()
+    ]
     return templates.TemplateResponse(
         "start_picker.html",
-        {"request": request, "workflows": get_all_workflows()},
+        {"request": request, "workflows": wf_list},
     )
 
 

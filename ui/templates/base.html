@@ -10,24 +10,43 @@
 </head>
 <body class="flex h-full flex-col bg-bg font-sans text-white antialiased">
 
-  <header class="shrink-0 border-b border-border bg-bg">
-    <div class="mx-auto flex h-12 max-w-[1080px] items-center gap-4 px-6">
-      <a href="/" class="shrink-0">
-        <img src="/static/img/logo.png" alt="Worksystems" class="h-[18px]" />
+  <header class="header-glass shrink-0">
+    <div class="mx-auto flex h-14 max-w-[1080px] items-center gap-5 px-6">
+      <a href="/" class="group flex shrink-0 items-center gap-2.5">
+        <img src="/static/img/logo.png" alt="Worksystems" class="h-[18px] opacity-75 transition-opacity group-hover:opacity-100" />
+        <span class="hidden text-[11px] font-medium uppercase tracking-wider text-zinc-600 transition-colors group-hover:text-zinc-500 sm:flex">Console</span>
       </a>
-      <div class="h-4 w-px bg-white/[0.06]"></div>
-      <nav class="flex items-center gap-0.5">
-        <a href="/" class="rounded-md px-2.5 py-1 text-[13px] transition-colors {% if request.url.path == '/' %}text-white bg-white/[0.06]{% else %}text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]{% endif %}">Tasks</a>
-        <a href="/start" class="rounded-md px-2.5 py-1 text-[13px] transition-colors {% if request.url.path.startswith('/start') %}text-white bg-white/[0.06]{% else %}text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]{% endif %}">New</a>
+      <div class="header-divider"></div>
+      <nav class="nav-bar flex items-center gap-1">
+        <a href="/" class="nav-link {% if request.url.path == '/' %}nav-link--active{% endif %}">
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+          </svg>
+          Tasks
+        </a>
+        <a href="/start" class="nav-link {% if request.url.path.startswith('/start') %}nav-link--active{% endif %}">
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          New
+        </a>
       </nav>
       <div class="ml-auto flex items-center gap-3">
-        <div class="hidden items-center gap-1.5 sm:flex">
-          <kbd class="rounded border border-border bg-bg-raised px-1.5 py-0.5 font-mono text-[10px] text-zinc-600">N</kbd>
-          <span class="text-[11px] text-zinc-700">new</span>
-          <kbd class="ml-2 rounded border border-border bg-bg-raised px-1.5 py-0.5 font-mono text-[10px] text-zinc-600">R</kbd>
-          <span class="text-[11px] text-zinc-700">refresh</span>
+        <div class="hidden items-center gap-2 sm:flex">
+          <div class="kbd-group">
+            <kbd>N</kbd>
+            <span>new</span>
+          </div>
+          <div class="kbd-group">
+            <kbd>R</kbd>
+            <span>refresh</span>
+          </div>
         </div>
-        <div class="h-4 w-px bg-white/[0.04]"></div>
+        <div class="header-divider"></div>
+        <div class="status-indicator" title="System operational">
+          <span class="status-dot"></span>
+          <span class="hidden text-[11px] text-zinc-600 sm:inline">Temporal</span>
+        </div>
       </div>
     </div>
   </header>
@@ -68,10 +87,18 @@
     </div>
   </main>
 
-  <footer class="shrink-0 border-t border-border">
-    <div class="mx-auto flex h-10 max-w-[1080px] items-center justify-between px-6">
-      <span class="text-[11px] text-zinc-700">Worksystems Task Console</span>
-      <span class="text-[11px] text-zinc-800">Temporal v1.25</span>
+  <footer class="footer-modern shrink-0">
+    <div class="mx-auto flex h-11 max-w-[1080px] items-center justify-between px-6">
+      <div class="flex items-center gap-3">
+        <span class="footer-brand">Worksystems</span>
+        <span class="footer-sep"></span>
+        <span class="footer-label">Task Console</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="footer-label">Temporal v1.25</span>
+        <span class="footer-sep"></span>
+        <span class="footer-build">Build 2026.04</span>
+      </div>
     </div>
   </footer>
 

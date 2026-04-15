@@ -31,11 +31,9 @@
       </div>
 
       <div class="flex items-center justify-end gap-2 border-t border-border pt-4">
-        <a href="/start" class="rounded-md px-3 py-1.5 text-[13px] text-zinc-600 transition-colors hover:text-zinc-400">
-          Cancel
-        </a>
+        <a href="/start" class="btn btn-ghost">Cancel</a>
         <button type="submit" :disabled="submitting"
-                class="relative rounded-md bg-white px-4 py-1.5 text-[13px] font-medium text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40">
+                class="btn btn-primary relative">
           <span :class="submitting ? 'invisible' : ''">Start workflow</span>
           <span x-show="submitting" x-cloak class="absolute inset-0 flex items-center justify-center">
             <svg class="h-3.5 w-3.5 animate-spin text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
