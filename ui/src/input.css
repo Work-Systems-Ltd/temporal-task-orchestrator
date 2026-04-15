@@ -280,6 +280,104 @@
     box-shadow: 0 0 0 3px rgba(239,68,68,0.06);
   }
 
+  /* ── Search box ── */
+  .search-box {
+    @apply relative flex-1;
+  }
+  .search-box-input {
+    @apply w-full rounded-lg bg-bg-raised py-2 pl-9 pr-10 text-[13px] text-white placeholder-zinc-600 outline-none;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.2s ease;
+  }
+  .search-box-input:hover {
+    border-color: rgba(255,255,255,0.12);
+    background: rgba(17,17,19,0.9);
+  }
+  .search-box-input:focus {
+    border-color: rgba(255,255,255,0.20);
+    background: rgba(9,9,11,1);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.04);
+  }
+  .search-box-icon {
+    @apply pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600;
+    transition: color 0.2s ease;
+  }
+  .search-box-input:focus ~ .search-box-icon,
+  .search-box:focus-within .search-box-icon {
+    color: rgb(161 161 170);
+  }
+  .search-box-kbd {
+    @apply absolute right-2.5 top-1/2 -translate-y-1/2 hidden items-center sm:flex;
+    pointer-events: none;
+  }
+  .search-box-kbd kbd {
+    @apply font-mono text-[10px] font-medium text-zinc-700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.03);
+  }
+
+  /* ── Page loader ── */
+  .page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #09090b;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+  }
+  .page-loader.is-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .page-loader-logo {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: loaderFadeUp 0.6s ease forwards;
+  }
+  .page-loader-bar {
+    width: 120px;
+    height: 2px;
+    margin-top: 24px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+    opacity: 0;
+    animation: loaderFadeUp 0.4s ease 0.3s forwards;
+  }
+  .page-loader-bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.5);
+    animation: loaderProgress 1.2s ease 0.4s forwards;
+  }
+  .page-loader-text {
+    margin-top: 16px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(63 63 70);
+    opacity: 0;
+    animation: loaderFadeUp 0.4s ease 0.5s forwards;
+  }
+  @keyframes loaderFadeUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes loaderProgress {
+    0% { width: 0%; }
+    60% { width: 70%; }
+    100% { width: 100%; }
+  }
+
   /* ── Cards ── */
   .card {
     @apply overflow-hidden rounded-lg;

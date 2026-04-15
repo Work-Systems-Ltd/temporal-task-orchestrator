@@ -43,12 +43,12 @@
           <p class="mt-1 text-[13px] text-zinc-500">Select the type of workflow to start</p>
         </div>
         <div class="p-4">
-          <div class="mb-3 relative">
-            <svg class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <div class="search-box mb-3">
+            <input type="text" x-model="filterText" placeholder="Filter workflows..."
+                   class="search-box-input" />
+            <svg class="search-box-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
-            <input type="text" x-model="filterText" placeholder="Filter workflows..."
-                   class="input-field py-1.5 pl-8 pr-3" />
           </div>
           <div class="space-y-1.5">
             <template x-for="wf in filteredWorkflows" :key="wf.key">

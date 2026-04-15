@@ -10,6 +10,27 @@
 </head>
 <body class="flex h-full flex-col bg-bg font-sans text-white antialiased">
 
+  <div id="page-loader" class="page-loader">
+    <div class="page-loader-logo">
+      <img src="/static/img/logo.png" alt="Worksystems" class="h-5 opacity-60" />
+    </div>
+    <div class="page-loader-bar">
+      <div class="page-loader-bar-fill"></div>
+    </div>
+    <div class="page-loader-text">Loading</div>
+  </div>
+  <script>
+    window.addEventListener('load', function() {
+      var loader = document.getElementById('page-loader');
+      if (loader) {
+        setTimeout(function() {
+          loader.classList.add('is-hidden');
+          setTimeout(function() { loader.remove(); }, 500);
+        }, 800);
+      }
+    });
+  </script>
+
   <header class="header-glass shrink-0">
     <div class="mx-auto flex h-14 max-w-[1080px] items-center gap-5 px-6">
       <a href="/" class="group flex shrink-0 items-center gap-2.5">
