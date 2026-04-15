@@ -21,9 +21,15 @@ function taskList(): TaskListData {
           .then((r) => r.text())
           .then((html) => {
             const doc = new DOMParser().parseFromString(html, "text/html");
-            const fresh = doc.querySelector("main");
-            if (fresh) {
-              document.querySelector("main")!.innerHTML = fresh.innerHTML;
+            const fresh = doc.querySelector("[data-task-table]");
+            const target = document.querySelector("[data-task-table]");
+            if (fresh && target) {
+              target.innerHTML = fresh.innerHTML;
+            }
+            const freshStats = doc.querySelector("[data-stats]");
+            const targetStats = document.querySelector("[data-stats]");
+            if (freshStats && targetStats) {
+              targetStats.innerHTML = freshStats.innerHTML;
             }
           })
           .catch(() => {});
@@ -31,5 +37,17 @@ function taskList(): TaskListData {
     },
   };
 }
+
+document.addEventListener("keydown", (e: KeyboardEvent) => {
+  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+
+  if (e.key === "n") {
+    window.location.href = "/start";
+  }
+
+  if (e.key === "r") {
+    window.location.reload();
+  }
+});
 
 (window as Record<string, unknown>).taskList = taskList;

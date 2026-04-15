@@ -8,35 +8,42 @@
   <link rel="stylesheet" href="/static/css/style.css" />
   <script defer src="/static/vendor/alpine.min.js"></script>
 </head>
-<body class="h-full bg-bg font-sans text-white antialiased">
+<body class="flex h-full flex-col bg-bg font-sans text-white antialiased">
 
-  <header class="border-b border-border bg-bg">
-    <div class="mx-auto flex h-14 max-w-[1080px] items-center gap-5 px-6">
+  <header class="shrink-0 border-b border-border bg-bg">
+    <div class="mx-auto flex h-12 max-w-[1080px] items-center gap-4 px-6">
       <a href="/" class="shrink-0">
-        <img src="/static/img/logo.png" alt="Worksystems" class="h-5" />
+        <img src="/static/img/logo.png" alt="Worksystems" class="h-[18px]" />
       </a>
-      <div class="h-4 w-px bg-border"></div>
-      <nav class="flex items-center gap-1">
-        <a href="/" class="rounded-md px-3 py-1.5 text-[13px] font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-white">Tasks</a>
-        <a href="/start" class="rounded-md px-3 py-1.5 text-[13px] font-medium text-zinc-400 transition-colors hover:bg-white/[0.04] hover:text-white">New</a>
+      <div class="h-4 w-px bg-white/[0.06]"></div>
+      <nav class="flex items-center gap-0.5">
+        <a href="/" class="rounded-md px-2.5 py-1 text-[13px] transition-colors {% if request.url.path == '/' %}text-white bg-white/[0.06]{% else %}text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]{% endif %}">Tasks</a>
+        <a href="/start" class="rounded-md px-2.5 py-1 text-[13px] transition-colors {% if request.url.path == '/start' %}text-white bg-white/[0.06]{% else %}text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]{% endif %}">New</a>
       </nav>
-      <div class="ml-auto flex items-center gap-2">
-        <span class="flex items-center gap-1.5 text-[12px] text-zinc-500">
+      <div class="ml-auto flex items-center gap-3">
+        <div class="hidden items-center gap-1.5 sm:flex">
+          <kbd class="rounded border border-border bg-bg-raised px-1.5 py-0.5 font-mono text-[10px] text-zinc-600">N</kbd>
+          <span class="text-[11px] text-zinc-700">new</span>
+          <kbd class="ml-2 rounded border border-border bg-bg-raised px-1.5 py-0.5 font-mono text-[10px] text-zinc-600">R</kbd>
+          <span class="text-[11px] text-zinc-700">refresh</span>
+        </div>
+        <div class="h-4 w-px bg-white/[0.04]"></div>
+        <span class="flex items-center gap-1.5 text-[11px] text-zinc-600">
           <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-          Temporal connected
+          Connected
         </span>
       </div>
     </div>
   </header>
 
   {% if request.query_params.get("completed") %}
-  <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3500)"
-       x-transition:leave="transition ease-in duration-200"
+  <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
+       x-transition:leave="transition ease-in duration-150"
        x-transition:leave-start="opacity-100"
        x-transition:leave-end="opacity-0"
-       class="border-b border-emerald-500/10 bg-emerald-500/[0.06]">
-    <div class="mx-auto flex max-w-[1080px] items-center gap-2 px-6 py-2.5 text-[13px] text-emerald-400">
-      <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+       class="shrink-0 border-b border-emerald-500/10 bg-emerald-500/[0.04]">
+    <div class="mx-auto flex max-w-[1080px] items-center gap-2 px-6 py-2 text-[12px] text-emerald-400">
+      <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
       </svg>
       Task completed
@@ -45,13 +52,13 @@
   {% endif %}
 
   {% if request.query_params.get("started") %}
-  <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3500)"
-       x-transition:leave="transition ease-in duration-200"
+  <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
+       x-transition:leave="transition ease-in duration-150"
        x-transition:leave-start="opacity-100"
        x-transition:leave-end="opacity-0"
-       class="border-b border-blue-500/10 bg-blue-500/[0.06]">
-    <div class="mx-auto flex max-w-[1080px] items-center gap-2 px-6 py-2.5 text-[13px] text-blue-400">
-      <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+       class="shrink-0 border-b border-blue-500/10 bg-blue-500/[0.04]">
+    <div class="mx-auto flex max-w-[1080px] items-center gap-2 px-6 py-2 text-[12px] text-blue-400">
+      <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
       </svg>
       Workflow started
@@ -59,9 +66,18 @@
   </div>
   {% endif %}
 
-  <main class="mx-auto max-w-[1080px] px-6 py-8">
-    {% block content %}{% endblock %}
+  <main class="flex-1">
+    <div class="mx-auto max-w-[1080px] px-6 py-6">
+      {% block content %}{% endblock %}
+    </div>
   </main>
+
+  <footer class="shrink-0 border-t border-border">
+    <div class="mx-auto flex h-10 max-w-[1080px] items-center justify-between px-6">
+      <span class="text-[11px] text-zinc-700">Worksystems Task Console</span>
+      <span class="text-[11px] text-zinc-800">Temporal v1.25</span>
+    </div>
+  </footer>
 
   {% block scripts %}{% endblock %}
 

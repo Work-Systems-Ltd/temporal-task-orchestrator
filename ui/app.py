@@ -2,6 +2,7 @@ import json
 import os
 import uuid
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -32,10 +33,28 @@ app.mount("/static", StaticFiles(directory=os.path.join(_ui_dir, "static")), nam
 templates = Jinja2Templates(directory=os.path.join(_ui_dir, "templates"))
 
 
+def _relative_time(dt: datetime) -> str:
+    now = datetime.now(timezone.utc)
+    diff = now - dt
+    seconds = int(diff.total_seconds())
+    if seconds < 60:
+        return "just now"
+    minutes = seconds // 60
+    if minutes < 60:
+        return f"{minutes}m ago"
+    hours = minutes // 60
+    if hours < 24:
+        return f"{hours}h ago"
+    days = hours // 24
+    return f"{days}d ago"
+
+
 @app.get("/", response_class=HTMLResponse)
 async def task_list(request: Request):
     tasks = []
+    total_running = 0
     async for wf in temporal_client.list_workflows('ExecutionStatus="Running"'):
+        total_running += 1
         try:
             handle = temporal_client.get_workflow_handle(wf.id)
             raw = await handle.query("get_pending_task")
@@ -43,13 +62,22 @@ async def task_list(request: Request):
                 meta = json.loads(raw)
                 meta["workflow_id"] = wf.id
                 meta["workflow_type"] = wf.workflow_type
+                if wf.start_time:
+                    meta["started"] = _relative_time(wf.start_time)
+                else:
+                    meta["started"] = "—"
                 tasks.append(meta)
         except Exception:
             continue
 
+    stats = {
+        "pending": len(tasks),
+        "running": total_running,
+    }
+
     return templates.TemplateResponse(
         "task_list.html",
-        {"request": request, "tasks": tasks},
+        {"request": request, "tasks": tasks, "stats": stats},
     )
 
 
