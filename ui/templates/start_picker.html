@@ -17,18 +17,18 @@
   </a>
 
   <div class="mb-6">
-    <div class="flex items-center gap-3">
+    <div class="flex items-center justify-center gap-3">
       <template x-for="s in [1, 2, 3]" :key="s">
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-2">
-            <div class="flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold transition-colors"
-                 :class="step >= s ? 'bg-white text-black' : 'border border-border text-zinc-700'"
+            <div class="step-dot"
+                 :class="step >= s ? 'step-dot-active' : 'step-dot-inactive'"
                  x-text="s"></div>
             <span class="text-[12px] font-medium transition-colors"
                   :class="step >= s ? 'text-zinc-300' : 'text-zinc-700'"
                   x-text="s === 1 ? 'Select' : s === 2 ? 'Configure' : 'Confirm'"></span>
           </div>
-          <div x-show="s < 3" class="h-px w-8 transition-colors" :class="step > s ? 'bg-white/20' : 'bg-border'"></div>
+          <div x-show="s < 3" class="step-line" :class="step > s ? 'step-line-active' : 'step-line-inactive'"></div>
         </div>
       </template>
     </div>
@@ -80,10 +80,10 @@
                     class="w-full rounded-md border border-border bg-bg px-3 py-2 text-[13px] text-white placeholder-zinc-700 outline-none transition-colors hover:border-border-hover focus:border-zinc-500"></textarea>
         </div>
         <div class="mt-4 flex items-center justify-between border-t border-border pt-4">
-          <button @click="step = 1" type="button" class="text-[13px] text-zinc-600 transition-colors hover:text-zinc-400">Back</button>
+          <button @click="step = 1" type="button" class="btn btn-ghost">Back</button>
           <button @click="inputValue.trim() && (step = 3)" type="button"
                   :disabled="!inputValue.trim()"
-                  class="rounded-md bg-white px-4 py-1.5 text-[13px] font-medium text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40">
+                  class="btn btn-primary">
             Continue
           </button>
         </div>
@@ -109,9 +109,9 @@
         <form :action="'/start/' + selectedKey" method="post" @submit="submitting = true" class="mt-4 border-t border-border pt-4">
           <input type="hidden" name="input_value" :value="inputValue" />
           <div class="flex items-center justify-between">
-            <button @click.prevent="step = 2" type="button" class="text-[13px] text-zinc-600 transition-colors hover:text-zinc-400">Back</button>
+            <button @click.prevent="step = 2" type="button" class="btn btn-ghost">Back</button>
             <button type="submit" :disabled="submitting"
-                    class="relative rounded-md bg-white px-4 py-1.5 text-[13px] font-medium text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40">
+                    class="btn btn-primary relative">
               <span :class="submitting ? 'invisible' : ''">Start workflow</span>
               <span x-show="submitting" x-cloak class="absolute inset-0 flex items-center justify-center">
                 <svg class="h-3.5 w-3.5 animate-spin text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

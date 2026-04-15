@@ -34,3 +34,33 @@
     @apply rounded-full bg-white/10;
   }
 }
+
+@layer components {
+  .btn {
+    @apply rounded-md px-4 py-1.5 text-[13px] font-medium transition-colors;
+  }
+  .btn-primary {
+    @apply bg-white text-black hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-ghost {
+    @apply text-zinc-600 hover:text-zinc-400;
+  }
+  .step-dot {
+    @apply flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold transition-colors;
+  }
+  .step-dot-active {
+    @apply bg-white text-black;
+  }
+  .step-dot-inactive {
+    @apply border border-border text-zinc-700;
+  }
+  .step-line {
+    @apply h-px w-8 transition-colors;
+  }
+  .step-line-active {
+    @apply bg-white/20;
+  }
+  .step-line-inactive {
+    @apply bg-border;
+  }
+}
