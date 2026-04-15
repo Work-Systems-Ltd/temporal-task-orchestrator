@@ -1,0 +1,15 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "npm run build:css && npm run build:ts",
+    "build:css": "tailwindcss -i ui/src/input.css -o ui/static/css/style.css --minify",
+    "build:ts": "esbuild ui/src/*.ts --bundle --minify --outdir=ui/static/js",
+    "dev": "npm run dev:css & npm run dev:ts",
+    "dev:css": "tailwindcss -i ui/src/input.css -o ui/static/css/style.css --watch",
+    "dev:ts": "esbuild ui/src/*.ts --bundle --outdir=ui/static/js --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "esbuild": "^0.24.0"
+  }
+}

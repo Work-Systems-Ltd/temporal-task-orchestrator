@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Start Workflow — Task Console{% endblock %}
+
+{% block content %}
+<div x-data="{ submitting: false }" class="mx-auto max-w-lg">
+
+  <a href="/" class="mb-6 inline-flex items-center gap-1 text-sm text-zinc-400 transition hover:text-zinc-600">
+    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+    </svg>
+    All tasks
+  </a>
+
+  <div class="rounded-xl border border-zinc-200 bg-white shadow-sm">
+
+    <div class="border-b border-zinc-100 px-6 py-5">
+      <h1 class="text-lg font-semibold tracking-tight text-zinc-900">Start Approval Workflow</h1>
+      <p class="mt-1 text-sm text-zinc-500">Create a new request that requires human approval.</p>
+    </div>
+
+    <form method="post" action="/start" @submit="submitting = true" class="space-y-5 px-6 py-6">
+      <div class="space-y-1.5">
+        <label for="description" class="block text-sm font-medium text-zinc-700">Request Description</label>
+        <textarea id="description" name="description" rows="3"
+                  placeholder="e.g. Expense report: $500 for conference travel"
+                  class="w-full rounded-lg border px-3 py-2.5 text-sm shadow-sm outline-none transition
+                         {{ 'border-red-300 ring-2 ring-red-100' if errors.get('description') else 'border-zinc-300 hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10' }}"></textarea>
+        {% for err in errors.get("description", []) %}
+        <p class="text-xs text-red-600">{{ err }}</p>
+        {% endfor %}
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <a href="/" class="rounded-lg px-4 py-2.5 text-sm font-medium text-zinc-500 transition hover:bg-zinc-100">
+          Cancel
+        </a>
+        <button type="submit" :disabled="submitting"
+                class="relative rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition
+                       hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:ring-offset-2
+                       disabled:cursor-not-allowed disabled:opacity-60">
+          <span :class="submitting ? 'invisible' : ''">Start Workflow</span>
+          <span x-show="submitting" x-cloak class="absolute inset-0 flex items-center justify-center">
+            <svg class="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </span>
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
