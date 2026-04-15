@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
 
 from ui.config import TAB_ORDER
@@ -70,20 +70,33 @@ async def tasks_ws(
 ) -> None:
     await ws.accept()
 
-    # Default view params — client sends updates when user navigates
+    # Shared state between push loop and message handler.
+    # seq tracks the latest view the client requested — the push loop
+    # snapshots it before rendering so stale results are tagged correctly.
     tab = "pending"
     page = 1
     wf_type: str | None = None
     search: str | None = None
+    seq = 0
 
     async def push_loop() -> None:
-        nonlocal tab, page, wf_type, search
+        nonlocal tab, page, wf_type, search, seq
         while True:
+            snap_seq = seq
+            snap_tab = tab
+            snap_page = page
+            snap_wf_type = wf_type
+            snap_search = search
             try:
                 fragments = await _render_fragments(
-                    ws, templates, service, tab, page, wf_type, search,
+                    ws, templates, service,
+                    snap_tab, snap_page, snap_wf_type, snap_search,
                 )
-                await ws.send_json({"type": "update", **fragments})
+                await ws.send_json({
+                    "type": "update",
+                    "seq": snap_seq,
+                    **fragments,
+                })
             except WebSocketDisconnect:
                 return
             except Exception:
@@ -95,18 +108,22 @@ async def tasks_ws(
     try:
         while True:
             msg = await ws.receive_json()
-            # Client sends view params when user changes tab/page/filter
             if msg.get("type") == "view":
                 tab = msg.get("tab", "pending")
                 page = max(1, int(msg.get("page", 1)))
                 wf_type = msg.get("wf_type") or None
                 search = msg.get("search") or None
-                # Immediately push after view change
+                seq = int(msg.get("seq", 0))
+                # Immediate push for the new view
                 try:
                     fragments = await _render_fragments(
                         ws, templates, service, tab, page, wf_type, search,
                     )
-                    await ws.send_json({"type": "update", **fragments})
+                    await ws.send_json({
+                        "type": "update",
+                        "seq": seq,
+                        **fragments,
+                    })
                 except Exception:
                     pass
     except WebSocketDisconnect:
