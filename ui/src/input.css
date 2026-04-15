@@ -141,7 +141,8 @@
     @apply relative inline-flex items-center justify-center gap-1.5 rounded-md text-[13px] font-medium whitespace-nowrap transition-all outline-none;
   }
   .btn:focus-visible {
-    box-shadow: 0 0 0 2px var(--color-focus-ring-inner), 0 0 0 4px var(--color-focus-ring-outer);
+    outline: 2px solid var(--color-text-muted);
+    outline-offset: 1px;
   }
   .btn:disabled {
     @apply opacity-40 cursor-not-allowed pointer-events-none;
@@ -409,15 +410,13 @@
     border-color: var(--color-border-hover);
   }
   .input-field:focus {
-    border-color: rgb(113 113 122);
-    box-shadow: 0 0 0 3px rgba(113,113,122,0.08);
+    border-color: var(--color-text-muted);
   }
   .input-field-error {
     border-color: rgba(239,68,68,0.5);
   }
   .input-field-error:focus {
-    border-color: rgba(239,68,68,0.6);
-    box-shadow: 0 0 0 3px rgba(239,68,68,0.06);
+    border-color: rgba(239,68,68,0.7);
   }
 
   /* ── Search box ── */
@@ -443,9 +442,8 @@
     border-color: var(--color-border-hover);
   }
   .search-box-input:focus {
-    border-color: var(--color-border-hover);
+    border-color: var(--color-text-muted);
     background: var(--color-bg);
-    box-shadow: 0 0 0 3px var(--color-surface-hover);
   }
   .search-box-icon {
     @apply pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2;
