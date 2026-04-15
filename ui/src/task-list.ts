@@ -19,8 +19,7 @@ interface TaskListData {
   connected: boolean;
   ws: WebSocket | null;
   seq: number;
-  lastTabBar: string;
-  lastTabContent: string;
+  skipFirst: boolean;
   reconnectTimer: number | null;
   reconnectDelay: number;
   connect(): void;
@@ -48,9 +47,8 @@ function taskList(): TaskListData {
     loading: false,
     connected: false,
     ws: null,
-    seq: 1,
-    lastTabBar: "",
-    lastTabContent: "",
+    seq: 0,
+    skipFirst: true,
     reconnectTimer: null,
     reconnectDelay: 1000,
 
@@ -64,11 +62,8 @@ function taskList(): TaskListData {
       ws.onopen = () => {
         this.connected = true;
         this.reconnectDelay = 1000;
-        // Send current view params so the server knows what to push,
-        // but mark seq 0 so the first response is skipped (SSR is already correct).
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify(getViewParams(0)));
-        }
+        // Sync view params with server so the push loop knows what to render
+        this.sendView();
       };
 
       ws.onmessage = (event: MessageEvent) => {
@@ -122,22 +117,23 @@ function taskList(): TaskListData {
     applyUpdate(msg: UpdateMessage): void {
       // Drop stale updates from before the latest navigation
       if (msg.seq < this.seq) return;
-      if (document.hidden) return;
 
-      if (msg.tab_bar && msg.tab_bar !== this.lastTabBar) {
-        const tabBar = document.querySelector("[data-tab-bar]");
-        if (tabBar) {
-          tabBar.innerHTML = msg.tab_bar;
-          this.lastTabBar = msg.tab_bar;
-        }
+      // Skip the very first push — SSR already rendered the page
+      if (this.skipFirst) {
+        this.skipFirst = false;
+        return;
       }
 
-      if (msg.tab_content && msg.tab_content !== this.lastTabContent) {
-        const tabContent = document.querySelector("[data-tab-content]");
-        if (tabContent) {
-          tabContent.innerHTML = msg.tab_content;
-          this.lastTabContent = msg.tab_content;
-        }
+      if (document.hidden) return;
+
+      const tabBar = document.querySelector("[data-tab-bar]");
+      if (tabBar && msg.tab_bar) {
+        tabBar.innerHTML = msg.tab_bar;
+      }
+
+      const tabContent = document.querySelector("[data-tab-content]");
+      if (tabContent && msg.tab_content) {
+        tabContent.innerHTML = msg.tab_content;
       }
 
       this.loading = false;
