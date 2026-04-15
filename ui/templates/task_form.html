@@ -5,95 +5,90 @@
 {% set all_errors = (field.errors or []) + (extra_errors or []) %}
 {% set has_error = all_errors | length > 0 %}
 <div class="space-y-1.5">
-  <label for="{{ field.id }}" class="block text-sm font-medium text-zinc-700">
+  <label for="{{ field.id }}" class="block text-[13px] font-medium text-zinc-400">
     {{ field.label.text }}
   </label>
 
   {% if field.type == "SelectField" %}
   <div class="relative">
     <select id="{{ field.id }}" name="{{ field.name }}"
-            class="w-full appearance-none rounded-lg border px-3 py-2.5 pr-10 text-sm shadow-sm outline-none transition
-                   {{ 'border-red-300 ring-2 ring-red-100' if has_error else 'border-zinc-300 hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10' }}">
+            class="w-full appearance-none rounded-md border bg-bg px-3 py-2 pr-9 text-[13px] text-white outline-none transition-colors
+                   {{ 'border-red-500/50' if has_error else 'border-border hover:border-border-hover focus:border-zinc-500' }}">
       {% for val, label in field.choices %}
-      <option value="{{ val }}" {{ 'selected' if field.data == val else '' }}>{{ label }}</option>
+      <option value="{{ val }}" {{ 'selected' if field.data == val else '' }} class="bg-bg-overlay">{{ label }}</option>
       {% endfor %}
     </select>
-    <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-zinc-400">
-      <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+    <div class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-zinc-600">
+      <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
       </svg>
     </div>
   </div>
 
   {% elif field.type == "TextAreaField" %}
-  <textarea id="{{ field.id }}" name="{{ field.name }}" rows="4"
-            class="w-full rounded-lg border px-3 py-2.5 text-sm shadow-sm outline-none transition
-                   {{ 'border-red-300 ring-2 ring-red-100' if has_error else 'border-zinc-300 hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10' }}"
-            placeholder="">{{ field.data or '' }}</textarea>
+  <textarea id="{{ field.id }}" name="{{ field.name }}" rows="3"
+            class="w-full rounded-md border bg-bg px-3 py-2 text-[13px] text-white placeholder-zinc-700 outline-none transition-colors
+                   {{ 'border-red-500/50' if has_error else 'border-border hover:border-border-hover focus:border-zinc-500' }}">{{ field.data or '' }}</textarea>
 
   {% elif field.type == "BooleanField" %}
-  <div x-data="{ on: {{ 'true' if field.data else 'false' }} }" class="flex items-center gap-3">
+  <div x-data="{ on: {{ 'true' if field.data else 'false' }} }" class="flex items-center gap-2.5 pt-0.5">
     <input type="hidden" name="{{ field.name }}" :value="on ? 'y' : ''">
     <button type="button" @click="on = !on"
-            :class="on ? 'bg-zinc-900' : 'bg-zinc-200'"
-            class="relative h-6 w-11 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:ring-offset-2">
-      <span :class="on ? 'translate-x-5' : 'translate-x-0.5'"
-            class="inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform duration-200"></span>
+            :class="on ? 'bg-white' : 'bg-zinc-800 border-border'"
+            class="relative h-5 w-9 rounded-full border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-white/10 focus:ring-offset-2 focus:ring-offset-bg">
+      <span :class="on ? 'translate-x-4 bg-black' : 'translate-x-0.5 bg-zinc-500'"
+            class="block h-4 w-4 rounded-full transition-all duration-200"></span>
     </button>
-    <span class="text-sm text-zinc-500" x-text="on ? 'Yes' : 'No'"></span>
+    <span class="text-[13px] text-zinc-500" x-text="on ? 'Yes' : 'No'"></span>
   </div>
 
   {% else %}
   <input type="text" id="{{ field.id }}" name="{{ field.name }}" value="{{ field.data or '' }}"
-         class="w-full rounded-lg border px-3 py-2.5 text-sm shadow-sm outline-none transition
-                {{ 'border-red-300 ring-2 ring-red-100' if has_error else 'border-zinc-300 hover:border-zinc-400 focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10' }}" />
+         class="w-full rounded-md border bg-bg px-3 py-2 text-[13px] text-white placeholder-zinc-700 outline-none transition-colors
+                {{ 'border-red-500/50' if has_error else 'border-border hover:border-border-hover focus:border-zinc-500' }}" />
   {% endif %}
 
   {% for err in all_errors %}
-  <p class="text-xs text-red-600">{{ err }}</p>
+  <p class="text-[12px] text-red-400">{{ err }}</p>
   {% endfor %}
 </div>
 {% endmacro %}
 
 {% block content %}
-<div x-data="{ submitting: false }" class="mx-auto max-w-lg">
+<div x-data="{ submitting: false }" class="mx-auto max-w-[520px] animate-fade-in">
 
-  <a href="/" class="mb-6 inline-flex items-center gap-1 text-sm text-zinc-400 transition hover:text-zinc-600">
-    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+  <a href="/" class="mb-6 inline-flex items-center gap-1 text-[13px] text-zinc-600 transition-colors hover:text-zinc-300">
+    <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
-    All tasks
+    Back
   </a>
 
-  <div class="rounded-xl border border-zinc-200 bg-white shadow-sm">
+  <div class="overflow-hidden rounded-lg border border-border">
 
-    <div class="border-b border-zinc-100 px-6 py-5">
-      <div class="mb-2 flex items-center gap-2">
-        <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
-          {{ meta.task_type }}
-        </span>
+    <div class="border-b border-border bg-bg-raised px-5 py-4">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex rounded bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">{{ meta.task_type }}</span>
+        <span class="font-mono text-[11px] text-zinc-700">{{ workflow_id }}</span>
       </div>
-      <h1 class="text-lg font-semibold tracking-tight text-zinc-900">{{ meta.title }}</h1>
-      <p class="mt-1 text-sm text-zinc-500">{{ meta.description }}</p>
-      <p class="mt-2 font-mono text-xs text-zinc-400">{{ workflow_id }}</p>
+      <h1 class="mt-2 text-[15px] font-semibold text-white">{{ meta.title }}</h1>
+      <p class="mt-1 text-[13px] text-zinc-500">{{ meta.description }}</p>
     </div>
 
-    <form method="post" action="/task/{{ workflow_id }}" @submit="submitting = true" class="space-y-5 px-6 py-6">
+    <form method="post" action="/task/{{ workflow_id }}" @submit="submitting = true" class="space-y-5 bg-bg p-5">
       {% for field in form %}
         {{ render_field(field, errors.get(field.name)) }}
       {% endfor %}
 
-      <div class="flex items-center justify-end gap-3 pt-2">
-        <a href="/" class="rounded-lg px-4 py-2.5 text-sm font-medium text-zinc-500 transition hover:bg-zinc-100">
+      <div class="flex items-center justify-end gap-2 border-t border-border pt-4">
+        <a href="/" class="rounded-md px-3 py-1.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-zinc-300">
           Cancel
         </a>
         <button type="submit" :disabled="submitting"
-                class="relative rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition
-                       hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-900/20 focus:ring-offset-2
-                       disabled:cursor-not-allowed disabled:opacity-60">
+                class="relative rounded-md bg-white px-4 py-1.5 text-[13px] font-medium text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40">
           <span :class="submitting ? 'invisible' : ''">Submit</span>
           <span x-show="submitting" x-cloak class="absolute inset-0 flex items-center justify-center">
-            <svg class="h-4 w-4 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg class="h-3.5 w-3.5 animate-spin text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
             </svg>
