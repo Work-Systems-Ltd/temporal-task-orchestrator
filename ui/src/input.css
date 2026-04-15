@@ -138,7 +138,7 @@
 @layer components {
   /* ── Buttons ── */
   .btn {
-    @apply relative inline-flex items-center justify-center gap-1.5 rounded-md text-[13px] font-medium whitespace-nowrap transition-all outline-none;
+    @apply relative inline-flex items-center justify-center gap-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none;
   }
   .btn:focus-visible {
     outline: 2px solid var(--color-text-muted);
@@ -197,7 +197,7 @@
     transform: scale(0.95);
   }
   .btn-page {
-    @apply bg-transparent text-[12px] px-3 py-1 rounded-md;
+    @apply bg-transparent text-xs px-3 py-1 rounded-md;
     color: var(--color-text-muted);
     border: 1px solid var(--color-border);
   }
@@ -293,7 +293,7 @@
 
   /* ── Nav ── */
   .nav-link {
-    @apply relative inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium whitespace-nowrap;
+    @apply relative inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap;
     color: var(--color-text-muted);
     transition: all 0.2s ease;
   }
@@ -399,7 +399,7 @@
 
   /* ── Form inputs ── */
   .input-field {
-    @apply w-full rounded-md border bg-bg px-3 py-2 text-[13px] outline-none transition-all;
+    @apply w-full rounded-md border bg-bg px-3 py-2 text-sm outline-none transition-all;
     color: var(--color-text-primary);
     border-color: var(--color-border);
   }
@@ -429,7 +429,7 @@
     width: 100%;
   }
   .search-box-input {
-    @apply w-full rounded-md py-2 pl-9 pr-10 text-[13px] outline-none;
+    @apply w-full rounded-md py-2 pl-9 pr-10 text-sm outline-none;
     background: var(--color-bg-raised);
     color: var(--color-text-primary);
     border: 1px solid var(--color-glass-border);
@@ -544,7 +544,7 @@
 
   /* ── Back link ── */
   .back-link {
-    @apply mb-5 inline-flex items-center gap-1.5 text-[12px];
+    @apply mb-5 inline-flex items-center gap-1.5 text-xs;
     color: var(--color-text-faint);
     transition: all 0.15s ease;
   }
@@ -562,7 +562,7 @@
     backdrop-filter: blur(12px);
   }
   .dropdown-item {
-    @apply block px-3 py-2 text-[13px] transition-colors;
+    @apply block px-3 py-2 text-sm transition-colors;
     color: var(--color-text-secondary);
   }
   .dropdown-item:hover {
@@ -579,7 +579,7 @@
     @apply mb-4 flex items-center gap-0.5 border-b border-border;
   }
   .tab-item {
-    @apply relative flex items-center gap-2 px-3 py-2.5 text-[13px] transition-colors;
+    @apply relative flex items-center gap-2 px-3 py-2.5 text-sm transition-colors;
     color: var(--color-text-faint);
   }
   .tab-item:hover {
@@ -611,7 +611,7 @@
     @apply shrink-0;
   }
   .toast-inner {
-    @apply mx-auto flex max-w-[1080px] items-center gap-2.5 px-6 py-2.5 text-[12px] font-medium;
+    @apply mx-auto flex max-w-[1080px] items-center gap-2.5 px-6 py-2.5 text-xs font-medium;
   }
   .toast-icon {
     @apply flex h-5 w-5 items-center justify-center rounded-full;
@@ -687,18 +687,18 @@
     color: var(--color-text-muted);
   }
   .td-time {
-    @apply text-[12px] tabular-nums;
+    @apply text-xs tabular-nums;
     color: var(--color-text-faint);
   }
   .td-title {
-    @apply text-[13px] font-medium;
+    @apply text-sm font-medium;
     color: var(--color-text-secondary);
   }
   .group:hover .td-title {
     color: var(--color-text-primary);
   }
   .td-subtitle {
-    @apply mt-0.5 max-w-xs truncate text-[12px];
+    @apply mt-0.5 max-w-xs truncate text-xs;
     color: var(--color-text-ghost);
   }
   .group:hover .td-subtitle {
