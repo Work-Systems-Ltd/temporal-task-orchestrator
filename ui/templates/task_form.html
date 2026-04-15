@@ -5,7 +5,7 @@
 {% set all_errors = (field.errors or []) + (extra_errors or []) %}
 {% set has_error = all_errors | length > 0 %}
 <div class="space-y-1.5">
-  <label for="{{ field.id }}" class="block text-[13px] font-medium text-zinc-400">
+  <label for="{{ field.id }}" class="block text-[13px] font-medium text-secondary">
     {{ field.label.text }}
   </label>
 
@@ -17,7 +17,7 @@
       <option value="{{ val }}" {{ 'selected' if field.data == val else '' }} class="bg-bg-overlay">{{ label }}</option>
       {% endfor %}
     </select>
-    <div class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-zinc-600">
+    <div class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-faint">
       <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
       </svg>
@@ -37,7 +37,7 @@
       <span :class="on ? 'translate-x-4 bg-black' : 'translate-x-0.5 bg-zinc-500'"
             class="block h-4 w-4 rounded-full transition-all duration-200"></span>
     </button>
-    <span class="text-[13px] text-zinc-500" x-text="on ? 'Yes' : 'No'"></span>
+    <span class="text-[13px] text-muted" x-text="on ? 'Yes' : 'No'"></span>
   </div>
 
   {% else %}
@@ -66,10 +66,10 @@
     <div class="card-header">
       <div class="flex items-center gap-2.5">
         <span class="pill pill-amber">{{ meta.task_type }}</span>
-        <span class="font-mono text-[11px] text-zinc-700">{{ workflow_id }}</span>
+        <span class="font-mono text-[11px] text-ghost">{{ workflow_id }}</span>
       </div>
-      <h1 class="mt-2.5 text-[15px] font-semibold text-white">{{ meta.title }}</h1>
-      <p class="mt-1 text-[13px] text-zinc-500">{{ meta.description }}</p>
+      <h1 class="mt-2.5 text-[15px] font-semibold text-primary">{{ meta.title }}</h1>
+      <p class="mt-1 text-[13px] text-muted">{{ meta.description }}</p>
     </div>
 
     <form method="post" action="/task/{{ workflow_id }}" @submit="submitting = true" class="space-y-4 p-5">

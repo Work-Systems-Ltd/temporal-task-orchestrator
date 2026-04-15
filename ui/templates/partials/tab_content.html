@@ -5,8 +5,8 @@
 {% if tab == "pending" %}
 <div class="table-container">
   <table class="w-full text-left">
-    <thead>
-      <tr class="border-b border-border bg-bg-raised">
+    <thead class="table-head">
+      <tr>
         <th class="th">Task</th>
         <th class="hidden th sm:table-cell">Type</th>
         <th class="hidden th md:table-cell">Workflow ID</th>
@@ -16,24 +16,27 @@
     </thead>
     <tbody class="divide-y divide-border">
       {% for item in items %}
-      <tr class="group table-row animate-slide-up cursor-pointer"
-          style="animation-delay: {{ loop.index0 * 40 }}ms"
+      <tr class="group table-row table-row-clickable animate-slide-up"
+          style="animation-delay: {{ loop.index0 * 30 }}ms"
           onclick="window.location='/task/{{ item.workflow_id }}'">
-        <td class="px-3 py-3">
-          <div class="text-[13px] font-medium text-zinc-300 group-hover:text-white">{{ item.title }}</div>
-          <div class="mt-0.5 max-w-xs truncate text-[12px] text-zinc-700 group-hover:text-zinc-500">{{ item.description }}</div>
+        <td class="td">
+          <div class="td-title">{{ item.title }}</div>
+          <div class="td-subtitle">{{ item.description }}</div>
         </td>
-        <td class="hidden px-3 py-3 sm:table-cell">
+        <td class="hidden td sm:table-cell">
           <span class="tag">{{ item.task_type }}</span>
         </td>
-        <td class="hidden px-3 py-3 md:table-cell">
-          <span class="font-mono text-[11px] text-zinc-700">{{ item.workflow_id }}</span>
+        <td class="hidden td md:table-cell">
+          <span class="td-mono">{{ item.workflow_id }}</span>
         </td>
-        <td class="px-3 py-3">
-          <span class="text-[12px] tabular-nums text-zinc-600">{{ item.started }}</span>
+        <td class="td">
+          <span class="td-time">{{ item.started }}</span>
         </td>
-        <td class="px-3 py-3 text-right">
+        <td class="td text-right">
           {{ status_badge("pending") }}
+          <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
         </td>
       </tr>
       {% endfor %}
@@ -44,8 +47,8 @@
 {% else %}
 <div class="table-container">
   <table class="w-full text-left">
-    <thead>
-      <tr class="border-b border-border bg-bg-raised">
+    <thead class="table-head">
+      <tr>
         <th class="th">Workflow ID</th>
         <th class="hidden th sm:table-cell">Type</th>
         <th class="th">Started</th>
@@ -58,22 +61,22 @@
     <tbody class="divide-y divide-border">
       {% for item in items %}
       <tr class="group table-row animate-slide-up"
-          style="animation-delay: {{ loop.index0 * 40 }}ms">
-        <td class="px-3 py-3">
-          <span class="font-mono text-[12px] text-zinc-400 group-hover:text-zinc-200">{{ item.workflow_id }}</span>
+          style="animation-delay: {{ loop.index0 * 30 }}ms">
+        <td class="td">
+          <span class="font-mono text-[12px] text-secondary group-hover:text-primary">{{ item.workflow_id }}</span>
         </td>
-        <td class="hidden px-3 py-3 sm:table-cell">
+        <td class="hidden td sm:table-cell">
           <span class="tag">{{ item.workflow_type }}</span>
         </td>
-        <td class="px-3 py-3">
-          <span class="text-[12px] tabular-nums text-zinc-600">{{ item.started }}</span>
+        <td class="td">
+          <span class="td-time">{{ item.started }}</span>
         </td>
         {% if tab in ["completed", "failed", "all"] %}
-        <td class="hidden px-3 py-3 md:table-cell">
-          <span class="text-[12px] tabular-nums text-zinc-600">{{ item.duration }}</span>
+        <td class="hidden td md:table-cell">
+          <span class="td-time">{{ item.duration }}</span>
         </td>
         {% endif %}
-        <td class="px-3 py-3 text-right">
+        <td class="td text-right">
           {{ status_badge(item.status) }}
         </td>
       </tr>
@@ -83,8 +86,8 @@
 </div>
 {% endif %}
 
-<div class="mt-4 flex items-center justify-between">
-  <span class="text-[12px] tabular-nums text-zinc-700">Page {{ page }}</span>
+<div class="mt-4 flex items-center justify-between border-t border-border pt-4">
+  <span class="text-[12px] tabular-nums text-faint">Page {{ page }}</span>
   <div class="flex items-center gap-1.5">
     {% if has_prev %}
     <a href="/?tab={{ tab }}&page={{ page - 1 }}{% if wf_type %}&type={{ wf_type }}{% endif %}" class="btn btn-page">Previous</a>
@@ -102,13 +105,18 @@
 {% else %}
 <div class="empty-state">
   <div class="empty-state-icon">
-    <svg class="h-5 w-5 text-zinc-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+    <svg class="h-6 w-6 text-faint" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
     </svg>
   </div>
-  <p class="mt-3 text-[13px] text-zinc-500">No {{ tab }} workflows</p>
+  <p class="mt-4 text-[13px] text-muted">No {{ tab }} workflows</p>
   {% if tab == "pending" %}
-  <p class="mt-1 text-[12px] text-zinc-700">Press <kbd class="rounded border border-border bg-bg-raised px-1 py-0.5 font-mono text-[10px] text-zinc-600">N</kbd> to start a workflow</p>
+  <a href="/start" class="btn btn-primary mt-4">
+    <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+    Start a workflow
+  </a>
   {% endif %}
 </div>
 {% endif %}

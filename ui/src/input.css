@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .text-primary   { color: var(--color-text-primary); }
+  .text-secondary { color: var(--color-text-secondary); }
+  .text-muted     { color: var(--color-text-muted); }
+  .text-faint     { color: var(--color-text-faint); }
+  .text-ghost     { color: var(--color-text-ghost); }
+}
+
 @font-face {
   font-family: "Inter";
   font-style: normal;
@@ -583,11 +591,10 @@
 
   /* ── Empty state ── */
   .empty-state {
-    @apply flex flex-col items-center justify-center rounded-lg py-20;
-    border: 1px dashed var(--color-empty-border);
+    @apply flex flex-col items-center justify-center rounded-lg py-24;
   }
   .empty-state-icon {
-    @apply flex h-12 w-12 items-center justify-center rounded-lg;
+    @apply flex h-14 w-14 items-center justify-center rounded-xl;
     border: 1px solid var(--color-empty-icon-border);
     background: var(--color-empty-icon-bg);
   }
@@ -630,16 +637,73 @@
   .table-container {
     @apply overflow-hidden rounded-lg;
     border: 1px solid var(--color-border);
+    box-shadow: 0 1px 3px var(--color-glass-shadow), 0 0 0 1px rgba(255,255,255,0.02);
+  }
+  .table-head {
+    background: var(--color-surface-subtle);
+  }
+  .table-head th:first-child {
+    padding-left: 1.125rem;
+  }
+  .table-head th:last-child {
+    padding-right: 1.125rem;
   }
   .th {
-    @apply px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider;
+    @apply py-3 px-4 text-[11px] font-medium uppercase tracking-wider;
     color: var(--color-text-faint);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .td {
+    @apply px-4 py-3.5;
+  }
+  .td:first-child {
+    padding-left: 1.125rem;
+  }
+  .td:last-child {
+    padding-right: 1.125rem;
   }
   .table-row {
-    @apply transition-colors;
+    transition: all 0.15s ease;
   }
   .table-row:hover {
-    background: var(--color-surface-subtle);
+    background: var(--color-surface-hover);
+  }
+  .table-row-clickable {
+    @apply cursor-pointer;
+  }
+  .table-row-clickable:hover {
+    background: var(--color-surface-hover);
+    box-shadow: inset 3px 0 0 var(--color-active-indicator);
+  }
+  .td-mono {
+    @apply font-mono text-[11px];
+    color: var(--color-text-muted);
+  }
+  .td-time {
+    @apply text-[12px] tabular-nums;
+    color: var(--color-text-faint);
+  }
+  .td-title {
+    @apply text-[13px] font-medium;
+    color: var(--color-text-secondary);
+  }
+  .group:hover .td-title {
+    color: var(--color-text-primary);
+  }
+  .td-subtitle {
+    @apply mt-0.5 max-w-xs truncate text-[12px];
+    color: var(--color-text-ghost);
+  }
+  .group:hover .td-subtitle {
+    color: var(--color-text-faint);
+  }
+  .row-chevron {
+    @apply ml-2 inline-block h-3.5 w-3.5 opacity-0 transition-opacity;
+    color: var(--color-text-ghost);
+    vertical-align: middle;
+  }
+  .table-row-clickable:hover .row-chevron {
+    opacity: 1;
   }
 
   /* ── Skeleton loader ── */

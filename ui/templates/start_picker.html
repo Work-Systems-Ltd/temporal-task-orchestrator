@@ -25,7 +25,7 @@
                  :class="step >= s ? 'step-dot-active' : 'step-dot-inactive'"
                  x-text="s"></div>
             <span class="text-[12px] font-medium transition-colors"
-                  :class="step >= s ? 'text-zinc-300' : 'text-zinc-700'"
+                  :class="step >= s ? 'text-secondary' : 'text-ghost'"
                   x-text="s === 1 ? 'Select' : s === 2 ? 'Configure' : 'Confirm'"></span>
           </div>
           <div x-show="s < 3" class="step-line" :class="step > s ? 'step-line-active' : 'step-line-inactive'"></div>
@@ -39,8 +39,8 @@
     <template x-if="step === 1">
       <div>
         <div class="card-header">
-          <h1 class="text-[15px] font-semibold text-white">Choose a workflow</h1>
-          <p class="mt-1 text-[13px] text-zinc-500">Select the type of workflow to start</p>
+          <h1 class="text-[15px] font-semibold text-primary">Choose a workflow</h1>
+          <p class="mt-1 text-[13px] text-muted">Select the type of workflow to start</p>
         </div>
         <div class="p-4">
           <div class="search-box mb-3">
@@ -55,15 +55,15 @@
               <button @click="selectWorkflow(wf)" type="button"
                       class="group picker-item">
                 <div>
-                  <div class="text-[13px] font-medium text-zinc-300 group-hover:text-white" x-text="wf.label"></div>
-                  <div class="mt-0.5 text-[12px] text-zinc-600" x-text="wf.description"></div>
+                  <div class="text-[13px] font-medium text-secondary group-hover:text-primary" x-text="wf.label"></div>
+                  <div class="mt-0.5 text-[12px] text-faint" x-text="wf.description"></div>
                 </div>
-                <svg class="h-4 w-4 shrink-0 text-zinc-700 transition-colors group-hover:text-zinc-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <svg class="h-4 w-4 shrink-0 text-ghost transition-colors group-hover:text-secondary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                 </svg>
               </button>
             </template>
-            <div x-show="filteredWorkflows.length === 0" class="py-6 text-center text-[13px] text-zinc-600">No matching workflows</div>
+            <div x-show="filteredWorkflows.length === 0" class="py-6 text-center text-[13px] text-faint">No matching workflows</div>
           </div>
         </div>
       </div>
@@ -72,12 +72,12 @@
     <template x-if="step === 2">
       <div>
         <div class="card-header">
-          <h1 class="text-[15px] font-semibold text-white" x-text="selectedLabel"></h1>
-          <p class="mt-1 text-[13px] text-zinc-500" x-text="selectedDesc"></p>
+          <h1 class="text-[15px] font-semibold text-primary" x-text="selectedLabel"></h1>
+          <p class="mt-1 text-[13px] text-muted" x-text="selectedDesc"></p>
         </div>
         <div class="p-5">
           <div class="space-y-1.5">
-            <label class="block text-[13px] font-medium text-zinc-400" x-text="inputLabel"></label>
+            <label class="block text-[13px] font-medium text-secondary" x-text="inputLabel"></label>
             <textarea x-ref="inputField" x-model="inputValue" rows="3"
                       :placeholder="inputPlaceholder"
                       class="input-field"></textarea>
@@ -97,18 +97,18 @@
     <template x-if="step === 3">
       <div>
         <div class="card-header">
-          <h1 class="text-[15px] font-semibold text-white">Confirm and start</h1>
-          <p class="mt-1 text-[13px] text-zinc-500">Review the details below before starting</p>
+          <h1 class="text-[15px] font-semibold text-primary">Confirm and start</h1>
+          <p class="mt-1 text-[13px] text-muted">Review the details below before starting</p>
         </div>
         <div class="p-5">
           <dl class="space-y-3">
             <div>
-              <dt class="text-[11px] font-medium uppercase tracking-wider text-zinc-600">Workflow</dt>
-              <dd class="mt-0.5 text-[13px] text-zinc-300" x-text="selectedLabel"></dd>
+              <dt class="text-[11px] font-medium uppercase tracking-wider text-faint">Workflow</dt>
+              <dd class="mt-0.5 text-[13px] text-secondary" x-text="selectedLabel"></dd>
             </div>
             <div>
-              <dt class="text-[11px] font-medium uppercase tracking-wider text-zinc-600" x-text="inputLabel"></dt>
-              <dd class="mt-0.5 text-[13px] text-zinc-300" x-text="inputValue"></dd>
+              <dt class="text-[11px] font-medium uppercase tracking-wider text-faint" x-text="inputLabel"></dt>
+              <dd class="mt-0.5 text-[13px] text-secondary" x-text="inputValue"></dd>
             </div>
           </dl>
           <form :action="'/start/' + selectedKey" method="post" @submit="submitting = true" class="mt-4 border-t border-border pt-4">
