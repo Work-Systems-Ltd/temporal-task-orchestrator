@@ -57,31 +57,34 @@
 {% block content %}
 <div x-data="{ submitting: false }" class="mx-auto max-w-[520px] animate-fade-in">
 
-  <a href="/" class="mb-6 inline-flex items-center gap-1 text-[13px] text-zinc-600 transition-colors hover:text-zinc-300">
+  <a href="/" class="mb-5 inline-flex items-center gap-1 text-[12px] text-zinc-600 transition-colors hover:text-zinc-400">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
-    Back
+    Back to tasks
   </a>
 
   <div class="overflow-hidden rounded-lg border border-border">
 
     <div class="border-b border-border bg-bg-raised px-5 py-4">
-      <div class="flex items-center gap-2">
-        <span class="inline-flex rounded bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">{{ meta.task_type }}</span>
+      <div class="flex items-center gap-2.5">
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-400">
+          <span class="h-1 w-1 rounded-full bg-current"></span>
+          {{ meta.task_type }}
+        </span>
         <span class="font-mono text-[11px] text-zinc-700">{{ workflow_id }}</span>
       </div>
-      <h1 class="mt-2 text-[15px] font-semibold text-white">{{ meta.title }}</h1>
+      <h1 class="mt-2.5 text-[15px] font-semibold text-white">{{ meta.title }}</h1>
       <p class="mt-1 text-[13px] text-zinc-500">{{ meta.description }}</p>
     </div>
 
-    <form method="post" action="/task/{{ workflow_id }}" @submit="submitting = true" class="space-y-5 bg-bg p-5">
+    <form method="post" action="/task/{{ workflow_id }}" @submit="submitting = true" class="space-y-4 p-5">
       {% for field in form %}
         {{ render_field(field, errors.get(field.name)) }}
       {% endfor %}
 
       <div class="flex items-center justify-end gap-2 border-t border-border pt-4">
-        <a href="/" class="rounded-md px-3 py-1.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-zinc-300">
+        <a href="/" class="rounded-md px-3 py-1.5 text-[13px] text-zinc-600 transition-colors hover:text-zinc-400">
           Cancel
         </a>
         <button type="submit" :disabled="submitting"
