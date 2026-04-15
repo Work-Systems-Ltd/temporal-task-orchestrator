@@ -136,7 +136,7 @@
 @layer components {
   /* ── Buttons ── */
   .btn {
-    @apply relative inline-flex items-center justify-center gap-1.5 rounded-lg text-[13px] font-medium whitespace-nowrap transition-all outline-none;
+    @apply relative inline-flex items-center justify-center gap-1.5 rounded-md text-[13px] font-medium whitespace-nowrap transition-all outline-none;
   }
   .btn:focus-visible {
     box-shadow: 0 0 0 2px var(--color-focus-ring-inner), 0 0 0 4px var(--color-focus-ring-outer);
@@ -194,7 +194,7 @@
     transform: scale(0.95);
   }
   .btn-page {
-    @apply bg-transparent text-[12px] px-3 py-1 rounded-lg;
+    @apply bg-transparent text-[12px] px-3 py-1 rounded-md;
     color: var(--color-text-muted);
     border: 1px solid var(--color-border);
   }
@@ -316,7 +316,7 @@
 
   /* ── Theme toggle ── */
   .theme-toggle {
-    @apply relative inline-flex items-center justify-center rounded-lg p-1.5 transition-all;
+    @apply relative inline-flex items-center justify-center rounded-md p-1.5 transition-all;
     color: var(--color-text-faint);
     border: 1px solid transparent;
   }
@@ -396,7 +396,7 @@
 
   /* ── Form inputs ── */
   .input-field {
-    @apply w-full rounded-lg border bg-bg px-3 py-2 text-[13px] outline-none transition-all;
+    @apply w-full rounded-md border bg-bg px-3 py-2 text-[13px] outline-none transition-all;
     color: var(--color-text-primary);
     border-color: var(--color-border);
   }
@@ -423,7 +423,7 @@
     @apply relative flex-1;
   }
   .search-box-input {
-    @apply w-full rounded-lg py-2 pl-9 pr-10 text-[13px] outline-none;
+    @apply w-full rounded-md py-2 pl-9 pr-10 text-[13px] outline-none;
     background: var(--color-bg-raised);
     color: var(--color-text-primary);
     border: 1px solid var(--color-glass-border);
@@ -525,7 +525,7 @@
 
   /* ── Cards ── */
   .card {
-    @apply overflow-hidden rounded-lg;
+    @apply overflow-hidden rounded-md;
     border: 1px solid var(--color-border);
   }
   .card-header {
@@ -548,7 +548,7 @@
 
   /* ── Dropdown menu ── */
   .dropdown-menu {
-    @apply absolute right-0 z-10 mt-1.5 w-48 overflow-hidden rounded-lg shadow-xl;
+    @apply absolute right-0 z-10 mt-1.5 w-48 overflow-hidden rounded-md shadow-xl;
     border: 1px solid var(--color-border);
     background: var(--color-dropdown-bg);
     -webkit-backdrop-filter: blur(12px);
@@ -591,10 +591,10 @@
 
   /* ── Empty state ── */
   .empty-state {
-    @apply flex flex-col items-center justify-center rounded-lg py-24;
+    @apply flex flex-col items-center justify-center rounded-md py-24;
   }
   .empty-state-icon {
-    @apply flex h-14 w-14 items-center justify-center rounded-xl;
+    @apply flex h-14 w-14 items-center justify-center rounded-md;
     border: 1px solid var(--color-empty-icon-border);
     background: var(--color-empty-icon-bg);
   }
@@ -635,7 +635,7 @@
 
   /* ── Table ── */
   .table-container {
-    @apply overflow-hidden rounded-lg;
+    @apply overflow-hidden rounded-md;
     border: 1px solid var(--color-border);
     box-shadow: 0 1px 3px var(--color-glass-shadow), 0 0 0 1px rgba(255,255,255,0.02);
   }
@@ -725,7 +725,7 @@
 
   /* ── Workflow picker item ── */
   .picker-item {
-    @apply flex w-full items-center justify-between rounded-lg p-3 text-left;
+    @apply flex w-full items-center justify-between rounded-md p-3 text-left;
     border: 1px solid var(--color-glass-border);
     transition: all 0.15s ease;
   }

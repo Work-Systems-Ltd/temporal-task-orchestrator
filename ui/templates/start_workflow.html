@@ -14,13 +14,13 @@
   <div class="card">
 
     <div class="card-header">
-      <h1 class="text-[15px] font-semibold text-white">{{ wf.label }}</h1>
-      <p class="mt-1 text-[13px] text-zinc-500">{{ wf.description }}</p>
+      <h1 class="text-[15px] font-semibold text-primary">{{ wf.label }}</h1>
+      <p class="mt-1 text-[13px] text-muted">{{ wf.description }}</p>
     </div>
 
     <form method="post" action="/start/{{ wf.key }}" @submit="submitting = true" class="space-y-4 p-5">
       <div class="space-y-1.5">
-        <label for="input_value" class="block text-[13px] font-medium text-zinc-400">{{ wf.input_label }}</label>
+        <label for="input_value" class="block text-[13px] font-medium text-secondary">{{ wf.input_label }}</label>
         <textarea id="input_value" name="input_value" rows="3"
                   placeholder="{{ wf.input_placeholder }}"
                   class="input-field {{ 'input-field-error' if errors.get('input_value') else '' }}"></textarea>
