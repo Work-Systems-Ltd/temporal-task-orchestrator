@@ -19,6 +19,8 @@ interface TaskListData {
   connected: boolean;
   ws: WebSocket | null;
   seq: number;
+  lastTabBar: string;
+  lastTabContent: string;
   reconnectTimer: number | null;
   reconnectDelay: number;
   connect(): void;
@@ -47,6 +49,8 @@ function taskList(): TaskListData {
     connected: false,
     ws: null,
     seq: 0,
+    lastTabBar: "",
+    lastTabContent: "",
     reconnectTimer: null,
     reconnectDelay: 1000,
 
@@ -116,14 +120,20 @@ function taskList(): TaskListData {
       if (msg.seq < this.seq) return;
       if (document.hidden) return;
 
-      const tabBar = document.querySelector("[data-tab-bar]");
-      if (tabBar && msg.tab_bar && tabBar.innerHTML !== msg.tab_bar) {
-        tabBar.innerHTML = msg.tab_bar;
+      if (msg.tab_bar && msg.tab_bar !== this.lastTabBar) {
+        const tabBar = document.querySelector("[data-tab-bar]");
+        if (tabBar) {
+          tabBar.innerHTML = msg.tab_bar;
+          this.lastTabBar = msg.tab_bar;
+        }
       }
 
-      const tabContent = document.querySelector("[data-tab-content]");
-      if (tabContent && msg.tab_content && tabContent.innerHTML !== msg.tab_content) {
-        tabContent.innerHTML = msg.tab_content;
+      if (msg.tab_content && msg.tab_content !== this.lastTabContent) {
+        const tabContent = document.querySelector("[data-tab-content]");
+        if (tabContent) {
+          tabContent.innerHTML = msg.tab_content;
+          this.lastTabContent = msg.tab_content;
+        }
       }
 
       this.loading = false;
