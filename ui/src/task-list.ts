@@ -48,7 +48,7 @@ function taskList(): TaskListData {
     loading: false,
     connected: false,
     ws: null,
-    seq: 0,
+    seq: 1,
     lastTabBar: "",
     lastTabContent: "",
     reconnectTimer: null,
@@ -64,7 +64,11 @@ function taskList(): TaskListData {
       ws.onopen = () => {
         this.connected = true;
         this.reconnectDelay = 1000;
-        this.sendView();
+        // Send current view params so the server knows what to push,
+        // but mark seq 0 so the first response is skipped (SSR is already correct).
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify(getViewParams(0)));
+        }
       };
 
       ws.onmessage = (event: MessageEvent) => {
