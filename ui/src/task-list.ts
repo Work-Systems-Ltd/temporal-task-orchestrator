@@ -117,12 +117,12 @@ function taskList(): TaskListData {
       if (document.hidden) return;
 
       const tabBar = document.querySelector("[data-tab-bar]");
-      if (tabBar && msg.tab_bar) {
+      if (tabBar && msg.tab_bar && tabBar.innerHTML !== msg.tab_bar) {
         tabBar.innerHTML = msg.tab_bar;
       }
 
       const tabContent = document.querySelector("[data-tab-content]");
-      if (tabContent && msg.tab_content) {
+      if (tabContent && msg.tab_content && tabContent.innerHTML !== msg.tab_content) {
         tabContent.innerHTML = msg.tab_content;
       }
 
