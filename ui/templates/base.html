@@ -18,7 +18,7 @@
       <div class="h-4 w-px bg-white/[0.06]"></div>
       <nav class="flex items-center gap-0.5">
         <a href="/" class="rounded-md px-2.5 py-1 text-[13px] transition-colors {% if request.url.path == '/' %}text-white bg-white/[0.06]{% else %}text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]{% endif %}">Tasks</a>
-        <a href="/start" class="rounded-md px-2.5 py-1 text-[13px] transition-colors {% if request.url.path == '/start' %}text-white bg-white/[0.06]{% else %}text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]{% endif %}">New</a>
+        <a href="/start" class="rounded-md px-2.5 py-1 text-[13px] transition-colors {% if request.url.path.startswith('/start') %}text-white bg-white/[0.06]{% else %}text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03]{% endif %}">New</a>
       </nav>
       <div class="ml-auto flex items-center gap-3">
         <div class="hidden items-center gap-1.5 sm:flex">
@@ -28,10 +28,6 @@
           <span class="text-[11px] text-zinc-700">refresh</span>
         </div>
         <div class="h-4 w-px bg-white/[0.04]"></div>
-        <span class="flex items-center gap-1.5 text-[11px] text-zinc-600">
-          <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-          Connected
-        </span>
       </div>
     </div>
   </header>

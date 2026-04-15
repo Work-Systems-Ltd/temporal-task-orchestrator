@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}New Workflow — Task Console{% endblock %}
+
+{% block content %}
+<div class="mx-auto max-w-[520px] animate-fade-in">
+
+  <a href="/" class="mb-5 inline-flex items-center gap-1 text-[12px] text-zinc-600 transition-colors hover:text-zinc-400">
+    <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+    </svg>
+    Back to tasks
+  </a>
+
+  <h1 class="mb-4 text-[15px] font-semibold text-white">Choose a workflow</h1>
+
+  <div class="space-y-2">
+    {% for wf in workflows %}
+    <a href="/start/{{ wf.key }}"
+       class="group flex items-center justify-between rounded-lg border border-border p-4 transition-colors hover:border-border-hover hover:bg-white/[0.015]">
+      <div>
+        <div class="text-[13px] font-medium text-zinc-300 group-hover:text-white">{{ wf.label }}</div>
+        <div class="mt-0.5 text-[12px] text-zinc-600">{{ wf.description }}</div>
+      </div>
+      <svg class="h-4 w-4 shrink-0 text-zinc-700 transition-colors group-hover:text-zinc-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+      </svg>
+    </a>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

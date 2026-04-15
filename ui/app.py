@@ -12,8 +12,9 @@ from pydantic import ValidationError
 from temporalio.client import Client
 
 import human_tasks.tasks  # noqa: F401
+import workflows  # noqa: F401
 from human_tasks.registry import get_task
-from workflows.approval import ApprovalWorkflow
+from workflows.registry import get_all_workflows, get_workflow
 
 temporal_client: Client | None = None
 
@@ -90,6 +91,15 @@ def _status_name(status) -> str:
     return status.name.lower().replace("_", " ")
 
 
+def _build_query(base_query: str | None, wf_type: str | None) -> str | None:
+    parts = []
+    if base_query:
+        parts.append(base_query)
+    if wf_type:
+        parts.append(f'WorkflowType="{wf_type}"')
+    return " AND ".join(parts) if parts else None
+
+
 async def _count_workflows(query: str | None) -> int:
     count = 0
     async for _ in temporal_client.list_workflows(query, page_size=100):
@@ -97,9 +107,12 @@ async def _count_workflows(query: str | None) -> int:
     return count
 
 
-async def _count_pending() -> int:
+async def _count_pending(wf_type: str | None = None) -> int:
     count = 0
-    async for wf in temporal_client.list_workflows('ExecutionStatus="Running"', page_size=100):
+    query = 'ExecutionStatus="Running"'
+    if wf_type:
+        query += f' AND WorkflowType="{wf_type}"'
+    async for wf in temporal_client.list_workflows(query, page_size=100):
         try:
             handle = temporal_client.get_workflow_handle(wf.id)
             raw = await handle.query("get_pending_task")
@@ -110,19 +123,23 @@ async def _count_pending() -> int:
     return count
 
 
-async def _get_tab_counts() -> dict[str, int]:
+async def _get_tab_counts(wf_type: str | None = None) -> dict[str, int]:
     counts = {}
     for tab in TAB_ORDER:
         if tab == "pending":
-            counts[tab] = await _count_pending()
+            counts[tab] = await _count_pending(wf_type)
         else:
-            counts[tab] = await _count_workflows(STATUS_QUERIES[tab])
+            q = _build_query(STATUS_QUERIES[tab], wf_type)
+            counts[tab] = await _count_workflows(q)
     return counts
 
 
-async def _list_pending(page: int) -> tuple[list[dict], bool]:
+async def _list_pending(page: int, wf_type: str | None = None) -> tuple[list[dict], bool]:
     all_pending = []
-    async for wf in temporal_client.list_workflows('ExecutionStatus="Running"'):
+    query = 'ExecutionStatus="Running"'
+    if wf_type:
+        query += f' AND WorkflowType="{wf_type}"'
+    async for wf in temporal_client.list_workflows(query):
         try:
             handle = temporal_client.get_workflow_handle(wf.id)
             raw = await handle.query("get_pending_task")
@@ -143,8 +160,8 @@ async def _list_pending(page: int) -> tuple[list[dict], bool]:
     return items, has_next
 
 
-async def _list_workflows(tab: str, page: int) -> tuple[list[dict], bool]:
-    query = STATUS_QUERIES.get(tab)
+async def _list_workflows(tab: str, page: int, wf_type: str | None = None) -> tuple[list[dict], bool]:
+    query = _build_query(STATUS_QUERIES.get(tab), wf_type)
     items = []
     skip = (page - 1) * PAGE_SIZE
     collected = 0
@@ -173,6 +190,10 @@ async def _list_workflows(tab: str, page: int) -> tuple[list[dict], bool]:
     return items[:PAGE_SIZE], has_next
 
 
+def _get_workflow_types() -> list[str]:
+    return [wf.workflow_cls.__name__ for wf in get_all_workflows()]
+
+
 @app.get("/", response_class=HTMLResponse)
 async def task_list(request: Request):
     tab = request.query_params.get("tab", "pending")
@@ -183,12 +204,14 @@ async def task_list(request: Request):
     if page < 1:
         page = 1
 
-    counts = await _get_tab_counts()
+    wf_type = request.query_params.get("type") or None
+
+    counts = await _get_tab_counts(wf_type)
 
     if tab == "pending":
-        items, has_next = await _list_pending(page)
+        items, has_next = await _list_pending(page, wf_type)
     else:
-        items, has_next = await _list_workflows(tab, page)
+        items, has_next = await _list_workflows(tab, page, wf_type)
 
     return templates.TemplateResponse(
         "task_list.html",
@@ -201,6 +224,8 @@ async def task_list(request: Request):
             "page": page,
             "has_next": has_next,
             "has_prev": page > 1,
+            "wf_type": wf_type,
+            "workflow_types": _get_workflow_types(),
         },
     )
 
@@ -278,25 +303,46 @@ async def task_submit(request: Request, workflow_id: str):
 
 
 @app.get("/start", response_class=HTMLResponse)
-async def start_form(request: Request):
-    return templates.TemplateResponse("start_workflow.html", {"request": request, "errors": {}})
+async def start_picker(request: Request):
+    return templates.TemplateResponse(
+        "start_picker.html",
+        {"request": request, "workflows": get_all_workflows()},
+    )
 
 
-@app.post("/start", response_class=HTMLResponse)
-async def start_submit(request: Request):
+@app.get("/start/{workflow_key}", response_class=HTMLResponse)
+async def start_form(request: Request, workflow_key: str):
+    try:
+        wf_def = get_workflow(workflow_key)
+    except KeyError:
+        return RedirectResponse(url="/start", status_code=303)
+
+    return templates.TemplateResponse(
+        "start_workflow.html",
+        {"request": request, "wf": wf_def, "errors": {}},
+    )
+
+
+@app.post("/start/{workflow_key}", response_class=HTMLResponse)
+async def start_submit(request: Request, workflow_key: str):
+    try:
+        wf_def = get_workflow(workflow_key)
+    except KeyError:
+        return RedirectResponse(url="/start", status_code=303)
+
     form_data = await request.form()
-    description = form_data.get("description", "").strip()
+    input_value = form_data.get("input_value", "").strip()
 
-    if not description:
+    if not input_value:
         return templates.TemplateResponse(
             "start_workflow.html",
-            {"request": request, "errors": {"description": ["Description is required."]}},
+            {"request": request, "wf": wf_def, "errors": {"input_value": ["This field is required."]}},
         )
 
-    workflow_id = f"approval-{uuid.uuid4().hex[:8]}"
+    workflow_id = f"{workflow_key}-{uuid.uuid4().hex[:8]}"
     await temporal_client.start_workflow(
-        ApprovalWorkflow.run,
-        description,
+        wf_def.workflow_cls.run,
+        input_value,
         id=workflow_id,
         task_queue="hello-world-task-queue",
     )

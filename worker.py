@@ -10,6 +10,12 @@ from workflows.approval import (
     process_approval,
     process_rejection,
 )
+from workflows.onboarding import (
+    OnboardingWorkflow,
+    create_onboarding_ticket,
+    provision_equipment,
+    setup_accounts,
+)
 
 
 async def main():
@@ -18,8 +24,15 @@ async def main():
     worker = Worker(
         client,
         task_queue="hello-world-task-queue",
-        workflows=[ApprovalWorkflow],
-        activities=[log_request, process_approval, process_rejection],
+        workflows=[ApprovalWorkflow, OnboardingWorkflow],
+        activities=[
+            log_request,
+            process_approval,
+            process_rejection,
+            create_onboarding_ticket,
+            provision_equipment,
+            setup_accounts,
+        ],
     )
     print("Worker started, listening on 'hello-world-task-queue'...")
     await worker.run()

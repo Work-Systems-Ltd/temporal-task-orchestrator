@@ -1,37 +1,37 @@
 {% extends "base.html" %}
-{% block title %}New Workflow — Task Console{% endblock %}
+{% block title %}{{ wf.label }} — Task Console{% endblock %}
 
 {% block content %}
 <div x-data="{ submitting: false }" class="mx-auto max-w-[520px] animate-fade-in">
 
-  <a href="/" class="mb-5 inline-flex items-center gap-1 text-[12px] text-zinc-600 transition-colors hover:text-zinc-400">
+  <a href="/start" class="mb-5 inline-flex items-center gap-1 text-[12px] text-zinc-600 transition-colors hover:text-zinc-400">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
-    Back to tasks
+    Back to workflows
   </a>
 
   <div class="overflow-hidden rounded-lg border border-border">
 
     <div class="border-b border-border bg-bg-raised px-5 py-4">
-      <h1 class="text-[15px] font-semibold text-white">Start approval workflow</h1>
-      <p class="mt-1 text-[13px] text-zinc-500">Create a new request that requires human approval</p>
+      <h1 class="text-[15px] font-semibold text-white">{{ wf.label }}</h1>
+      <p class="mt-1 text-[13px] text-zinc-500">{{ wf.description }}</p>
     </div>
 
-    <form method="post" action="/start" @submit="submitting = true" class="space-y-4 p-5">
+    <form method="post" action="/start/{{ wf.key }}" @submit="submitting = true" class="space-y-4 p-5">
       <div class="space-y-1.5">
-        <label for="description" class="block text-[13px] font-medium text-zinc-400">Request description</label>
-        <textarea id="description" name="description" rows="3"
-                  placeholder="e.g. Expense report: $500 for conference travel"
+        <label for="input_value" class="block text-[13px] font-medium text-zinc-400">{{ wf.input_label }}</label>
+        <textarea id="input_value" name="input_value" rows="3"
+                  placeholder="{{ wf.input_placeholder }}"
                   class="w-full rounded-md border bg-bg px-3 py-2 text-[13px] text-white placeholder-zinc-700 outline-none transition-colors
-                         {{ 'border-red-500/50' if errors.get('description') else 'border-border hover:border-border-hover focus:border-zinc-500' }}"></textarea>
-        {% for err in errors.get("description", []) %}
+                         {{ 'border-red-500/50' if errors.get('input_value') else 'border-border hover:border-border-hover focus:border-zinc-500' }}"></textarea>
+        {% for err in errors.get("input_value", []) %}
         <p class="text-[12px] text-red-400">{{ err }}</p>
         {% endfor %}
       </div>
 
       <div class="flex items-center justify-end gap-2 border-t border-border pt-4">
-        <a href="/" class="rounded-md px-3 py-1.5 text-[13px] text-zinc-600 transition-colors hover:text-zinc-400">
+        <a href="/start" class="rounded-md px-3 py-1.5 text-[13px] text-zinc-600 transition-colors hover:text-zinc-400">
           Cancel
         </a>
         <button type="submit" :disabled="submitting"

@@ -36,7 +36,29 @@
 
   <div class="mb-5 flex items-center justify-between">
     <h1 class="text-[15px] font-semibold text-white">Workflows</h1>
-    <div class="flex items-center gap-1.5">
+    <div class="flex items-center gap-2">
+      <div class="relative" x-data="{ open: false }">
+        <button @click="open = !open" class="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[13px] text-zinc-400 transition-colors hover:border-border-hover hover:text-zinc-300">
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+          </svg>
+          {% if wf_type %}{{ wf_type }}{% else %}All types{% endif %}
+          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+        <div x-show="open" @click.away="open = false" x-cloak
+             class="absolute right-0 z-10 mt-1 w-48 overflow-hidden rounded-lg border border-border bg-bg-overlay shadow-xl">
+          <a href="/?tab={{ tab }}" class="block px-3 py-2 text-[13px] transition-colors hover:bg-white/[0.04] {% if not wf_type %}text-white{% else %}text-zinc-400{% endif %}">
+            All types
+          </a>
+          {% for wt in workflow_types %}
+          <a href="/?tab={{ tab }}&type={{ wt }}" class="block px-3 py-2 text-[13px] transition-colors hover:bg-white/[0.04] {% if wf_type == wt %}text-white{% else %}text-zinc-400{% endif %}">
+            {{ wt }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
       <a href="/start"
          class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-[13px] font-medium text-black transition-opacity hover:opacity-90">
         <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
@@ -55,7 +77,7 @@
 
   <div class="mb-4 flex items-center gap-1 border-b border-border">
     {% for t in tabs %}
-    <a href="/?tab={{ t }}"
+    <a href="/?tab={{ t }}{% if wf_type %}&type={{ wf_type }}{% endif %}"
        class="relative flex items-center gap-2 px-3 py-2 text-[13px] transition-colors
               {% if tab == t %}text-white{% else %}text-zinc-600 hover:text-zinc-400{% endif %}">
       {{ t | capitalize }}
@@ -157,7 +179,7 @@
     <span class="text-[12px] tabular-nums text-zinc-700">Page {{ page }}</span>
     <div class="flex items-center gap-1.5">
       {% if has_prev %}
-      <a href="/?tab={{ tab }}&page={{ page - 1 }}"
+      <a href="/?tab={{ tab }}&page={{ page - 1 }}{% if wf_type %}&type={{ wf_type }}{% endif %}"
          class="rounded-md border border-border px-3 py-1 text-[12px] text-zinc-500 transition-colors hover:border-border-hover hover:text-zinc-300">
         Previous
       </a>
@@ -165,7 +187,7 @@
       <span class="rounded-md border border-border/50 px-3 py-1 text-[12px] text-zinc-800 cursor-not-allowed">Previous</span>
       {% endif %}
       {% if has_next %}
-      <a href="/?tab={{ tab }}&page={{ page + 1 }}"
+      <a href="/?tab={{ tab }}&page={{ page + 1 }}{% if wf_type %}&type={{ wf_type }}{% endif %}"
          class="rounded-md border border-border px-3 py-1 text-[12px] text-zinc-500 transition-colors hover:border-border-hover hover:text-zinc-300">
         Next
       </a>
