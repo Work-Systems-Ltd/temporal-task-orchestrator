@@ -36,15 +36,132 @@
 }
 
 @layer components {
+  /* ── Buttons ── */
   .btn {
-    @apply rounded-md px-4 py-1.5 text-[13px] font-medium transition-colors;
+    @apply relative inline-flex items-center justify-center gap-1.5 rounded-lg text-[13px] font-medium whitespace-nowrap transition-all outline-none;
+  }
+  .btn:focus-visible {
+    box-shadow: 0 0 0 2px #09090b, 0 0 0 4px rgba(255,255,255,0.15);
+  }
+  .btn:disabled {
+    @apply opacity-40 cursor-not-allowed pointer-events-none;
   }
   .btn-primary {
-    @apply bg-white text-black hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40;
+    @apply bg-white text-black px-4 py-1.5 border border-transparent;
+  }
+  .btn-primary:hover {
+    background-color: rgb(228 228 231);
+  }
+  .btn-primary:active {
+    background-color: rgb(212 212 216);
+    transform: scale(0.98);
+  }
+  .btn-secondary {
+    @apply bg-transparent text-zinc-400 px-3 py-1.5;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .btn-secondary:hover {
+    border-color: rgba(255,255,255,0.18);
+    @apply text-zinc-300;
+    background: rgba(255,255,255,0.03);
+  }
+  .btn-secondary:active {
+    background: rgba(255,255,255,0.05);
+    transform: scale(0.98);
   }
   .btn-ghost {
-    @apply text-zinc-600 hover:text-zinc-400;
+    @apply bg-transparent text-zinc-600 px-3 py-1.5 border border-transparent;
   }
+  .btn-ghost:hover {
+    @apply text-zinc-400;
+    background: rgba(255,255,255,0.04);
+  }
+  .btn-icon {
+    @apply bg-transparent text-zinc-600 p-1.5;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 0.5rem;
+  }
+  .btn-icon:hover {
+    border-color: rgba(255,255,255,0.18);
+    @apply text-zinc-400;
+    background: rgba(255,255,255,0.03);
+  }
+  .btn-icon:active {
+    background: rgba(255,255,255,0.05);
+    transform: scale(0.95);
+  }
+  .btn-page {
+    @apply bg-transparent text-zinc-500 text-[12px] px-3 py-1 rounded-md;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .btn-page:hover {
+    border-color: rgba(255,255,255,0.18);
+    @apply text-zinc-300;
+    background: rgba(255,255,255,0.03);
+  }
+  .btn-page-disabled {
+    @apply opacity-30 cursor-not-allowed pointer-events-none;
+    border-color: rgba(255,255,255,0.05);
+  }
+
+  /* ── Pills / Badges ── */
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium;
+    border: 1px solid transparent;
+  }
+  .pill-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  .pill-amber {
+    @apply text-amber-400;
+    background: rgba(245,158,11,0.08);
+    border-color: rgba(245,158,11,0.12);
+  }
+  .pill-blue {
+    @apply text-blue-400;
+    background: rgba(59,130,246,0.08);
+    border-color: rgba(59,130,246,0.12);
+  }
+  .pill-emerald {
+    @apply text-emerald-400;
+    background: rgba(16,185,129,0.08);
+    border-color: rgba(16,185,129,0.12);
+  }
+  .pill-red {
+    @apply text-red-400;
+    background: rgba(239,68,68,0.08);
+    border-color: rgba(239,68,68,0.12);
+  }
+  .pill-zinc {
+    @apply text-zinc-500;
+    background: rgba(113,113,122,0.08);
+    border-color: rgba(113,113,122,0.12);
+  }
+  .tag {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium text-zinc-500;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .count-badge {
+    @apply rounded-full px-1.5 text-[10px] font-semibold tabular-nums;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    line-height: 1.4;
+  }
+  .count-badge-active {
+    background: rgba(255,255,255,0.12);
+    @apply text-white;
+  }
+  .count-badge-muted {
+    background: rgba(255,255,255,0.04);
+    @apply text-zinc-600;
+  }
+
+  /* ── Stepper ── */
   .step-dot {
     @apply flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold transition-colors;
   }
@@ -62,5 +179,102 @@
   }
   .step-line-inactive {
     @apply bg-border;
+  }
+
+  /* ── Header ── */
+  .header-glass {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(9,9,11,0.82);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.25);
+  }
+  .header-divider {
+    width: 1px;
+    height: 20px;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.08), transparent);
+    flex-shrink: 0;
+  }
+
+  /* ── Nav ── */
+  .nav-link {
+    @apply relative inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium text-zinc-500 whitespace-nowrap;
+    transition: all 0.2s ease;
+  }
+  .nav-link:hover {
+    @apply text-zinc-300;
+    background: rgba(255,255,255,0.04);
+  }
+  .nav-link--active {
+    @apply text-white;
+    background: rgba(255,255,255,0.07);
+  }
+  .nav-link--active::after {
+    content: "";
+    position: absolute;
+    bottom: -9px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 2px;
+  }
+
+  /* ── Kbd shortcuts ── */
+  .kbd-group {
+    @apply flex items-center gap-1;
+  }
+  .kbd-group kbd {
+    @apply inline-flex items-center justify-center font-mono text-[10px] font-medium text-zinc-600;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(17,17,19,0.8);
+    line-height: 1;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+  }
+  .kbd-group span {
+    @apply text-[11px] text-zinc-700;
+  }
+
+  /* ── Status indicator ── */
+  .status-indicator {
+    @apply flex items-center gap-1.5;
+  }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgb(52 211 153);
+  }
+
+  /* ── Footer ── */
+  .footer-modern {
+    border-top: 1px solid rgba(255,255,255,0.04);
+    background: rgba(9,9,11,0.6);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+  .footer-brand {
+    @apply text-[11px] font-semibold text-zinc-700;
+    letter-spacing: 0.04em;
+  }
+  .footer-label {
+    @apply text-[11px] text-zinc-800;
+  }
+  .footer-sep {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+  .footer-build {
+    @apply font-mono text-[10px] text-zinc-800;
   }
 }
