@@ -163,21 +163,16 @@ function taskList(): TaskListData {
         });
       }
 
-      // Show skeleton rows while waiting for server
+      // Show equalizer loader while waiting for server
       const tabContent = document.querySelector("[data-tab-content]");
       if (tabContent) {
-        const row =
-          '<div class="flex items-center gap-3 px-3 py-3.5">' +
-            '<div class="flex-1 space-y-2">' +
-              '<div class="skeleton-bar h-3 w-2/5"></div>' +
-              '<div class="skeleton-bar h-2.5 w-1/4"></div>' +
-            "</div>" +
-            '<div class="skeleton-bar h-5 w-16 rounded-full"></div>' +
-          "</div>";
         tabContent.innerHTML =
-          '<div class="table-container">' +
-            '<div class="divide-y divide-border">' +
-              row + row + row + row + row +
+          '<div class="skeleton-loader">' +
+            '<div class="flex flex-col items-center">' +
+              '<div class="skeleton-bars">' +
+                "<span></span><span></span><span></span><span></span><span></span>" +
+              "</div>" +
+              '<div class="skeleton-label">Loading</div>' +
             "</div>" +
           "</div>";
       }

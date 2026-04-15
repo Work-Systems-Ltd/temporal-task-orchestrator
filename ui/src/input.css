@@ -713,21 +713,35 @@
     opacity: 1;
   }
 
-  /* ── Skeleton loader ── */
-  @keyframes skeletonShimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+  /* ── Skeleton loader (equalizer bars) ── */
+  .skeleton-loader {
+    @apply flex items-center justify-center py-16;
   }
-  .skeleton-bar {
-    border-radius: 4px;
-    background: linear-gradient(
-      90deg,
-      var(--color-skeleton-from) 0%,
-      var(--color-skeleton-via) 40%,
-      var(--color-skeleton-from) 80%
-    );
-    background-size: 200% 100%;
-    animation: skeletonShimmer 2s ease-in-out infinite;
+  .skeleton-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 32px;
+  }
+  .skeleton-bars span {
+    display: block;
+    width: 4px;
+    border-radius: 2px;
+    background: var(--color-skeleton-via);
+    animation: eqBounce 1s ease-in-out infinite;
+  }
+  .skeleton-bars span:nth-child(1) { height: 40%; animation-delay: 0s; }
+  .skeleton-bars span:nth-child(2) { height: 70%; animation-delay: 0.12s; }
+  .skeleton-bars span:nth-child(3) { height: 50%; animation-delay: 0.24s; }
+  .skeleton-bars span:nth-child(4) { height: 80%; animation-delay: 0.36s; }
+  .skeleton-bars span:nth-child(5) { height: 30%; animation-delay: 0.48s; }
+  @keyframes eqBounce {
+    0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
+    50% { transform: scaleY(1); opacity: 1; }
+  }
+  .skeleton-label {
+    @apply mt-3 text-[11px] uppercase tracking-wider;
+    color: var(--color-text-ghost);
   }
 
   /* ── Workflow picker item ── */
