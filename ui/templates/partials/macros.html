@@ -1,0 +1,14 @@
+{% set status_colors = {
+  "pending": "amber",
+  "running": "blue",
+  "completed": "emerald",
+  "failed": "red",
+  "canceled": "zinc",
+  "terminated": "zinc",
+  "timed out": "zinc",
+} %}
+
+{% macro status_badge(status) %}
+{% set color = status_colors.get(status | lower, "zinc") %}
+<span class="pill pill-{{ color }}">{{ status | capitalize }}</span>
+{% endmacro %}

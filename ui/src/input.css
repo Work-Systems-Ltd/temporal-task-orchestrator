@@ -111,29 +111,29 @@
     letter-spacing: 0.02em;
   }
   .pill-amber {
-    @apply text-amber-400;
-    background: rgba(245,158,11,0.12);
-    border-color: rgba(245,158,11,0.20);
+    color: #fbbf24;
+    background: rgba(251,191,36,0.15);
+    border-color: rgba(251,191,36,0.25);
   }
   .pill-blue {
-    @apply text-blue-400;
-    background: rgba(59,130,246,0.12);
-    border-color: rgba(59,130,246,0.20);
+    color: #60a5fa;
+    background: rgba(96,165,250,0.15);
+    border-color: rgba(96,165,250,0.25);
   }
   .pill-emerald {
-    @apply text-emerald-400;
-    background: rgba(16,185,129,0.12);
-    border-color: rgba(16,185,129,0.20);
+    color: #34d399;
+    background: rgba(52,211,153,0.15);
+    border-color: rgba(52,211,153,0.25);
   }
   .pill-red {
-    @apply text-red-400;
-    background: rgba(239,68,68,0.12);
-    border-color: rgba(239,68,68,0.20);
+    color: #f87171;
+    background: rgba(248,113,113,0.15);
+    border-color: rgba(248,113,113,0.25);
   }
   .pill-zinc {
-    @apply text-zinc-500;
-    background: rgba(113,113,122,0.12);
-    border-color: rgba(113,113,122,0.20);
+    color: #a1a1aa;
+    background: rgba(161,161,170,0.10);
+    border-color: rgba(161,161,170,0.18);
   }
   .tag {
     @apply inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium text-zinc-400;

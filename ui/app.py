@@ -9,7 +9,7 @@ from temporalio.client import Client
 import human_tasks.tasks  # noqa: F401
 import workflows  # noqa: F401
 from ui.config import AppSettings
-from ui.routers import task_list, tasks, workflows as workflows_router
+from ui.routers import task_list, tasks, workflows as workflows_router, ws
 from ui.services.temporal import TemporalService
 
 _ui_dir = os.path.dirname(__file__)
@@ -29,3 +29,4 @@ app.mount("/static", StaticFiles(directory=os.path.join(_ui_dir, "static")), nam
 app.include_router(task_list.router)
 app.include_router(tasks.router)
 app.include_router(workflows_router.router)
+app.include_router(ws.router)
