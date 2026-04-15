@@ -46,7 +46,7 @@
   {% endif %}
 
   {% for err in all_errors %}
-  <p class="text-[12px] text-red-400">{{ err }}</p>
+  <p class="text-xs text-red-400">{{ err }}</p>
   {% endfor %}
 </div>
 {% endmacro %}
@@ -68,7 +68,7 @@
         <span class="pill pill-amber">{{ meta.task_type }}</span>
         <span class="font-mono text-[11px] text-ghost">{{ workflow_id }}</span>
       </div>
-      <h1 class="mt-2.5 text-[15px] font-semibold text-primary">{{ meta.title }}</h1>
+      <h1 class="mt-2.5 text-base font-semibold text-primary">{{ meta.title }}</h1>
       <p class="mt-1 text-sm text-muted">{{ meta.description }}</p>
     </div>
 
