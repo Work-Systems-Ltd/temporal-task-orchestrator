@@ -4,9 +4,7 @@
 {% block content %}
 <div x-data="taskList()" x-init="connect()" class="animate-fade-in">
 
-  <div class="mb-4 flex items-center gap-3">
-    <h1 class="text-[15px] font-semibold text-primary shrink-0">Workflows</h1>
-
+  <div class="mb-4 flex items-center gap-2">
     <form method="get" action="/" class="flex flex-1 items-center gap-2">
       <input type="hidden" name="tab" value="{{ tab }}" />
       {% if wf_type %}<input type="hidden" name="type" value="{{ wf_type }}" />{% endif %}
