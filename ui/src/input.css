@@ -422,21 +422,25 @@
 
   /* ── Search box ── */
   .search-box {
-    @apply relative flex-1;
+    @apply relative;
+    width: 220px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .search-box:focus-within {
+    width: 100%;
   }
   .search-box-input {
     @apply w-full rounded-md py-2 pl-9 pr-10 text-[13px] outline-none;
     background: var(--color-bg-raised);
     color: var(--color-text-primary);
     border: 1px solid var(--color-glass-border);
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .search-box-input::placeholder {
     color: var(--color-text-faint);
   }
   .search-box-input:hover {
     border-color: var(--color-border-hover);
-    background: var(--color-bg-overlay);
   }
   .search-box-input:focus {
     border-color: var(--color-border-hover);
@@ -448,13 +452,16 @@
     color: var(--color-text-faint);
     transition: color 0.2s ease;
   }
-  .search-box-input:focus ~ .search-box-icon,
   .search-box:focus-within .search-box-icon {
     color: var(--color-text-secondary);
   }
   .search-box-kbd {
     @apply absolute right-2.5 top-1/2 -translate-y-1/2 hidden items-center sm:flex;
     pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+  .search-box:focus-within .search-box-kbd {
+    opacity: 0;
   }
   .search-box-kbd kbd {
     @apply font-mono text-[10px] font-medium;
