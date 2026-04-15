@@ -715,7 +715,8 @@
 
   /* ── Skeleton loader (equalizer bars) ── */
   .skeleton-loader {
-    @apply flex items-center justify-center py-16;
+    @apply flex items-center justify-center;
+    min-height: 280px;
   }
   .skeleton-bars {
     display: flex;
