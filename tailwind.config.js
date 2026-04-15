@@ -1,17 +1,18 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./ui/templates/**/*.html", "./ui/src/input.css"],
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
       },
       colors: {
-        bg: "#09090b",
-        "bg-raised": "#111113",
-        "bg-overlay": "#18181b",
-        border: "rgba(255,255,255,0.08)",
-        "border-hover": "rgba(255,255,255,0.14)",
+        bg: "var(--color-bg)",
+        "bg-raised": "var(--color-bg-raised)",
+        "bg-overlay": "var(--color-bg-overlay)",
+        border: "var(--color-border)",
+        "border-hover": "var(--color-border-hover)",
       },
       animation: {
         "fade-in": "fadeIn 0.3s ease-out",
