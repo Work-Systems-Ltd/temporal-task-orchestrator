@@ -4,11 +4,11 @@
 {% block content %}
 <div x-data="{ submitting: false }" class="mx-auto max-w-[520px] animate-fade-in">
 
-  <a href="/" class="mb-6 inline-flex items-center gap-1 text-[13px] text-zinc-600 transition-colors hover:text-zinc-300">
+  <a href="/" class="mb-5 inline-flex items-center gap-1 text-[12px] text-zinc-600 transition-colors hover:text-zinc-400">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
-    Back
+    Back to tasks
   </a>
 
   <div class="overflow-hidden rounded-lg border border-border">
@@ -18,7 +18,7 @@
       <p class="mt-1 text-[13px] text-zinc-500">Create a new request that requires human approval</p>
     </div>
 
-    <form method="post" action="/start" @submit="submitting = true" class="space-y-5 bg-bg p-5">
+    <form method="post" action="/start" @submit="submitting = true" class="space-y-4 p-5">
       <div class="space-y-1.5">
         <label for="description" class="block text-[13px] font-medium text-zinc-400">Request description</label>
         <textarea id="description" name="description" rows="3"
@@ -31,7 +31,7 @@
       </div>
 
       <div class="flex items-center justify-end gap-2 border-t border-border pt-4">
-        <a href="/" class="rounded-md px-3 py-1.5 text-[13px] font-medium text-zinc-500 transition-colors hover:text-zinc-300">
+        <a href="/" class="rounded-md px-3 py-1.5 text-[13px] text-zinc-600 transition-colors hover:text-zinc-400">
           Cancel
         </a>
         <button type="submit" :disabled="submitting"
@@ -49,4 +49,8 @@
 
   </div>
 </div>
+
+{% block scripts %}
+<script src="/static/js/task-list.js"></script>
+{% endblock %}
 {% endblock %}
