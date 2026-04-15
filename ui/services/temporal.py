@@ -69,6 +69,7 @@ class TemporalService:
         page: int,
         wf_type: str | None = None,
         search: str | None = None,
+        per_page: int | None = None,
     ) -> PaginatedResult:
         all_pending: list[PendingTaskItem] = []
         query = 'ExecutionStatus="Running"'
@@ -100,8 +101,9 @@ class TemporalService:
             except Exception:
                 continue
 
-        start = (page - 1) * self.page_size
-        end = start + self.page_size
+        size = per_page or self.page_size
+        start = (page - 1) * size
+        end = start + size
         return PaginatedResult(
             items=all_pending[start:end],
             has_next=end < len(all_pending),
@@ -113,14 +115,16 @@ class TemporalService:
         page: int,
         wf_type: str | None = None,
         search: str | None = None,
+        per_page: int | None = None,
     ) -> PaginatedResult:
         query = self._build_query(STATUS_QUERIES.get(tab), wf_type)
         items: list[WorkflowItem] = []
-        skip = (page - 1) * self.page_size
+        size = per_page or self.page_size
+        skip = (page - 1) * size
         skipped = 0
         collected = 0
 
-        async for wf in self._client.list_workflows(query, page_size=self.page_size * 4):
+        async for wf in self._client.list_workflows(query, page_size=size * 4):
             if search:
                 haystack = f"{wf.id} {wf.workflow_type or ''}".lower()
                 if search.lower() not in haystack:
@@ -130,7 +134,7 @@ class TemporalService:
                 skipped += 1
                 continue
 
-            if collected >= self.page_size + 1:
+            if collected >= size + 1:
                 break
 
             items.append(
@@ -146,9 +150,9 @@ class TemporalService:
             )
             collected += 1
 
-        has_next = len(items) > self.page_size
+        has_next = len(items) > size
         return PaginatedResult(
-            items=items[: self.page_size],
+            items=items[:size],
             has_next=has_next,
         )
 

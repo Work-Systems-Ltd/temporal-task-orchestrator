@@ -23,6 +23,7 @@ async def task_list(
     request: Request,
     tab: str = Query("pending"),
     page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=10, le=100),
     type: str | None = Query(None),
     q: str | None = Query(None),
     service: TemporalService = Depends(get_temporal_service),
@@ -35,9 +36,9 @@ async def task_list(
     search = q.strip() if q else None
 
     if tab == "pending":
-        list_coro = service.list_pending(page, wf_type, search)
+        list_coro = service.list_pending(page, wf_type, search, per_page=per_page)
     else:
-        list_coro = service.list_workflows(tab, page, wf_type, search)
+        list_coro = service.list_workflows(tab, page, wf_type, search, per_page=per_page)
 
     counts, result = await asyncio.gather(
         service.get_tab_counts(wf_type),
@@ -55,6 +56,7 @@ async def task_list(
             "page": page,
             "has_next": result.has_next,
             "has_prev": page > 1,
+            "per_page": per_page,
             "wf_type": wf_type,
             "search": search or "",
             "workflow_types": _get_workflow_types(),
