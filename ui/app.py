@@ -17,6 +17,21 @@ from workflows.approval import ApprovalWorkflow
 
 temporal_client: Client | None = None
 
+PAGE_SIZE = 20
+
+STATUS_QUERIES = {
+    "pending": 'ExecutionStatus="Running"',
+    "running": 'ExecutionStatus="Running"',
+    "completed": 'ExecutionStatus="Completed"',
+    "failed": 'ExecutionStatus="Failed"',
+    "cancelled": 'ExecutionStatus="Canceled"',
+    "terminated": 'ExecutionStatus="Terminated"',
+    "timed_out": 'ExecutionStatus="TimedOut"',
+    "all": None,
+}
+
+TAB_ORDER = ["pending", "running", "completed", "failed", "all"]
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,10 +48,14 @@ app.mount("/static", StaticFiles(directory=os.path.join(_ui_dir, "static")), nam
 templates = Jinja2Templates(directory=os.path.join(_ui_dir, "templates"))
 
 
-def _relative_time(dt: datetime) -> str:
+def _relative_time(dt: datetime | None) -> str:
+    if dt is None:
+        return "—"
     now = datetime.now(timezone.utc)
     diff = now - dt
     seconds = int(diff.total_seconds())
+    if seconds < 0:
+        return "just now"
     if seconds < 60:
         return "just now"
     minutes = seconds // 60
@@ -49,12 +68,61 @@ def _relative_time(dt: datetime) -> str:
     return f"{days}d ago"
 
 
-@app.get("/", response_class=HTMLResponse)
-async def task_list(request: Request):
-    tasks = []
-    total_running = 0
+def _duration(start: datetime | None, end: datetime | None) -> str:
+    if not start or not end:
+        return "—"
+    diff = end - start
+    seconds = int(diff.total_seconds())
+    if seconds < 1:
+        return "<1s"
+    if seconds < 60:
+        return f"{seconds}s"
+    minutes = seconds // 60
+    if minutes < 60:
+        return f"{minutes}m {seconds % 60}s"
+    hours = minutes // 60
+    return f"{hours}h {minutes % 60}m"
+
+
+def _status_name(status) -> str:
+    if status is None:
+        return "unknown"
+    return status.name.lower().replace("_", " ")
+
+
+async def _count_workflows(query: str | None) -> int:
+    count = 0
+    async for _ in temporal_client.list_workflows(query, page_size=100):
+        count += 1
+    return count
+
+
+async def _count_pending() -> int:
+    count = 0
+    async for wf in temporal_client.list_workflows('ExecutionStatus="Running"', page_size=100):
+        try:
+            handle = temporal_client.get_workflow_handle(wf.id)
+            raw = await handle.query("get_pending_task")
+            if raw:
+                count += 1
+        except Exception:
+            continue
+    return count
+
+
+async def _get_tab_counts() -> dict[str, int]:
+    counts = {}
+    for tab in TAB_ORDER:
+        if tab == "pending":
+            counts[tab] = await _count_pending()
+        else:
+            counts[tab] = await _count_workflows(STATUS_QUERIES[tab])
+    return counts
+
+
+async def _list_pending(page: int) -> tuple[list[dict], bool]:
+    all_pending = []
     async for wf in temporal_client.list_workflows('ExecutionStatus="Running"'):
-        total_running += 1
         try:
             handle = temporal_client.get_workflow_handle(wf.id)
             raw = await handle.query("get_pending_task")
@@ -62,22 +130,78 @@ async def task_list(request: Request):
                 meta = json.loads(raw)
                 meta["workflow_id"] = wf.id
                 meta["workflow_type"] = wf.workflow_type
-                if wf.start_time:
-                    meta["started"] = _relative_time(wf.start_time)
-                else:
-                    meta["started"] = "—"
-                tasks.append(meta)
+                meta["started"] = _relative_time(wf.start_time)
+                meta["status"] = "pending"
+                all_pending.append(meta)
         except Exception:
             continue
 
-    stats = {
-        "pending": len(tasks),
-        "running": total_running,
-    }
+    start = (page - 1) * PAGE_SIZE
+    end = start + PAGE_SIZE
+    items = all_pending[start:end]
+    has_next = end < len(all_pending)
+    return items, has_next
+
+
+async def _list_workflows(tab: str, page: int) -> tuple[list[dict], bool]:
+    query = STATUS_QUERIES.get(tab)
+    items = []
+    skip = (page - 1) * PAGE_SIZE
+    collected = 0
+    skipped = 0
+
+    async for wf in temporal_client.list_workflows(query, page_size=PAGE_SIZE * 2):
+        if skipped < skip:
+            skipped += 1
+            continue
+
+        if collected >= PAGE_SIZE + 1:
+            break
+
+        items.append({
+            "workflow_id": wf.id,
+            "workflow_type": wf.workflow_type or "—",
+            "status": _status_name(wf.status),
+            "started": _relative_time(wf.start_time),
+            "closed": _relative_time(wf.close_time),
+            "duration": _duration(wf.start_time, wf.close_time),
+            "task_queue": wf.task_queue or "—",
+        })
+        collected += 1
+
+    has_next = len(items) > PAGE_SIZE
+    return items[:PAGE_SIZE], has_next
+
+
+@app.get("/", response_class=HTMLResponse)
+async def task_list(request: Request):
+    tab = request.query_params.get("tab", "pending")
+    if tab not in TAB_ORDER:
+        tab = "pending"
+
+    page = int(request.query_params.get("page", "1"))
+    if page < 1:
+        page = 1
+
+    counts = await _get_tab_counts()
+
+    if tab == "pending":
+        items, has_next = await _list_pending(page)
+    else:
+        items, has_next = await _list_workflows(tab, page)
 
     return templates.TemplateResponse(
         "task_list.html",
-        {"request": request, "tasks": tasks, "stats": stats},
+        {
+            "request": request,
+            "items": items,
+            "tab": tab,
+            "tabs": TAB_ORDER,
+            "counts": counts,
+            "page": page,
+            "has_next": has_next,
+            "has_prev": page > 1,
+        },
     )
 
 
