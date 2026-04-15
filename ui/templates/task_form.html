@@ -12,8 +12,7 @@
   {% if field.type == "SelectField" %}
   <div class="relative">
     <select id="{{ field.id }}" name="{{ field.name }}"
-            class="w-full appearance-none rounded-md border bg-bg px-3 py-2 pr-9 text-[13px] text-white outline-none transition-colors
-                   {{ 'border-red-500/50' if has_error else 'border-border hover:border-border-hover focus:border-zinc-500' }}">
+            class="input-field appearance-none pr-9 {{ 'input-field-error' if has_error else '' }}">
       {% for val, label in field.choices %}
       <option value="{{ val }}" {{ 'selected' if field.data == val else '' }} class="bg-bg-overlay">{{ label }}</option>
       {% endfor %}
@@ -27,8 +26,7 @@
 
   {% elif field.type == "TextAreaField" %}
   <textarea id="{{ field.id }}" name="{{ field.name }}" rows="3"
-            class="w-full rounded-md border bg-bg px-3 py-2 text-[13px] text-white placeholder-zinc-700 outline-none transition-colors
-                   {{ 'border-red-500/50' if has_error else 'border-border hover:border-border-hover focus:border-zinc-500' }}">{{ field.data or '' }}</textarea>
+            class="input-field {{ 'input-field-error' if has_error else '' }}">{{ field.data or '' }}</textarea>
 
   {% elif field.type == "BooleanField" %}
   <div x-data="{ on: {{ 'true' if field.data else 'false' }} }" class="flex items-center gap-2.5 pt-0.5">
@@ -44,8 +42,7 @@
 
   {% else %}
   <input type="text" id="{{ field.id }}" name="{{ field.name }}" value="{{ field.data or '' }}"
-         class="w-full rounded-md border bg-bg px-3 py-2 text-[13px] text-white placeholder-zinc-700 outline-none transition-colors
-                {{ 'border-red-500/50' if has_error else 'border-border hover:border-border-hover focus:border-zinc-500' }}" />
+         class="input-field {{ 'input-field-error' if has_error else '' }}" />
   {% endif %}
 
   {% for err in all_errors %}
@@ -57,16 +54,16 @@
 {% block content %}
 <div x-data="{ submitting: false }" class="mx-auto max-w-[520px] animate-fade-in">
 
-  <a href="/" class="mb-5 inline-flex items-center gap-1 text-[12px] text-zinc-600 transition-colors hover:text-zinc-400">
+  <a href="/" class="back-link">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
     Back to tasks
   </a>
 
-  <div class="overflow-hidden rounded-lg border border-border">
+  <div class="card">
 
-    <div class="border-b border-border bg-bg-raised px-5 py-4">
+    <div class="card-header">
       <div class="flex items-center gap-2.5">
         <span class="pill pill-amber">
           <span class="pill-dot"></span>

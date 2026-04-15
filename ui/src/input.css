@@ -277,4 +277,156 @@
   .footer-build {
     @apply font-mono text-[10px] text-zinc-800;
   }
+
+  /* ── Form inputs ── */
+  .input-field {
+    @apply w-full rounded-lg border bg-bg px-3 py-2 text-[13px] text-white placeholder-zinc-700 outline-none transition-all;
+    border-color: rgba(255,255,255,0.08);
+  }
+  .input-field:hover {
+    border-color: rgba(255,255,255,0.14);
+  }
+  .input-field:focus {
+    border-color: rgb(113 113 122);
+    box-shadow: 0 0 0 3px rgba(113,113,122,0.08);
+  }
+  .input-field-error {
+    border-color: rgba(239,68,68,0.5);
+  }
+  .input-field-error:focus {
+    border-color: rgba(239,68,68,0.6);
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.06);
+  }
+
+  /* ── Cards ── */
+  .card {
+    @apply overflow-hidden rounded-lg;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .card-header {
+    @apply border-b border-border bg-bg-raised px-5 py-4;
+  }
+  .card-body {
+    @apply p-5;
+  }
+
+  /* ── Back link ── */
+  .back-link {
+    @apply mb-5 inline-flex items-center gap-1.5 text-[12px] text-zinc-600;
+    transition: all 0.15s ease;
+  }
+  .back-link:hover {
+    @apply text-zinc-400;
+    transform: translateX(-2px);
+  }
+
+  /* ── Dropdown menu ── */
+  .dropdown-menu {
+    @apply absolute right-0 z-10 mt-1.5 w-48 overflow-hidden rounded-lg shadow-xl;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(24,24,27,0.95);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  .dropdown-item {
+    @apply block px-3 py-2 text-[13px] text-zinc-400 transition-colors;
+  }
+  .dropdown-item:hover {
+    background: rgba(255,255,255,0.04);
+  }
+  .dropdown-item-active {
+    @apply text-white;
+  }
+
+  /* ── Tab bar ── */
+  .tab-bar {
+    @apply mb-4 flex items-center gap-0.5 border-b border-border;
+  }
+  .tab-item {
+    @apply relative flex items-center gap-2 px-3 py-2.5 text-[13px] text-zinc-600 transition-colors;
+  }
+  .tab-item:hover {
+    @apply text-zinc-400;
+  }
+  .tab-item-active {
+    @apply text-white;
+  }
+  .tab-item-active::after {
+    content: "";
+    @apply absolute bottom-0 left-3 right-3;
+    height: 2px;
+    background: white;
+    border-radius: 2px 2px 0 0;
+  }
+
+  /* ── Empty state ── */
+  .empty-state {
+    @apply flex flex-col items-center justify-center rounded-lg py-20;
+    border: 1px dashed rgba(255,255,255,0.06);
+  }
+  .empty-state-icon {
+    @apply flex h-10 w-10 items-center justify-center rounded-lg;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(17,17,19,0.8);
+  }
+
+  /* ── Toast banners ── */
+  .toast {
+    @apply shrink-0;
+  }
+  .toast-inner {
+    @apply mx-auto flex max-w-[1080px] items-center gap-2.5 px-6 py-2.5 text-[12px] font-medium;
+  }
+  .toast-icon {
+    @apply flex h-5 w-5 items-center justify-center rounded-full;
+    flex-shrink: 0;
+  }
+  .toast-success {
+    border-bottom: 1px solid rgba(16,185,129,0.1);
+    background: rgba(16,185,129,0.04);
+  }
+  .toast-success .toast-icon {
+    background: rgba(16,185,129,0.12);
+    @apply text-emerald-400;
+  }
+  .toast-success .toast-inner {
+    @apply text-emerald-400;
+  }
+  .toast-info {
+    border-bottom: 1px solid rgba(59,130,246,0.1);
+    background: rgba(59,130,246,0.04);
+  }
+  .toast-info .toast-icon {
+    background: rgba(59,130,246,0.12);
+    @apply text-blue-400;
+  }
+  .toast-info .toast-inner {
+    @apply text-blue-400;
+  }
+
+  /* ── Table ── */
+  .table-container {
+    @apply overflow-hidden rounded-lg;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .th {
+    @apply px-3 py-2.5 text-[11px] font-medium uppercase tracking-wider text-zinc-600;
+  }
+  .table-row {
+    @apply transition-colors;
+  }
+  .table-row:hover {
+    background: rgba(255,255,255,0.02);
+  }
+
+  /* ── Workflow picker item ── */
+  .picker-item {
+    @apply flex w-full items-center justify-between rounded-lg p-3 text-left;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.15s ease;
+  }
+  .picker-item:hover {
+    border-color: rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.02);
+  }
 }
