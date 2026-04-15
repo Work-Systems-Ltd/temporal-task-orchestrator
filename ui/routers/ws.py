@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
@@ -19,7 +21,18 @@ def _get_workflow_types() -> list[str]:
     return [wf.workflow_cls.__name__ for wf in get_all_workflows()]
 
 
-async def _render_fragments(
+def _data_hash(counts: dict, items: list[dict], has_next: bool) -> str:
+    """Hash the actual data (ignoring time-formatted strings) to detect real changes."""
+    # Strip time-display fields that change every render
+    stable_items = []
+    for item in items:
+        stable = {k: v for k, v in item.items() if k not in ("started", "closed", "duration")}
+        stable_items.append(stable)
+    blob = json.dumps({"counts": counts, "items": stable_items, "has_next": has_next}, sort_keys=True)
+    return hashlib.md5(blob.encode()).hexdigest()
+
+
+async def _build_update(
     ws: WebSocket,
     templates: Jinja2Templates,
     service: TemporalService,
@@ -27,8 +40,8 @@ async def _render_fragments(
     page: int,
     wf_type: str | None,
     search: str | None,
-) -> dict[str, str]:
-    """Render the tab-bar and tab-content HTML fragments for a push."""
+) -> dict:
+    """Build a full update payload with rendered fragments and data hash."""
     if tab not in TAB_ORDER:
         tab = "pending"
 
@@ -42,9 +55,11 @@ async def _render_fragments(
         list_coro,
     )
 
+    items = [item.model_dump() for item in result.items]
+
     ctx = {
         "request": ws,
-        "items": [item.model_dump() for item in result.items],
+        "items": items,
         "tab": tab,
         "tabs": TAB_ORDER,
         "counts": counts,
@@ -59,7 +74,11 @@ async def _render_fragments(
     tab_bar = templates.get_template("partials/tab_bar.html").render(ctx)
     tab_content = templates.get_template("partials/tab_content.html").render(ctx)
 
-    return {"tab_bar": tab_bar, "tab_content": tab_content}
+    return {
+        "tab_bar": tab_bar,
+        "tab_content": tab_content,
+        "hash": _data_hash(counts, items, result.has_next),
+    }
 
 
 @router.websocket("/ws/tasks")
@@ -70,17 +89,15 @@ async def tasks_ws(
 ) -> None:
     await ws.accept()
 
-    # Shared state between push loop and message handler.
-    # seq tracks the latest view the client requested — the push loop
-    # snapshots it before rendering so stale results are tagged correctly.
     tab = "pending"
     page = 1
     wf_type: str | None = None
     search: str | None = None
     seq = 0
+    last_hash = ""
 
     async def push_loop() -> None:
-        nonlocal tab, page, wf_type, search, seq
+        nonlocal tab, page, wf_type, search, seq, last_hash
         while True:
             snap_seq = seq
             snap_tab = tab
@@ -88,15 +105,19 @@ async def tasks_ws(
             snap_wf_type = wf_type
             snap_search = search
             try:
-                fragments = await _render_fragments(
+                payload = await _build_update(
                     ws, templates, service,
                     snap_tab, snap_page, snap_wf_type, snap_search,
                 )
-                await ws.send_json({
-                    "type": "update",
-                    "seq": snap_seq,
-                    **fragments,
-                })
+                # Only push if data actually changed
+                if payload["hash"] != last_hash:
+                    last_hash = payload["hash"]
+                    await ws.send_json({
+                        "type": "update",
+                        "seq": snap_seq,
+                        "tab_bar": payload["tab_bar"],
+                        "tab_content": payload["tab_content"],
+                    })
             except WebSocketDisconnect:
                 return
             except Exception:
@@ -114,15 +135,17 @@ async def tasks_ws(
                 wf_type = msg.get("wf_type") or None
                 search = msg.get("search") or None
                 seq = int(msg.get("seq", 0))
-                # Immediate push for the new view
+                # Always push immediately on navigation (user expects visual feedback)
                 try:
-                    fragments = await _render_fragments(
+                    payload = await _build_update(
                         ws, templates, service, tab, page, wf_type, search,
                     )
+                    last_hash = payload["hash"]
                     await ws.send_json({
                         "type": "update",
                         "seq": seq,
-                        **fragments,
+                        "tab_bar": payload["tab_bar"],
+                        "tab_content": payload["tab_content"],
                     })
                 except Exception:
                     pass
