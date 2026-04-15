@@ -93,7 +93,7 @@
       <span class="text-[11px] text-ghost">Show</span>
       {% for size in [10, 20, 50, 100] %}
       <a href="/?tab={{ tab }}&per_page={{ size }}{% if wf_type %}&type={{ wf_type }}{% endif %}"
-         class="text-[11px] px-1.5 py-0.5 rounded {% if per_page == size %}text-primary bg-surface-active{% else %}text-faint hover:text-secondary{% endif %}">{{ size }}</a>
+         class="text-[11px] px-1.5 py-0.5 rounded" style="{% if per_page == size %}color:var(--color-text-primary);background:var(--color-surface-active){% else %}color:var(--color-text-faint){% endif %}">{{ size }}</a>
       {% endfor %}
     </div>
   </div>
