@@ -23,8 +23,8 @@ async def task_form(
     if not meta:
         return RedirectResponse(url="/", status_code=303)
 
-    form_cls, _ = get_task(meta.task_type)
-    form = form_cls()
+    task = get_task(meta.task_type)
+    form = task.Form()
 
     return templates.TemplateResponse(
         "task_form.html",
@@ -49,12 +49,12 @@ async def task_submit(
     if not meta:
         return RedirectResponse(url="/", status_code=303)
 
-    form_cls, model_cls = get_task(meta.task_type)
+    task = get_task(meta.task_type)
 
     form_data = await request.form()
-    form = form_cls(form_data)
+    form = task.Form(form_data)
 
-    if not form.validate():
+    def _render_errors(errors: dict[str, list[str]]) -> HTMLResponse:
         return templates.TemplateResponse(
             "task_form.html",
             {
@@ -62,28 +62,29 @@ async def task_submit(
                 "form": form,
                 "meta": meta.model_dump(),
                 "workflow_id": workflow_id,
-                "errors": form.errors,
+                "errors": errors,
             },
         )
 
+    # WTForms validation
+    if not form.validate():
+        return _render_errors(form.errors)
+
+    # Pydantic validation
     try:
-        model = model_cls(**{field.name: field.data for field in form})
+        model = task.Model(**{field.name: field.data for field in form})
     except ValidationError as exc:
         field_errors: dict[str, list[str]] = {}
         for err in exc.errors():
             loc = err["loc"]
             field_name = str(loc[0]) if loc else "__root__"
             field_errors.setdefault(field_name, []).append(err["msg"])
-        return templates.TemplateResponse(
-            "task_form.html",
-            {
-                "request": request,
-                "form": form,
-                "meta": meta.model_dump(),
-                "workflow_id": workflow_id,
-                "errors": field_errors,
-            },
-        )
+        return _render_errors(field_errors)
+
+    # Optional pre_submit validation
+    pre_submit_errors = task.pre_submit(model)
+    if pre_submit_errors:
+        return _render_errors(pre_submit_errors)
 
     await service.signal_complete(workflow_id, model.model_dump_json())
 

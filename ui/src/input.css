@@ -106,8 +106,9 @@
 
   /* ── Pills / Badges ── */
   .pill {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium;
+    @apply inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium;
     border: 1px solid transparent;
+    letter-spacing: 0.02em;
   }
   .pill-amber {
     @apply text-amber-400;

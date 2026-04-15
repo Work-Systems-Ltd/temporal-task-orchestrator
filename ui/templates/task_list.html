@@ -12,7 +12,7 @@
 } %}
 
 {% macro status_badge(status) %}
-{% set color = status_colors.get(status, "zinc") %}
+{% set color = status_colors.get(status | lower, "zinc") %}
 <span class="pill pill-{{ color }}">{{ status | capitalize }}</span>
 {% endmacro %}
 

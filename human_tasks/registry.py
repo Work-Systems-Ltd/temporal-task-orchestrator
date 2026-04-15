@@ -2,28 +2,27 @@ from __future__ import annotations
 
 from typing import Type
 
-from pydantic import BaseModel
-from wtforms import Form
+from human_tasks.base import HumanTask
 
-_TASK_REGISTRY: dict[str, tuple[Type[Form], Type[BaseModel]]] = {}
-
-
-def human_task(task_type: str):
-    def decorator(form_cls: Type[Form]):
-        model_cls = getattr(form_cls, "Model", None)
-        if model_cls is None or not (
-            isinstance(model_cls, type) and issubclass(model_cls, BaseModel)
-        ):
-            raise ValueError(
-                f"{form_cls.__name__} must define an inner 'class Model(BaseModel)'"
-            )
-        _TASK_REGISTRY[task_type] = (form_cls, model_cls)
-        return form_cls
-
-    return decorator
+_TASK_REGISTRY: dict[str, HumanTask] = {}
 
 
-def get_task(task_type: str) -> tuple[Type[Form], Type[BaseModel]]:
+def register_task(cls: Type[HumanTask]) -> Type[HumanTask]:
+    """Class decorator that registers a HumanTask subclass."""
+    if not hasattr(cls, "task_type"):
+        raise ValueError(f"{cls.__name__} must define a 'task_type' class attribute")
+    if not hasattr(cls, "Form"):
+        raise ValueError(f"{cls.__name__} must define an inner 'Form' class")
+    if not hasattr(cls, "Model"):
+        raise ValueError(f"{cls.__name__} must define an inner 'Model' class")
+
+    instance = cls()
+    _TASK_REGISTRY[cls.task_type] = instance
+    return cls
+
+
+def get_task(task_type: str) -> HumanTask:
+    """Retrieve a registered HumanTask instance by type."""
     if task_type not in _TASK_REGISTRY:
         raise KeyError(f"Unknown task type: {task_type!r}")
     return _TASK_REGISTRY[task_type]
