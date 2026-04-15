@@ -163,15 +163,23 @@ function taskList(): TaskListData {
         });
       }
 
-      // Show loading skeleton while waiting for server
+      // Show skeleton rows while waiting for server
       const tabContent = document.querySelector("[data-tab-content]");
       if (tabContent) {
+        const row =
+          '<div class="flex items-center gap-3 px-3 py-3.5">' +
+            '<div class="flex-1 space-y-2">' +
+              '<div class="skeleton-bar h-3 w-2/5"></div>' +
+              '<div class="skeleton-bar h-2.5 w-1/4"></div>' +
+            "</div>" +
+            '<div class="skeleton-bar h-5 w-16 rounded-full"></div>' +
+          "</div>";
         tabContent.innerHTML =
-          '<div class="flex items-center justify-center py-12">' +
-          '<svg class="h-5 w-5 animate-spin text-zinc-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">' +
-          '<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>' +
-          '<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>' +
-          "</svg></div>";
+          '<div class="table-container">' +
+            '<div class="divide-y divide-border">' +
+              row + row + row + row + row +
+            "</div>" +
+          "</div>";
       }
 
       this.loading = true;

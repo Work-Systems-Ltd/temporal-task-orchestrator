@@ -501,6 +501,23 @@
     background: rgba(255,255,255,0.02);
   }
 
+  /* ── Skeleton loader ── */
+  @keyframes skeletonShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .skeleton-bar {
+    border-radius: 4px;
+    background: linear-gradient(
+      90deg,
+      rgba(255,255,255,0.03) 0%,
+      rgba(255,255,255,0.06) 40%,
+      rgba(255,255,255,0.03) 80%
+    );
+    background-size: 200% 100%;
+    animation: skeletonShimmer 2s ease-in-out infinite;
+  }
+
   /* ── Workflow picker item ── */
   .picker-item {
     @apply flex w-full items-center justify-between rounded-lg p-3 text-left;
