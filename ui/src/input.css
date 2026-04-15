@@ -91,7 +91,7 @@
     transform: scale(0.95);
   }
   .btn-page {
-    @apply bg-transparent text-zinc-500 text-[12px] px-3 py-1 rounded-md;
+    @apply bg-transparent text-zinc-500 text-[12px] px-3 py-1 rounded-lg;
     border: 1px solid rgba(255,255,255,0.1);
   }
   .btn-page:hover {
@@ -106,50 +106,41 @@
 
   /* ── Pills / Badges ── */
   .pill {
-    @apply inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium;
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium;
     border: 1px solid transparent;
-  }
-  .pill-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: currentColor;
-    flex-shrink: 0;
   }
   .pill-amber {
     @apply text-amber-400;
-    background: rgba(245,158,11,0.08);
-    border-color: rgba(245,158,11,0.12);
+    background: rgba(245,158,11,0.12);
+    border-color: rgba(245,158,11,0.20);
   }
   .pill-blue {
     @apply text-blue-400;
-    background: rgba(59,130,246,0.08);
-    border-color: rgba(59,130,246,0.12);
+    background: rgba(59,130,246,0.12);
+    border-color: rgba(59,130,246,0.20);
   }
   .pill-emerald {
     @apply text-emerald-400;
-    background: rgba(16,185,129,0.08);
-    border-color: rgba(16,185,129,0.12);
+    background: rgba(16,185,129,0.12);
+    border-color: rgba(16,185,129,0.20);
   }
   .pill-red {
     @apply text-red-400;
-    background: rgba(239,68,68,0.08);
-    border-color: rgba(239,68,68,0.12);
+    background: rgba(239,68,68,0.12);
+    border-color: rgba(239,68,68,0.20);
   }
   .pill-zinc {
     @apply text-zinc-500;
-    background: rgba(113,113,122,0.08);
-    border-color: rgba(113,113,122,0.12);
+    background: rgba(113,113,122,0.12);
+    border-color: rgba(113,113,122,0.20);
   }
   .tag {
-    @apply inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium text-zinc-500;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.04);
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium text-zinc-400;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
   }
   .count-badge {
-    @apply rounded-full px-1.5 text-[10px] font-semibold tabular-nums;
-    padding-top: 1px;
-    padding-bottom: 1px;
+    @apply rounded-full px-1.5 py-px text-[10px] font-semibold tabular-nums;
     line-height: 1.4;
   }
   .count-badge-active {
@@ -266,7 +257,7 @@
     letter-spacing: 0.04em;
   }
   .footer-label {
-    @apply text-[11px] text-zinc-800;
+    @apply text-[11px] text-zinc-600;
   }
   .footer-sep {
     width: 3px;
@@ -275,7 +266,7 @@
     background: rgba(255,255,255,0.06);
   }
   .footer-build {
-    @apply font-mono text-[10px] text-zinc-800;
+    @apply font-mono text-[10px] text-zinc-600;
   }
 
   /* ── Form inputs ── */
@@ -336,6 +327,8 @@
   }
   .dropdown-item-active {
     @apply text-white;
+    background: rgba(255,255,255,0.04);
+    box-shadow: inset 2px 0 0 rgba(255,255,255,0.4);
   }
 
   /* ── Tab bar ── */
@@ -365,8 +358,8 @@
     border: 1px dashed rgba(255,255,255,0.06);
   }
   .empty-state-icon {
-    @apply flex h-10 w-10 items-center justify-center rounded-lg;
-    border: 1px solid rgba(255,255,255,0.08);
+    @apply flex h-12 w-12 items-center justify-center rounded-lg;
+    border: 1px solid rgba(255,255,255,0.10);
     background: rgba(17,17,19,0.8);
   }
 

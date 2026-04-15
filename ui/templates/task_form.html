@@ -32,7 +32,7 @@
   <div x-data="{ on: {{ 'true' if field.data else 'false' }} }" class="flex items-center gap-2.5 pt-0.5">
     <input type="hidden" name="{{ field.name }}" :value="on ? 'y' : ''">
     <button type="button" @click="on = !on"
-            :class="on ? 'bg-white' : 'bg-zinc-800 border-border'"
+            :class="on ? 'bg-white' : 'bg-zinc-800/80 border-zinc-600'"
             class="relative h-5 w-9 rounded-full border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-white/10 focus:ring-offset-2 focus:ring-offset-bg">
       <span :class="on ? 'translate-x-4 bg-black' : 'translate-x-0.5 bg-zinc-500'"
             class="block h-4 w-4 rounded-full transition-all duration-200"></span>
@@ -65,10 +65,7 @@
 
     <div class="card-header">
       <div class="flex items-center gap-2.5">
-        <span class="pill pill-amber">
-          <span class="pill-dot"></span>
-          {{ meta.task_type }}
-        </span>
+        <span class="pill pill-amber">{{ meta.task_type }}</span>
         <span class="font-mono text-[11px] text-zinc-700">{{ workflow_id }}</span>
       </div>
       <h1 class="mt-2.5 text-[15px] font-semibold text-white">{{ meta.title }}</h1>

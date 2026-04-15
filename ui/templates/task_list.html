@@ -13,8 +13,7 @@
 
 {% macro status_badge(status) %}
 {% set color = status_colors.get(status, "zinc") %}
-<span class="pill pill-{{ color }}">
-  <span class="pill-dot"></span>{{ status | capitalize }}</span>
+<span class="pill pill-{{ color }}">{{ status | capitalize }}</span>
 {% endmacro %}
 
 {% block content %}
@@ -40,7 +39,7 @@
              x-transition:leave="transition ease-in duration-75"
              x-transition:leave-start="opacity-100 scale-100"
              x-transition:leave-end="opacity-0 scale-95"
-             class="dropdown-menu" style="transform-origin: top right">
+             class="dropdown-menu origin-top-right">
           <a href="/?tab={{ tab }}" class="dropdown-item {% if not wf_type %}dropdown-item-active{% endif %}">
             All types
           </a>
@@ -72,7 +71,7 @@
       <input type="hidden" name="tab" value="{{ tab }}" />
       {% if wf_type %}<input type="hidden" name="type" value="{{ wf_type }}" />{% endif %}
       <div class="relative flex-1">
-        <svg class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <svg class="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
         </svg>
         <input type="text" name="q" value="{{ search }}" placeholder="Search by workflow ID, title, or type..."
@@ -109,7 +108,7 @@
           <th class="hidden th sm:table-cell">Type</th>
           <th class="hidden th md:table-cell">Workflow ID</th>
           <th class="th">Started</th>
-          <th class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wider text-zinc-600">Status</th>
+          <th class="th text-right">Status</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-border">
@@ -150,7 +149,7 @@
           {% if tab in ["completed", "failed", "all"] %}
           <th class="hidden th md:table-cell">Duration</th>
           {% endif %}
-          <th class="px-3 py-2 text-right text-[11px] font-medium uppercase tracking-wider text-zinc-600">Status</th>
+          <th class="th text-right">Status</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-border">
@@ -200,7 +199,7 @@
   {% else %}
   <div class="empty-state">
     <div class="empty-state-icon">
-      <svg class="h-4 w-4 text-zinc-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+      <svg class="h-5 w-5 text-zinc-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
       </svg>
     </div>
