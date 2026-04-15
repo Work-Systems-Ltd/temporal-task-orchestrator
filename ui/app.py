@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import uuid
@@ -124,14 +125,14 @@ async def _count_pending(wf_type: str | None = None) -> int:
 
 
 async def _get_tab_counts(wf_type: str | None = None) -> dict[str, int]:
-    counts = {}
-    for tab in TAB_ORDER:
+    async def _count_tab(tab: str) -> tuple[str, int]:
         if tab == "pending":
-            counts[tab] = await _count_pending(wf_type)
-        else:
-            q = _build_query(STATUS_QUERIES[tab], wf_type)
-            counts[tab] = await _count_workflows(q)
-    return counts
+            return tab, await _count_pending(wf_type)
+        q = _build_query(STATUS_QUERIES[tab], wf_type)
+        return tab, await _count_workflows(q)
+
+    results = await asyncio.gather(*[_count_tab(t) for t in TAB_ORDER])
+    return dict(results)
 
 
 async def _list_pending(page: int, wf_type: str | None = None, search: str | None = None) -> tuple[list[dict], bool]:
@@ -216,12 +217,15 @@ async def task_list(request: Request):
     wf_type = request.query_params.get("type") or None
     search = request.query_params.get("q", "").strip() or None
 
-    counts = await _get_tab_counts(wf_type)
-
     if tab == "pending":
-        items, has_next = await _list_pending(page, wf_type, search)
+        list_coro = _list_pending(page, wf_type, search)
     else:
-        items, has_next = await _list_workflows(tab, page, wf_type, search)
+        list_coro = _list_workflows(tab, page, wf_type, search)
+
+    counts, (items, has_next) = await asyncio.gather(
+        _get_tab_counts(wf_type),
+        list_coro,
+    )
 
     return templates.TemplateResponse(
         "task_list.html",
