@@ -66,6 +66,28 @@ class TemporalService:
         results = await asyncio.gather(*[_count_tab(t) for t in TAB_ORDER])
         return dict(results)
 
+    @staticmethod
+    def _group_by_parent(items: list) -> list:
+        """Group child workflows under their parents using ID convention.
+
+        Children have IDs like "{parent_id}-{suffix}". Attach them to
+        the parent's children list and remove them from the top-level.
+        """
+        by_id = {item.workflow_id: item for item in items}
+        children_ids: set[str] = set()
+
+        for item in items:
+            parts = item.workflow_id.rsplit("-", 1)
+            if len(parts) == 2:
+                potential_parent = parts[0]
+                if potential_parent in by_id and potential_parent != item.workflow_id:
+                    parent = by_id[potential_parent]
+                    parent.children.append(item.model_dump())
+                    item.parent_id = potential_parent
+                    children_ids.add(item.workflow_id)
+
+        return [item for item in items if item.workflow_id not in children_ids]
+
     async def list_pending(
         self,
         page: int,
@@ -103,12 +125,13 @@ class TemporalService:
             except Exception:
                 continue
 
+        grouped = self._group_by_parent(all_pending)
         size = per_page or self.page_size
         start = (page - 1) * size
         end = start + size
         return PaginatedResult(
-            items=all_pending[start:end],
-            has_next=end < len(all_pending),
+            items=grouped[start:end],
+            has_next=end < len(grouped),
         )
 
     async def list_workflows(
@@ -153,8 +176,9 @@ class TemporalService:
             collected += 1
 
         has_next = len(items) > size
+        grouped = self._group_by_parent(items[:size])
         return PaginatedResult(
-            items=items[:size],
+            items=grouped,
             has_next=has_next,
         )
 

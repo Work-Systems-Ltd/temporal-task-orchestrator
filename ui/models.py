@@ -20,6 +20,8 @@ class WorkflowItem(BaseModel):
     closed: str
     duration: str
     task_queue: str
+    parent_id: str = ""
+    children: list[dict] = []
 
 
 class PendingTaskItem(BaseModel):
@@ -30,6 +32,8 @@ class PendingTaskItem(BaseModel):
     description: str
     started: str
     status: str = "pending"
+    parent_id: str = ""
+    children: list[dict] = []
 
 
 class PaginatedResult(BaseModel):

@@ -1081,6 +1081,50 @@
     transform: translateX(0);
   }
 
+  /* ── Expandable parent/child rows ── */
+  .expand-toggle {
+    @apply inline-flex items-center justify-center shrink-0 rounded p-0.5 -ml-1 mr-1;
+    color: var(--color-text-ghost);
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+  .expand-toggle:hover {
+    color: var(--color-text-secondary);
+  }
+  .expand-toggle svg {
+    @apply h-3.5 w-3.5;
+    transition: transform 0.15s ease;
+  }
+  .expand-toggle-open svg {
+    transform: rotate(90deg);
+  }
+  .table-row-child {
+    background: var(--color-surface-subtle);
+  }
+  .table-row-child:hover {
+    background: var(--color-surface-hover);
+  }
+  .td-indent {
+    padding-left: 2.25rem !important;
+  }
+  .tree-branch {
+    @apply inline-block mr-1.5 text-ghost;
+    font-size: 11px;
+    line-height: 1;
+  }
+  .child-count {
+    @apply ml-1.5 rounded px-1 py-px text-[10px] font-medium tabular-nums;
+    color: var(--color-text-faint);
+    background: var(--color-surface-active);
+  }
+  .subtask-tag {
+    @apply inline-flex items-center gap-1 text-[10px] font-medium;
+    color: var(--color-text-faint);
+  }
+  .subtask-tag svg {
+    @apply h-3 w-3;
+  }
+
   /* ── Skeleton loader (equalizer bars) ── */
   .skeleton-loader {
     @apply flex items-center justify-center;

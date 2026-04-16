@@ -32,6 +32,34 @@ interface TaskListData {
   _listenVisibility(): void;
 }
 
+// ── Expand/collapse state for parent/child rows ──
+const expandedParents = new Set<string>();
+
+function toggleExpand(parentId: string): void {
+  if (expandedParents.has(parentId)) {
+    expandedParents.delete(parentId);
+  } else {
+    expandedParents.add(parentId);
+  }
+  applyExpandState();
+}
+
+function applyExpandState(): void {
+  document.querySelectorAll<HTMLElement>("[data-child-of]").forEach((row) => {
+    const parentId = row.getAttribute("data-child-of")!;
+    row.classList.toggle("hidden", !expandedParents.has(parentId));
+  });
+  document.querySelectorAll<HTMLElement>("[data-parent-id]").forEach((row) => {
+    const parentId = row.getAttribute("data-parent-id")!;
+    const toggle = row.querySelector(".expand-toggle");
+    if (toggle) {
+      toggle.classList.toggle("expand-toggle-open", expandedParents.has(parentId));
+    }
+  });
+}
+
+(window as Record<string, unknown>).toggleExpand = toggleExpand;
+
 function getViewParams(seq: number): ViewParams {
   const params = new URLSearchParams(window.location.search);
   return {
@@ -134,6 +162,7 @@ function taskList(): TaskListData {
         tabContent.innerHTML = msg.tab_content;
       }
 
+      applyExpandState();
       this.loading = false;
     },
 
