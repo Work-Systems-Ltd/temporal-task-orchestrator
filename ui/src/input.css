@@ -895,15 +895,7 @@
     height: 6px;
     border-radius: 50%;
   }
-  .wf-graph-node-status-running .wf-graph-node-status-dot {
-    background: #2563eb;
-    box-shadow: 0 0 0 2px color-mix(in srgb, #2563eb 20%, transparent);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-  @keyframes pulse-dot {
-    0%, 100% { box-shadow: 0 0 0 2px color-mix(in srgb, #2563eb 20%, transparent); }
-    50% { box-shadow: 0 0 0 4px color-mix(in srgb, #2563eb 8%, transparent); }
-  }
+  .wf-graph-node-status-running .wf-graph-node-status-dot { background: #2563eb; }
   .wf-graph-node-status-completed .wf-graph-node-status-dot { background: #059669; }
   .wf-graph-node-status-failed .wf-graph-node-status-dot { background: #dc2626; }
   .wf-graph-node-status-pending .wf-graph-node-status-dot { background: var(--color-text-ghost); }
