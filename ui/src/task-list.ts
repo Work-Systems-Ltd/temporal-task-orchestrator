@@ -222,6 +222,7 @@ function taskList(): TaskListData {
       }
 
       applyExpandState();
+      applyColumnState();
       this.loading = false;
     },
 
@@ -317,5 +318,8 @@ document.addEventListener("keydown", (e: KeyboardEvent) => {
 window.addEventListener("popstate", () => {
   window.location.reload();
 });
+
+// Apply column visibility on initial load
+applyColumnState();
 
 (window as Record<string, unknown>).taskList = taskList;
