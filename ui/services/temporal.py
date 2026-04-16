@@ -187,6 +187,9 @@ class TemporalService:
                     closed=relative_time(wf.close_time),
                     duration=duration(wf.start_time, wf.close_time),
                     task_queue=wf.task_queue or "—",
+                    run_id=wf.run_id or "",
+                    history_length=wf.history_length or 0,
+                    parent_id=wf.parent_id or "",
                 )
             )
             collected += 1

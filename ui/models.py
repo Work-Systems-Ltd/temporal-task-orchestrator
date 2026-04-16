@@ -20,6 +20,8 @@ class WorkflowItem(BaseModel):
     closed: str
     duration: str
     task_queue: str
+    run_id: str = ""
+    history_length: int = 0
     parent_id: str = ""
     children: list[dict] = []
 

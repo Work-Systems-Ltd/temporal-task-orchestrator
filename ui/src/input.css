@@ -1248,4 +1248,89 @@
     border-color: var(--color-border-hover);
     background: var(--color-surface-subtle);
   }
+
+  /* ── Navigation progress bar ── */
+  .nav-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .nav-progress.is-active {
+    opacity: 1;
+  }
+  .nav-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--color-tab-active-bar);
+    border-radius: 0 2px 2px 0;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .nav-progress.is-active .nav-progress-bar {
+    animation: navProgress 8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes navProgress {
+    0%   { width: 0%; }
+    20%  { width: 35%; }
+    50%  { width: 65%; }
+    80%  { width: 85%; }
+    100% { width: 92%; }
+  }
+  .nav-progress.is-done .nav-progress-bar {
+    width: 100% !important;
+    animation: none;
+    transition: width 0.15s ease;
+  }
+  .nav-progress.is-done {
+    transition: opacity 0.3s ease 0.15s;
+    opacity: 0;
+  }
+
+  /* ── Staggered entrance for child elements ── */
+  .stagger-in > * {
+    opacity: 0;
+    transform: translateY(6px);
+    animation: staggerChild 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .stagger-in > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-in > *:nth-child(2) { animation-delay: 60ms; }
+  .stagger-in > *:nth-child(3) { animation-delay: 120ms; }
+  .stagger-in > *:nth-child(4) { animation-delay: 180ms; }
+  .stagger-in > *:nth-child(5) { animation-delay: 240ms; }
+  .stagger-in > *:nth-child(6) { animation-delay: 300ms; }
+  .stagger-in > *:nth-child(n+7) { animation-delay: 350ms; }
+  @keyframes staggerChild {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── View Transition API (browsers that support it) ── */
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+/* View transition keyframes (must be outside @layer) */
+@keyframes vt-slide-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes vt-slide-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-4px); }
+}
+::view-transition-old(page-content) {
+  animation: vt-slide-out 0.15s ease both;
+}
+::view-transition-new(page-content) {
+  animation: vt-slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+}
+/* Keep the header stable during transitions */
+::view-transition-old(header-bar),
+::view-transition-new(header-bar) {
+  animation: none;
 }

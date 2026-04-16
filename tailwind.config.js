@@ -15,8 +15,8 @@ module.exports = {
         "border-hover": "var(--color-border-hover)",
       },
       animation: {
-        "fade-in": "fadeIn 0.3s ease-out",
-        "slide-up": "slideUp 0.35s ease-out both",
+        "fade-in": "fadeIn 0.35s ease-out both",
+        "slide-up": "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both",
       },
       keyframes: {
         fadeIn: {
@@ -24,7 +24,7 @@ module.exports = {
           to: { opacity: "1" },
         },
         slideUp: {
-          from: { opacity: "0", transform: "translateY(6px)" },
+          from: { opacity: "0", transform: "translateY(8px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
       },
