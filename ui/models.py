@@ -57,6 +57,13 @@ class TimelineEvent(BaseModel):
     status: str  # "completed", "failed", "pending", "info"
     detail: str = ""
     link: str = ""  # URL for clickable events (e.g. child workflows)
+    duration: str = ""  # e.g. "120ms", "2.3s" — shown as badge
+
+
+class TimelineStats(BaseModel):
+    activity_time: str = ""  # total time in activities
+    wait_time: str = ""  # total time waiting for human input
+    total_time: str = ""  # end-to-end
 
 
 class GraphNode(BaseModel):

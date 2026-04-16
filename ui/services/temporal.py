@@ -10,7 +10,7 @@ from core.models import TaskMeta
 from core.workflows import WorkSysFlow, WorkflowDef
 from ui.config import STATUS_QUERIES, TAB_ORDER, AppSettings
 from ui.helpers import duration, relative_time, status_name
-from ui.models import GraphNode, PaginatedResult, PendingTaskItem, TimelineEvent, WorkflowDetail, WorkflowItem
+from ui.models import GraphNode, PaginatedResult, PendingTaskItem, TimelineEvent, TimelineStats, WorkflowDetail, WorkflowItem
 
 
 class TemporalService:
