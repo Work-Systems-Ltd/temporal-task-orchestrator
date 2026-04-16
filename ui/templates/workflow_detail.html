@@ -12,11 +12,25 @@
     Back to tasks
   </a>
 
+  <!-- Subtask banner -->
+  {% if is_child %}
+  <div class="subtask-banner">
+    <svg class="subtask-banner-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+    </svg>
+    This is a subtask of
+    <a href="/workflow/{{ detail.parent_id }}">{{ detail.parent_id }}</a>
+  </div>
+  {% endif %}
+
   <!-- Page header -->
   <div class="mb-6">
     <div class="mb-2 flex items-center gap-2.5">
       {{ status_badge(detail.status) }}
       <span class="text-sm text-muted">{{ detail.workflow_type }}</span>
+      {% if is_child %}
+      <span class="tag">Subtask</span>
+      {% endif %}
     </div>
     <h1 class="text-xl font-semibold text-primary">
       {% if pending_task %}{{ pending_task.title }}{% else %}{{ workflow_id }}{% endif %}
@@ -34,8 +48,31 @@
     </button>
   </div>
 
-  {% if pending_task %}
+  <!-- Dependency graph -->
+  {% if graph %}
+  <div class="card mb-5">
+    <div class="card-header">
+      <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Workflow Graph</h2>
+    </div>
+    <div class="p-5">
+      <div class="wf-graph">
+        {% for node in graph %}
+        {% if not loop.first %}
+        <div class="wf-graph-edge"></div>
+        {% endif %}
+        <a href="/workflow/{{ node.workflow_id }}"
+           class="wf-graph-node {% if node.is_current %}wf-graph-node-current{% endif %}">
+          <span class="wf-graph-node-label">{{ node.label }}</span>
+          <span class="wf-graph-node-status wf-graph-node-status-{{ node.status }}">{{ node.status }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Pending task banner -->
+  {% if pending_task %}
   <div class="card mb-5">
     <div class="flex items-center justify-between gap-4 px-5 py-4">
       <div class="flex items-center gap-3 min-w-0">
@@ -90,7 +127,7 @@
             </div>
             {% if detail.parent_id %}
             <div>
-              <div class="detail-label">Parent</div>
+              <div class="detail-label">Parent Workflow</div>
               <div class="mt-0.5"><a href="/workflow/{{ detail.parent_id }}" class="timeline-link">{{ detail.parent_id }}</a></div>
             </div>
             {% endif %}
@@ -119,7 +156,7 @@
                 {% endif %}
               </div>
               <span class="timeline-time">{{ event.event_time }}</span>
-              <svg class="row-chevron" style="opacity:0.4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <svg class="h-3.5 w-3.5 shrink-0 text-ghost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
               </svg>
             </a>

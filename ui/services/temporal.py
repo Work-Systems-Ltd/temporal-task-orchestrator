@@ -10,7 +10,7 @@ from core.models import TaskMeta
 from core.workflows import WorkSysFlow, WorkflowDef
 from ui.config import STATUS_QUERIES, TAB_ORDER, AppSettings
 from ui.helpers import duration, relative_time, status_name
-from ui.models import PaginatedResult, PendingTaskItem, TimelineEvent, WorkflowDetail, WorkflowItem
+from ui.models import GraphNode, PaginatedResult, PendingTaskItem, TimelineEvent, WorkflowDetail, WorkflowItem
 
 
 class TemporalService:
@@ -249,6 +249,84 @@ class TemporalService:
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="failed", detail="Child failed", link=link))
 
         return events
+
+    async def get_workflow_graph(self, workflow_id: str, detail: WorkflowDetail) -> list[GraphNode]:
+        """Build a graph of parent + child workflows for visualization.
+
+        If viewing a child, resolve the parent first and build from there.
+        If viewing a parent, build from the current workflow's timeline.
+        """
+        root_id = detail.parent_id or workflow_id
+        root_detail = detail if not detail.parent_id else await self.get_workflow_detail(root_id)
+        if not root_detail:
+            return []
+
+        # Start with the root node
+        nodes: list[GraphNode] = [
+            GraphNode(
+                workflow_id=root_id,
+                workflow_type=root_detail.workflow_type,
+                status=root_detail.status,
+                label=root_detail.workflow_type,
+                is_current=(root_id == workflow_id),
+            )
+        ]
+
+        # Parse root's history to find child workflows
+        try:
+            handle = self._client.get_workflow_handle(root_id)
+            history = await handle.fetch_history()
+        except Exception:
+            return nodes
+
+        # Track initiated children and their final status
+        initiated: dict[int, tuple[str, str]] = {}  # init_event_id -> (type, child_id)
+        child_status: dict[str, str] = {}  # child_id -> status
+
+        for event in history.events:
+            etype = event.event_type
+            eid = event.event_id
+
+            if etype == 29:  # START_CHILD_WORKFLOW_EXECUTION_INITIATED
+                attrs = event.start_child_workflow_execution_initiated_event_attributes
+                wf_type = attrs.workflow_type.name if attrs and attrs.workflow_type else "child"
+                child_wf_id = attrs.workflow_id if attrs else ""
+                if child_wf_id:
+                    initiated[eid] = (wf_type, child_wf_id)
+                    child_status[child_wf_id] = "pending"
+            elif etype == 31:  # CHILD_WORKFLOW_EXECUTION_STARTED
+                attrs = event.child_workflow_execution_started_event_attributes
+                init_id = attrs.initiated_event_id if attrs else 0
+                if init_id in initiated:
+                    _, child_wf_id = initiated[init_id]
+                    child_status[child_wf_id] = "running"
+            elif etype == 32:  # CHILD_WORKFLOW_EXECUTION_COMPLETED
+                attrs = event.child_workflow_execution_completed_event_attributes
+                init_id = attrs.initiated_event_id if attrs else 0
+                if init_id in initiated:
+                    _, child_wf_id = initiated[init_id]
+                    child_status[child_wf_id] = "completed"
+            elif etype == 33:  # CHILD_WORKFLOW_EXECUTION_FAILED
+                attrs = event.child_workflow_execution_failed_event_attributes
+                init_id = attrs.initiated_event_id if attrs else 0
+                if init_id in initiated:
+                    _, child_wf_id = initiated[init_id]
+                    child_status[child_wf_id] = "failed"
+
+        # Build child nodes in order of initiation
+        for _init_id, (wf_type, child_wf_id) in sorted(initiated.items()):
+            nodes.append(
+                GraphNode(
+                    workflow_id=child_wf_id,
+                    workflow_type=wf_type,
+                    status=child_status.get(child_wf_id, "pending"),
+                    label=wf_type,
+                    is_current=(child_wf_id == workflow_id),
+                )
+            )
+
+        # Only return if there are children (no graph for standalone workflows)
+        return nodes if len(nodes) > 1 else []
 
     async def get_pending_task(self, workflow_id: str) -> TaskMeta | None:
         handle = self._client.get_workflow_handle(workflow_id)

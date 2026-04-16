@@ -59,3 +59,11 @@ class TimelineEvent(BaseModel):
     link: str = ""  # URL for clickable events (e.g. child workflows)
 
 
+class GraphNode(BaseModel):
+    workflow_id: str
+    workflow_type: str
+    status: str  # "running", "completed", "failed", "pending"
+    label: str
+    is_current: bool = False  # True for the workflow being viewed
+
+
