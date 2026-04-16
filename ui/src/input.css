@@ -818,6 +818,25 @@
   .timeline-item-clickable:hover .timeline-label {
     color: var(--color-text-primary);
   }
+  .timeline-duration {
+    @apply shrink-0 rounded px-1.5 py-px text-[10px] font-mono tabular-nums;
+    background: var(--color-surface-active);
+    color: var(--color-text-muted);
+  }
+  .timeline-stats {
+    @apply flex items-center gap-5 border-b border-border pb-4 mb-4;
+  }
+  .timeline-stat {
+    @apply flex flex-col;
+  }
+  .timeline-stat-label {
+    @apply text-[10px] font-medium uppercase tracking-wider;
+    color: var(--color-text-ghost);
+  }
+  .timeline-stat-value {
+    @apply mt-0.5 text-sm font-mono tabular-nums;
+    color: var(--color-text-secondary);
+  }
 
   /* ── Workflow graph ── */
   .wf-graph {

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from temporalio.client import Client
@@ -177,49 +177,91 @@ class TemporalService:
         except Exception:
             return None
 
-    async def get_workflow_timeline(self, workflow_id: str) -> list[TimelineEvent]:
+    @staticmethod
+    def _ms_duration(start: datetime, end: datetime) -> str:
+        """Format a duration between two datetimes as a human-readable string."""
+        diff = (end - start).total_seconds()
+        if diff < 0.001:
+            return "<1ms"
+        if diff < 1:
+            return f"{int(diff * 1000)}ms"
+        if diff < 60:
+            return f"{diff:.1f}s"
+        minutes = int(diff) // 60
+        secs = int(diff) % 60
+        if minutes < 60:
+            return f"{minutes}m {secs}s"
+        hours = minutes // 60
+        return f"{hours}h {minutes % 60}m"
+
+    async def get_workflow_timeline(self, workflow_id: str) -> tuple[list[TimelineEvent], TimelineStats]:
         handle = self._client.get_workflow_handle(workflow_id)
         history = await handle.fetch_history()
 
         # Track scheduled activities/children so we can collapse into single events
-        scheduled_activities: dict[int, str] = {}  # sched_event_id -> name
+        scheduled_activities: dict[int, tuple[str, datetime]] = {}  # sched_event_id -> (name, scheduled_at)
         child_workflows: dict[int, tuple[str, str]] = {}  # initiated_event_id -> (type, child_wf_id)
         events: list[TimelineEvent] = []
 
+        # For stats
+        total_activity_secs = 0.0
+        last_activity_end: datetime | None = None
+        total_wait_secs = 0.0
+        workflow_start: datetime | None = None
+        workflow_end: datetime | None = None
+
+        def _ts(event) -> datetime:
+            return event.event_time.ToDatetime(tzinfo=timezone.utc)
+
         for event in history.events:
             etype = event.event_type
-            etime = relative_time(event.event_time.ToDatetime(tzinfo=timezone.utc)) if event.event_time else "—"
+            etime = relative_time(_ts(event)) if event.event_time else "—"
             eid = event.event_id
 
             # Workflow lifecycle
             if etype == 1:  # WORKFLOW_EXECUTION_STARTED
+                workflow_start = _ts(event)
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow started", status="completed"))
             elif etype == 2:  # WORKFLOW_EXECUTION_COMPLETED
+                workflow_end = _ts(event)
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow completed", status="completed"))
             elif etype == 3:  # WORKFLOW_EXECUTION_FAILED
+                workflow_end = _ts(event)
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow failed", status="failed"))
 
             # Activity lifecycle — only emit on completion/failure (skip scheduled)
             elif etype == 10:  # ACTIVITY_TASK_SCHEDULED
                 attrs = event.activity_task_scheduled_event_attributes
                 name = attrs.activity_type.name if attrs and attrs.activity_type else "unknown"
-                scheduled_activities[eid] = name
+                scheduled_activities[eid] = (name, _ts(event))
             elif etype == 12:  # ACTIVITY_TASK_COMPLETED
                 attrs = event.activity_task_completed_event_attributes
                 sched_id = attrs.scheduled_event_id if attrs else 0
-                name = scheduled_activities.get(sched_id, "activity")
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="completed"))
+                name, sched_time = scheduled_activities.get(sched_id, ("activity", _ts(event)))
+                act_duration = (_ts(event) - sched_time).total_seconds()
+                total_activity_secs += act_duration
+                last_activity_end = _ts(event)
+                dur_str = self._ms_duration(sched_time, _ts(event))
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="completed", duration=dur_str))
             elif etype == 13:  # ACTIVITY_TASK_FAILED
                 attrs = event.activity_task_failed_event_attributes
                 sched_id = attrs.scheduled_event_id if attrs else 0
-                name = scheduled_activities.get(sched_id, "activity")
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="failed"))
+                name, sched_time = scheduled_activities.get(sched_id, ("activity", _ts(event)))
+                act_duration = (_ts(event) - sched_time).total_seconds()
+                total_activity_secs += act_duration
+                dur_str = self._ms_duration(sched_time, _ts(event))
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="failed", duration=dur_str))
 
-            # Signals
+            # Signals — measure wait time from last activity
             elif etype == 26:  # WORKFLOW_EXECUTION_SIGNALED
                 attrs = event.workflow_execution_signaled_event_attributes
                 sig_name = attrs.signal_name if attrs else "signal"
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"Signal: {sig_name}", status="info"))
+                dur_str = ""
+                if last_activity_end:
+                    wait = (_ts(event) - last_activity_end).total_seconds()
+                    total_wait_secs += wait
+                    dur_str = self._ms_duration(last_activity_end, _ts(event))
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"Signal: {sig_name}", status="info", duration=dur_str))
 
             # Child workflows — track on initiation, emit on start/complete/fail
             elif etype == 29:  # START_CHILD_WORKFLOW_EXECUTION_INITIATED
@@ -248,7 +290,13 @@ class TemporalService:
                 link = f"/workflow/{child_wf_id}" if child_wf_id else ""
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="failed", detail="Child failed", link=link))
 
-        return events
+        stats = TimelineStats(
+            activity_time=self._ms_duration(datetime.min.replace(tzinfo=timezone.utc), datetime.min.replace(tzinfo=timezone.utc) + timedelta(seconds=total_activity_secs)) if total_activity_secs > 0 else "—",
+            wait_time=self._ms_duration(datetime.min.replace(tzinfo=timezone.utc), datetime.min.replace(tzinfo=timezone.utc) + timedelta(seconds=total_wait_secs)) if total_wait_secs > 0 else "—",
+            total_time=self._ms_duration(workflow_start, workflow_end) if workflow_start and workflow_end else "—",
+        )
+
+        return events, stats
 
     async def get_workflow_graph(self, workflow_id: str, detail: WorkflowDetail) -> list[GraphNode]:
         """Build a graph of parent + child workflows for visualization.
