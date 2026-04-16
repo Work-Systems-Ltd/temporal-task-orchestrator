@@ -665,6 +665,14 @@
     @apply h-3.5 w-3.5 shrink-0;
     color: var(--color-text-primary);
   }
+  .dropdown-item input[type="checkbox"] {
+    @apply h-3.5 w-3.5 shrink-0 rounded;
+    accent-color: var(--color-text-primary);
+  }
+  .dropdown-heading {
+    @apply px-3 py-2 text-[11px] font-medium uppercase tracking-wider;
+    color: var(--color-text-ghost);
+  }
 
   /* ── Tab bar ── */
   .tab-bar {
