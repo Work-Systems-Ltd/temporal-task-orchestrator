@@ -10,6 +10,7 @@ from workflows.approval import (
     process_approval,
     process_rejection,
 )
+from workflows.hiring import HiringWorkflow
 from workflows.onboarding import (
     OnboardingWorkflow,
     create_onboarding_ticket,
@@ -28,7 +29,7 @@ async def main():
     worker = Worker(
         client,
         task_queue="hello-world-task-queue",
-        workflows=[ApprovalWorkflow, OnboardingWorkflow],
+        workflows=[ApprovalWorkflow, HiringWorkflow, OnboardingWorkflow],
         activities=[
             log_request,
             process_approval,

@@ -1,7 +1,9 @@
 from core.workflows import register_workflow
 from tasks.approval_input import ApprovalInputTask
+from tasks.hiring_input import HiringInputTask
 from tasks.onboarding_input import OnboardingInputTask
 from workflows.approval import ApprovalWorkflow
+from workflows.hiring import HiringWorkflow
 from workflows.onboarding import OnboardingWorkflow
 
 register_workflow(
@@ -24,4 +26,15 @@ register_workflow(
     input_placeholder="e.g. Jane Smith",
     input_task=OnboardingInputTask,
     task_types=["onboarding"],
+)
+
+register_workflow(
+    key="hiring",
+    label="Hiring Pipeline",
+    description="Full hiring flow: approval then onboarding",
+    workflow_cls=HiringWorkflow,
+    input_label="Employee details",
+    input_placeholder="",
+    input_task=HiringInputTask,
+    task_types=["approval", "onboarding"],
 )
