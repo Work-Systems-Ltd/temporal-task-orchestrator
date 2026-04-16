@@ -702,6 +702,71 @@
     background: var(--color-empty-icon-bg);
   }
 
+  /* ── Detail grid ── */
+  .detail-grid {
+    @apply grid grid-cols-2 gap-x-8 gap-y-3;
+  }
+  .detail-label {
+    @apply text-[11px] font-medium uppercase tracking-wider;
+    color: var(--color-text-faint);
+  }
+  .detail-value {
+    @apply mt-0.5 text-sm;
+    color: var(--color-text-secondary);
+  }
+  .detail-value-mono {
+    @apply mt-0.5 text-[11px] font-mono;
+    color: var(--color-text-muted);
+  }
+
+  /* ── Timeline ── */
+  .timeline {
+    @apply relative space-y-0;
+  }
+  .timeline-item {
+    @apply relative flex items-start gap-3 py-2.5;
+  }
+  .timeline-item:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 22px;
+    bottom: 0;
+    width: 1px;
+    background: var(--color-border);
+  }
+  .timeline-dot {
+    @apply mt-1 h-[11px] w-[11px] shrink-0 rounded-full border-2;
+  }
+  .timeline-dot-completed {
+    background: #059669;
+    border-color: #059669;
+  }
+  .timeline-dot-failed {
+    background: #dc2626;
+    border-color: #dc2626;
+  }
+  .timeline-dot-info {
+    background: var(--color-bg);
+    border-color: var(--color-border-hover);
+  }
+  .timeline-dot-pending {
+    background: var(--color-bg);
+    border-color: #b45309;
+  }
+  .timeline-label {
+    @apply text-sm;
+    color: var(--color-text-secondary);
+  }
+  .timeline-detail {
+    @apply ml-1 text-xs;
+    color: var(--color-text-faint);
+  }
+  .timeline-time {
+    @apply ml-auto shrink-0 text-xs tabular-nums;
+    color: var(--color-text-faint);
+  }
+
   /* ── Task detail page ── */
   .task-detail-id {
     @apply inline-flex items-center gap-1.5 font-mono text-[11px] cursor-pointer;

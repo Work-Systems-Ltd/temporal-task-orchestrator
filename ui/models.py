@@ -37,3 +37,24 @@ class PaginatedResult(BaseModel):
     has_next: bool
 
 
+class WorkflowDetail(BaseModel):
+    workflow_id: str
+    run_id: str
+    workflow_type: str
+    status: str
+    started: str
+    closed: str
+    duration: str
+    task_queue: str
+    history_length: int
+    parent_id: str | None = None
+
+
+class TimelineEvent(BaseModel):
+    event_id: int
+    event_time: str
+    label: str
+    status: str  # "completed", "failed", "pending", "info"
+    detail: str = ""
+
+

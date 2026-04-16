@@ -9,7 +9,7 @@ from core.models import TaskMeta
 from core.workflows import WorkSysFlow, WorkflowDef
 from ui.config import STATUS_QUERIES, TAB_ORDER, AppSettings
 from ui.helpers import duration, relative_time, status_name
-from ui.models import PaginatedResult, PendingTaskItem, WorkflowItem
+from ui.models import PaginatedResult, PendingTaskItem, TimelineEvent, WorkflowDetail, WorkflowItem
 
 
 class TemporalService:
@@ -156,6 +156,81 @@ class TemporalService:
             items=items[:size],
             has_next=has_next,
         )
+
+    async def get_workflow_detail(self, workflow_id: str) -> WorkflowDetail | None:
+        try:
+            handle = self._client.get_workflow_handle(workflow_id)
+            desc = await handle.describe()
+            return WorkflowDetail(
+                workflow_id=desc.id,
+                run_id=desc.run_id,
+                workflow_type=desc.workflow_type or "—",
+                status=status_name(desc.status),
+                started=relative_time(desc.start_time),
+                closed=relative_time(desc.close_time),
+                duration=duration(desc.start_time, desc.close_time),
+                task_queue=desc.task_queue or "—",
+                history_length=desc.history_length,
+                parent_id=desc.parent_id,
+            )
+        except Exception:
+            return None
+
+    async def get_workflow_timeline(self, workflow_id: str) -> list[TimelineEvent]:
+        handle = self._client.get_workflow_handle(workflow_id)
+        history = await handle.fetch_history()
+
+        # Track scheduled activity names by event_id so we can label completions/failures
+        scheduled_activities: dict[int, str] = {}
+        events: list[TimelineEvent] = []
+
+        for event in history.events:
+            etype = event.event_type
+            etime = relative_time(event.event_time.ToDatetime()) if event.event_time else "—"
+            eid = event.event_id
+
+            # Workflow lifecycle
+            if etype == 1:  # WORKFLOW_EXECUTION_STARTED
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow started", status="completed"))
+            elif etype == 2:  # WORKFLOW_EXECUTION_COMPLETED
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow completed", status="completed"))
+            elif etype == 3:  # WORKFLOW_EXECUTION_FAILED
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow failed", status="failed"))
+
+            # Activity lifecycle
+            elif etype == 10:  # ACTIVITY_TASK_SCHEDULED
+                attrs = event.activity_task_scheduled_event_attributes
+                name = attrs.activity_type.name if attrs and attrs.activity_type else "unknown"
+                scheduled_activities[eid] = name
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"{name}", status="info", detail="Scheduled"))
+            elif etype == 12:  # ACTIVITY_TASK_COMPLETED
+                attrs = event.activity_task_completed_event_attributes
+                sched_id = attrs.scheduled_event_id if attrs else 0
+                name = scheduled_activities.get(sched_id, "activity")
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"{name}", status="completed", detail="Completed"))
+            elif etype == 13:  # ACTIVITY_TASK_FAILED
+                attrs = event.activity_task_failed_event_attributes
+                sched_id = attrs.scheduled_event_id if attrs else 0
+                name = scheduled_activities.get(sched_id, "activity")
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"{name}", status="failed", detail="Failed"))
+
+            # Signals
+            elif etype == 26:  # WORKFLOW_EXECUTION_SIGNALED
+                attrs = event.workflow_execution_signaled_event_attributes
+                sig_name = attrs.signal_name if attrs else "signal"
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"Signal: {sig_name}", status="info"))
+
+            # Child workflows
+            elif etype == 31:  # CHILD_WORKFLOW_EXECUTION_STARTED
+                attrs = event.child_workflow_execution_started_event_attributes
+                wf_type = attrs.workflow_type.name if attrs and attrs.workflow_type else "child"
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"Child: {wf_type}", status="info", detail="Started"))
+            elif etype == 32:  # CHILD_WORKFLOW_EXECUTION_COMPLETED
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label="Child workflow", status="completed", detail="Completed"))
+            elif etype == 33:  # CHILD_WORKFLOW_EXECUTION_FAILED
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label="Child workflow", status="failed", detail="Failed"))
+
+        return events
 
     async def get_pending_task(self, workflow_id: str) -> TaskMeta | None:
         handle = self._client.get_workflow_handle(workflow_id)

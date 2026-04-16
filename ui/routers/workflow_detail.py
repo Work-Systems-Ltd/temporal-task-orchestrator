@@ -1,0 +1,48 @@
+from __future__ import annotations
+
+import asyncio
+
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+
+from ui.dependencies import get_templates, get_temporal_service
+from ui.services.temporal import TemporalService
+
+router = APIRouter(tags=["workflow_detail"])
+
+
+async def _noop() -> None:
+    return None
+
+
+@router.get("/workflow/{workflow_id}", response_class=HTMLResponse)
+async def workflow_detail(
+    request: Request,
+    workflow_id: str,
+    service: TemporalService = Depends(get_temporal_service),
+    templates: Jinja2Templates = Depends(get_templates),
+) -> HTMLResponse:
+    detail = await service.get_workflow_detail(workflow_id)
+    if not detail:
+        return RedirectResponse(url="/", status_code=303)
+
+    is_running = detail.status == "running"
+
+    pending_task_result, timeline = await asyncio.gather(
+        service.get_pending_task(workflow_id) if is_running else _noop(),
+        service.get_workflow_timeline(workflow_id),
+    )
+
+    pending_task = pending_task_result if is_running else None
+
+    return templates.TemplateResponse(
+        "workflow_detail.html",
+        {
+            "request": request,
+            "detail": detail.model_dump(),
+            "pending_task": pending_task.model_dump() if pending_task else None,
+            "timeline": [e.model_dump() for e in timeline],
+            "workflow_id": workflow_id,
+        },
+    )
