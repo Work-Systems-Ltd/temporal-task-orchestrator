@@ -9,20 +9,23 @@
       <input type="hidden" name="tab" value="{{ tab }}" />
       {% if wf_type %}<input type="hidden" name="type" value="{{ wf_type }}" />{% endif %}
       <div class="search-box">
-        <input type="text" name="q" value="{{ search }}" placeholder="Search workflows..."
+        <input type="text" name="q" value="{{ search }}" placeholder="Search by name or ID..."
                class="search-box-input" />
         <svg class="search-box-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
         </svg>
-        {% if not search %}
+        {% if search %}
+        <a href="/?tab={{ tab }}{% if wf_type %}&type={{ wf_type }}{% endif %}" class="search-box-clear" title="Clear search">
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </a>
+        {% else %}
         <div class="search-box-kbd">
           <kbd>/</kbd>
         </div>
         {% endif %}
       </div>
-      {% if search %}
-      <a href="/?tab={{ tab }}{% if wf_type %}&type={{ wf_type }}{% endif %}" class="btn btn-secondary text-xs">Clear</a>
-      {% endif %}
     </form>
 
     <div class="flex shrink-0 items-center gap-2">
@@ -45,10 +48,12 @@
              x-transition:leave-end="opacity-0 scale-95"
              class="dropdown-menu origin-top-right">
           <a href="/?tab={{ tab }}" class="dropdown-item {% if not wf_type %}dropdown-item-active{% endif %}">
+            {% if not wf_type %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
             All types
           </a>
           {% for wt in workflow_types %}
           <a href="/?tab={{ tab }}&type={{ wt }}" class="dropdown-item {% if wf_type == wt %}dropdown-item-active{% endif %}">
+            {% if wf_type == wt %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
             {{ wt }}
           </a>
           {% endfor %}

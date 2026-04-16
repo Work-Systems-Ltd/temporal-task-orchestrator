@@ -178,6 +178,14 @@ function taskList(): TaskListData {
 }
 
 document.addEventListener("keydown", (e: KeyboardEvent) => {
+  // Escape: blur active input or close dropdowns
+  if (e.key === "Escape") {
+    if (document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement) {
+      (document.activeElement as HTMLElement).blur();
+    }
+    return;
+  }
+
   if (
     e.target instanceof HTMLInputElement ||
     e.target instanceof HTMLTextAreaElement ||
