@@ -9,9 +9,12 @@
       <tr>
         <th class="th">Task</th>
         <th class="hidden th sm:table-cell">Type</th>
-        <th class="hidden th md:table-cell">Workflow ID</th>
-        <th class="th">Started</th>
-        <th class="th text-right">Status</th>
+        <th class="hidden th md:table-cell">Workflow</th>
+        <th class="th">
+          <span class="hidden sm:inline">Waiting since</span>
+          <span class="sm:hidden">Since</span>
+        </th>
+        <th class="th" style="width:1%"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-border">
@@ -47,8 +50,7 @@
         <td class="td">
           <span class="td-time">{{ item.started }}</span>
         </td>
-        <td class="td text-right">
-          {{ status_badge("pending") }}
+        <td class="td">
           <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
           </svg>
@@ -79,8 +81,7 @@
         <td class="td">
           <span class="td-time">{{ child.started }}</span>
         </td>
-        <td class="td text-right">
-          {{ status_badge("pending") }}
+        <td class="td">
           <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
           </svg>
@@ -102,11 +103,12 @@
         <th class="th" data-col="started">Started</th>
         <th class="th" data-col="stopped">Stopped</th>
         <th class="th" data-col="duration">Duration</th>
-        <th class="th text-right" data-col="status">Status</th>
+        <th class="th" data-col="status">Status</th>
         <th class="th" data-col="queue">Task Queue</th>
         <th class="th" data-col="run_id">Run ID</th>
         <th class="th" data-col="events">Events</th>
         <th class="th" data-col="parent">Parent</th>
+        <th class="th" style="width:1%"></th>
       </tr>
     </thead>
     <tbody class="divide-y divide-border">
@@ -142,11 +144,8 @@
         <td class="td" data-col="duration">
           <span class="td-time">{{ item.duration }}</span>
         </td>
-        <td class="td text-right" data-col="status">
+        <td class="td" data-col="status">
           {{ status_badge(item.status) }}
-          <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-          </svg>
         </td>
         <td class="td" data-col="queue">
           <span class="td-time">{{ item.task_queue }}</span>
@@ -163,6 +162,11 @@
           {% else %}
           <span class="text-ghost">—</span>
           {% endif %}
+        </td>
+        <td class="td">
+          <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
         </td>
       </tr>
       {% for child in item.children %}
@@ -190,11 +194,8 @@
         <td class="td" data-col="duration">
           <span class="td-time">{{ child.duration }}</span>
         </td>
-        <td class="td text-right" data-col="status">
+        <td class="td" data-col="status">
           {{ status_badge(child.status) }}
-          <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-          </svg>
         </td>
         <td class="td" data-col="queue">
           <span class="td-time">{{ child.task_queue }}</span>
@@ -207,6 +208,11 @@
         </td>
         <td class="td" data-col="parent">
           <a href="/workflow/{{ item.workflow_id }}" class="timeline-link" onclick="event.stopPropagation()">{{ item.workflow_id }}</a>
+        </td>
+        <td class="td">
+          <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
         </td>
       </tr>
       {% endfor %}
