@@ -100,6 +100,25 @@
     {% include "partials/tab_bar.html" %}
   </div>
 
+  <script>
+    // Apply column visibility before first paint to prevent layout shift
+    (function() {
+      try {
+        var raw = localStorage.getItem('wf-visible-cols');
+        if (!raw) return;
+        var cols = JSON.parse(raw);
+        if (!Array.isArray(cols) || !cols.length) return;
+        var all = ['id','type','started','stopped','duration','status','queue','run_id','events','parent'];
+        var hidden = all.filter(function(c) { return cols.indexOf(c) === -1; });
+        if (!hidden.length) return;
+        var rules = hidden.map(function(c) { return '[data-col="' + c + '"]{display:none!important}'; });
+        var s = document.createElement('style');
+        s.id = 'col-preload';
+        s.textContent = rules.join('');
+        document.head.appendChild(s);
+      } catch(e) {}
+    })();
+  </script>
   <div data-tab-content>
     {% include "partials/tab_content.html" %}
   </div>

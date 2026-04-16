@@ -100,6 +100,10 @@ function toggleColumn(col: string): void {
 }
 
 function applyColumnState(): void {
+  // Remove the preload style if present (SSR anti-flash)
+  const preload = document.getElementById("col-preload");
+  if (preload) preload.remove();
+
   const visible = new Set(getVisibleColumns());
   document.querySelectorAll<HTMLElement>("[data-col]").forEach((el) => {
     const col = el.getAttribute("data-col")!;
@@ -203,9 +207,20 @@ function taskList(): TaskListData {
       }
     },
 
+    _isInitialLoad: true,
+
     applyUpdate(msg: UpdateMessage): void {
       // Drop stale updates from before the latest navigation
       if (msg.seq < this.seq) return;
+
+      // Skip the first WS push — SSR already rendered the correct content.
+      // The server-side hash check ensures subsequent pushes only happen
+      // when data actually changes.
+      if (this._isInitialLoad) {
+        this._isInitialLoad = false;
+        this.loading = false;
+        return;
+      }
 
       const tabBar = document.querySelector("[data-tab-bar]");
       if (tabBar && msg.tab_bar) {
