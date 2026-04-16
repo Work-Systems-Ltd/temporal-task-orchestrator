@@ -234,5 +234,28 @@
 
   </div>
 
+  {% if stats.workflow_input or stats.workflow_output %}
+  <div class="mt-5 grid gap-5 lg:grid-cols-2">
+    {% if stats.workflow_input %}
+    <div class="json-viewer">
+      <div class="json-viewer-label">Input</div>
+      <div data-json-viewer="{{ stats.workflow_input | e }}"></div>
+    </div>
+    {% endif %}
+    {% if stats.workflow_output %}
+    <div class="json-viewer">
+      <div class="json-viewer-label">Output</div>
+      <div data-json-viewer="{{ stats.workflow_output | e }}"></div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
 </div>
+{% endblock %}
+
+{% block scripts %}
+{% if stats.workflow_input or stats.workflow_output %}
+<script src="/static/js/json-viewer.js"></script>
+{% endif %}
 {% endblock %}

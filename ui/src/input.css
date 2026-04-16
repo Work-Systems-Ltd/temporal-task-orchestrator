@@ -914,6 +914,22 @@
     color: var(--color-text-primary);
   }
 
+  /* ── JSON viewer (CodeMirror) ── */
+  .json-viewer {
+    @apply overflow-hidden rounded-lg;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
+  }
+  .json-viewer .cm-editor {
+    background: transparent;
+  }
+  .json-viewer-label {
+    @apply px-4 py-2 text-[11px] font-medium uppercase tracking-wider;
+    color: var(--color-text-ghost);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface-subtle);
+  }
+
   /* ── Task detail page ── */
   .task-detail-id {
     @apply inline-flex items-center gap-1.5 font-mono text-[11px] cursor-pointer;

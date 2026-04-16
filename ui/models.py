@@ -64,6 +64,8 @@ class TimelineStats(BaseModel):
     activity_time: str = ""  # total time in activities
     wait_time: str = ""  # total time waiting for human input
     total_time: str = ""  # end-to-end
+    workflow_input: str = ""  # JSON string of workflow input
+    workflow_output: str = ""  # JSON string of workflow result
 
 
 class GraphNode(BaseModel):

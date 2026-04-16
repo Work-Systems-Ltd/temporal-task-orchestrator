@@ -209,6 +209,8 @@ class TemporalService:
         total_wait_secs = 0.0
         workflow_start: datetime | None = None
         workflow_end: datetime | None = None
+        workflow_input: str = ""
+        workflow_output: str = ""
 
         def _ts(event) -> datetime:
             return event.event_time.ToDatetime(tzinfo=timezone.utc)
@@ -221,9 +223,21 @@ class TemporalService:
             # Workflow lifecycle
             if etype == 1:  # WORKFLOW_EXECUTION_STARTED
                 workflow_start = _ts(event)
+                attrs = event.workflow_execution_started_event_attributes
+                if attrs and attrs.input and attrs.input.payloads:
+                    try:
+                        workflow_input = attrs.input.payloads[0].data.decode("utf-8")
+                    except Exception:
+                        pass
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow started", status="completed"))
             elif etype == 2:  # WORKFLOW_EXECUTION_COMPLETED
                 workflow_end = _ts(event)
+                attrs = event.workflow_execution_completed_event_attributes
+                if attrs and attrs.result and attrs.result.payloads:
+                    try:
+                        workflow_output = attrs.result.payloads[0].data.decode("utf-8")
+                    except Exception:
+                        pass
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow completed", status="completed"))
             elif etype == 3:  # WORKFLOW_EXECUTION_FAILED
                 workflow_end = _ts(event)
@@ -290,10 +304,13 @@ class TemporalService:
                 link = f"/workflow/{child_wf_id}" if child_wf_id else ""
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="failed", detail="Child failed", link=link))
 
+        _epoch = datetime.min.replace(tzinfo=timezone.utc)
         stats = TimelineStats(
-            activity_time=self._ms_duration(datetime.min.replace(tzinfo=timezone.utc), datetime.min.replace(tzinfo=timezone.utc) + timedelta(seconds=total_activity_secs)) if total_activity_secs > 0 else "—",
-            wait_time=self._ms_duration(datetime.min.replace(tzinfo=timezone.utc), datetime.min.replace(tzinfo=timezone.utc) + timedelta(seconds=total_wait_secs)) if total_wait_secs > 0 else "—",
+            activity_time=self._ms_duration(_epoch, _epoch + timedelta(seconds=total_activity_secs)) if total_activity_secs > 0 else "—",
+            wait_time=self._ms_duration(_epoch, _epoch + timedelta(seconds=total_wait_secs)) if total_wait_secs > 0 else "—",
             total_time=self._ms_duration(workflow_start, workflow_end) if workflow_start and workflow_end else "—",
+            workflow_input=workflow_input,
+            workflow_output=workflow_output,
         )
 
         return events, stats
