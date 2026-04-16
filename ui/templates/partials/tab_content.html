@@ -99,12 +99,12 @@
   </div>
   <div class="flex items-center gap-1.5">
     {% if has_prev %}
-    <a href="/?tab={{ tab }}&page={{ page - 1 }}&per_page={{ per_page }}{% if wf_type %}&type={{ wf_type }}{% endif %}" class="btn btn-page">Previous</a>
+    <a href="/?tab={{ tab }}&page={{ page - 1 }}{% if per_page %}&per_page={{ per_page }}{% endif %}{% if wf_type %}&type={{ wf_type }}{% endif %}" class="btn btn-page">Previous</a>
     {% else %}
     <span class="btn btn-page btn-page-disabled">Previous</span>
     {% endif %}
     {% if has_next %}
-    <a href="/?tab={{ tab }}&page={{ page + 1 }}&per_page={{ per_page }}{% if wf_type %}&type={{ wf_type }}{% endif %}" class="btn btn-page">Next</a>
+    <a href="/?tab={{ tab }}&page={{ page + 1 }}{% if per_page %}&per_page={{ per_page }}{% endif %}{% if wf_type %}&type={{ wf_type }}{% endif %}" class="btn btn-page">Next</a>
     {% else %}
     <span class="btn btn-page btn-page-disabled">Next</span>
     {% endif %}

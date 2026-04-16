@@ -3,6 +3,7 @@ interface ViewParams {
   seq: number;
   tab: string;
   page: number;
+  per_page: number | null;
   wf_type: string | null;
   search: string | null;
 }
@@ -36,6 +37,7 @@ function getViewParams(seq: number): ViewParams {
     seq,
     tab: params.get("tab") || "pending",
     page: Math.max(1, parseInt(params.get("page") || "1", 10)),
+    per_page: params.has("per_page") ? Math.max(10, Math.min(100, parseInt(params.get("per_page")!, 10))) : null,
     wf_type: params.get("type") || null,
     search: params.get("q") || null,
   };

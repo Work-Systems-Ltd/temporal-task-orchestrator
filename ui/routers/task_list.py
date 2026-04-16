@@ -23,7 +23,7 @@ async def task_list(
     request: Request,
     tab: str = Query("pending"),
     page: int = Query(1, ge=1),
-    per_page: int = Query(20, ge=10, le=100),
+    per_page: int | None = Query(None, ge=10, le=100),
     type: str | None = Query(None),
     q: str | None = Query(None),
     service: TemporalService = Depends(get_temporal_service),

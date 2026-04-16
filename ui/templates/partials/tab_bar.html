@@ -1,5 +1,5 @@
 {% for t in tabs %}
-<a href="/?tab={{ t }}{% if wf_type %}&type={{ wf_type }}{% endif %}"
+<a href="/?tab={{ t }}{% if per_page %}&per_page={{ per_page }}{% endif %}{% if wf_type %}&type={{ wf_type }}{% endif %}"
    @click="navigateTab($event)"
    data-tab="{{ t }}"
    class="tab-item {% if tab == t %}tab-item-active{% endif %}">
