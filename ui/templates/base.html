@@ -61,11 +61,11 @@
   <header class="header-glass shrink-0">
     <div class="mx-auto flex h-14 max-w-[1080px] items-center gap-5 px-6">
       <a href="/" class="group flex shrink-0 items-center gap-2.5">
-        <img src="/static/img/logo.png" alt="Worksystems" class="logo-img h-[18px] opacity-75 transition-opacity group-hover:opacity-100" />
-        <span class="hidden text-[11px] font-medium uppercase tracking-wider transition-colors sm:flex" style="color: var(--color-text-faint)">Console</span>
+        <img src="/static/img/logo.png" alt="Worksystems" class="logo-img h-[18px] opacity-75 transition-all duration-200 group-hover:opacity-100" />
+        <span class="header-brand-text">Console</span>
       </a>
       <div class="header-divider"></div>
-      <nav class="nav-bar flex items-center gap-1">
+      <nav class="flex items-center gap-1">
         <a href="/" class="nav-link {% if request.url.path == '/' %}nav-link--active{% endif %}">
           <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
@@ -80,7 +80,7 @@
         </a>
       </nav>
       <div class="ml-auto flex items-center gap-3">
-        <div class="hidden items-center gap-2 sm:flex">
+        <div class="hidden items-center gap-2.5 sm:flex">
           <div class="kbd-group">
             <kbd>N</kbd>
             <span>new</span>
@@ -92,11 +92,9 @@
         </div>
         <div class="header-divider"></div>
         <button @click="$store.theme.toggle()" class="theme-toggle" :title="$store.theme.dark ? 'Switch to light mode' : 'Switch to dark mode'" x-data>
-          <!-- Sun icon (shown in dark mode) -->
           <svg x-show="$store.theme.dark" x-cloak class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
           </svg>
-          <!-- Moon icon (shown in light mode) -->
           <svg x-show="!$store.theme.dark" x-cloak class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
           </svg>
@@ -152,14 +150,17 @@
   </main>
 
   <footer class="footer-modern shrink-0">
-    <div class="mx-auto flex h-11 max-w-[1080px] items-center justify-between px-6">
+    <div class="mx-auto flex h-12 max-w-[1080px] items-center justify-between px-6">
       <div class="flex items-center gap-3">
-        <span class="footer-brand">Worksystems</span>
+        <span class="footer-status">
+          <span class="footer-status-dot"></span>
+          Connected
+        </span>
         <span class="footer-sep"></span>
-        <span class="footer-label">Task Console</span>
+        <span class="footer-brand">Worksystems</span>
       </div>
-      <div class="flex items-center gap-3">
-        <a href="/docs" class="footer-link" title="API Docs">
+      <div class="flex items-center gap-2.5">
+        <a href="/docs" class="footer-link" title="API Documentation">
           <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
           </svg>
@@ -167,7 +168,7 @@
         <span class="footer-sep"></span>
         <span class="footer-label">Temporal v1.25</span>
         <span class="footer-sep"></span>
-        <span class="footer-build">Build 2026.04</span>
+        <span class="footer-build" title="Build version">2026.04</span>
       </div>
     </div>
   </footer>
