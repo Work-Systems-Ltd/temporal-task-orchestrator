@@ -887,22 +887,12 @@
     @apply text-xs font-semibold leading-tight;
     color: var(--color-text-primary);
   }
-  .wf-graph-node-status {
-    @apply mt-1.5 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider;
+  .wf-graph-node-pill {
+    @apply mt-2;
   }
-  .wf-graph-node-status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
+  .wf-graph-node-pill .pill {
+    @apply text-[10px] px-2 py-px;
   }
-  .wf-graph-node-status-running .wf-graph-node-status-dot { background: #2563eb; }
-  .wf-graph-node-status-completed .wf-graph-node-status-dot { background: #059669; }
-  .wf-graph-node-status-failed .wf-graph-node-status-dot { background: #dc2626; }
-  .wf-graph-node-status-pending .wf-graph-node-status-dot { background: var(--color-text-ghost); }
-  .wf-graph-node-status-running { color: #2563eb; }
-  .wf-graph-node-status-completed { color: #059669; }
-  .wf-graph-node-status-failed { color: #dc2626; }
-  .wf-graph-node-status-pending { color: var(--color-text-faint); }
 
   /* ─ Vertical trunk from parent node down to branch rail ─ */
   .wf-graph-trunk {
@@ -1076,6 +1066,28 @@
     @apply py-3 px-4 text-[11px] font-medium uppercase tracking-wider;
     color: var(--color-text-faint);
     border-bottom: 1px solid var(--color-border);
+  }
+  .th-sortable {
+    @apply cursor-pointer select-none;
+    transition: color 0.15s ease;
+  }
+  .th-sortable:hover {
+    color: var(--color-text-secondary);
+  }
+  .th-sortable-active {
+    color: var(--color-text-secondary);
+  }
+  .th-sort-icon {
+    @apply inline-block ml-0.5 h-3 w-3 align-middle;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .th-sortable:hover .th-sort-icon,
+  .th-sortable-active .th-sort-icon {
+    opacity: 1;
+  }
+  .th-sort-asc {
+    transform: rotate(180deg);
   }
   .td {
     @apply px-4 py-3.5;

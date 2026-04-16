@@ -53,10 +53,7 @@
     <a href="/workflow/{{ node.workflow_id }}"
        class="wf-graph-node {% if is_root %}wf-graph-node-root{% endif %} {% if node.is_current %}wf-graph-node-current{% endif %}">
       <span class="wf-graph-node-label">{{ node.label | replace("Workflow", "") | trim }}</span>
-      <span class="wf-graph-node-status wf-graph-node-status-{{ node.status }}">
-        <span class="wf-graph-node-status-dot"></span>
-        {{ node.status }}
-      </span>
+      <span class="wf-graph-node-pill">{{ status_badge(node.status) }}</span>
     </a>
 
     {% if node.children %}

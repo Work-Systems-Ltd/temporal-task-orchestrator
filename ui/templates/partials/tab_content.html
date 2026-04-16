@@ -99,7 +99,15 @@
       <tr>
         <th class="th">Workflow ID</th>
         <th class="hidden th sm:table-cell">Type</th>
-        <th class="th">Started</th>
+        <th class="th">
+          <a href="/?tab={{ tab }}{% if per_page %}&per_page={{ per_page }}{% endif %}{% if wf_type %}&type={{ wf_type }}{% endif %}&sort=started&sort_dir={% if sort == 'started' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
+             class="th-sortable {% if sort == 'started' %}th-sortable-active{% endif %}">
+            Started
+            <svg class="th-sort-icon {% if sort == 'started' and sort_dir == 'asc' %}th-sort-asc{% endif %}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </a>
+        </th>
         {% if tab in ["completed", "failed", "all"] %}
         <th class="hidden th md:table-cell">Duration</th>
         {% endif %}
