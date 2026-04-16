@@ -14,7 +14,10 @@
   </a>
 
   <div class="mb-5">
-    <div class="mb-3">{{ task_type_badge(meta.task_type) }}</div>
+    <div class="flex items-center gap-2 mb-2">
+      {{ task_type_badge(meta.task_type) }}
+      <span class="text-xs text-faint">{{ workflow_type }}</span>
+    </div>
     <h1 class="text-lg font-semibold text-primary">{{ meta.title }}</h1>
     <p class="mt-1 text-sm text-muted">{{ meta.description }}</p>
     <div class="detail-hero-id mt-2"
@@ -27,20 +30,15 @@
   </div>
 
   <div class="card">
-
-    <div class="card-header">
-      <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Your response</h2>
-    </div>
-
     <form method="post" action="/task/{{ workflow_id }}" @submit="submitting = true" class="space-y-4 p-5">
       {% for field in form %}
         {{ render_field(field, errors.get(field.name)) }}
       {% endfor %}
 
-      <div class="flex items-center justify-between border-t border-border pt-4">
-        <a href="/" class="btn btn-ghost">Cancel</a>
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <a href="/" class="btn btn-ghost">Back</a>
         <button type="submit" :disabled="submitting"
-                class="btn btn-primary relative">
+                class="btn btn-primary btn-lg relative">
           <span :class="submitting ? 'invisible' : ''">Submit</span>
           <span x-show="submitting" x-cloak class="absolute inset-0 flex items-center justify-center">
             <svg class="h-3.5 w-3.5 animate-spin spinner-on-inverted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -51,7 +49,6 @@
         </button>
       </div>
     </form>
-
   </div>
 </div>
 {% endblock %}

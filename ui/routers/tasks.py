@@ -26,6 +26,9 @@ async def task_form(
     task = get_task(meta.task_type)
     form = task.Form()
 
+    detail = await service.get_workflow_detail(workflow_id)
+    wf_type = detail.workflow_type if detail else ""
+
     return templates.TemplateResponse(
         "task_form.html",
         {
@@ -33,6 +36,7 @@ async def task_form(
             "form": form,
             "meta": meta.model_dump(),
             "workflow_id": workflow_id,
+            "workflow_type": wf_type,
             "errors": {},
         },
     )
@@ -54,6 +58,9 @@ async def task_submit(
     form_data = await request.form()
     form = task.Form(form_data)
 
+    detail = await service.get_workflow_detail(workflow_id)
+    wf_type = detail.workflow_type if detail else ""
+
     def _render_errors(errors: dict[str, list[str]]) -> HTMLResponse:
         return templates.TemplateResponse(
             "task_form.html",
@@ -62,6 +69,7 @@ async def task_submit(
                 "form": form,
                 "meta": meta.model_dump(),
                 "workflow_id": workflow_id,
+                "workflow_type": wf_type,
                 "errors": errors,
             },
         )

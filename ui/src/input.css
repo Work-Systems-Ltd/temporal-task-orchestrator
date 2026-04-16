@@ -160,6 +160,9 @@
   .btn:disabled {
     @apply opacity-40 cursor-not-allowed pointer-events-none;
   }
+  .btn-lg {
+    @apply px-5 py-2 text-sm;
+  }
   .btn-primary {
     @apply px-4 py-1.5 border border-transparent;
     background: var(--color-invert-bg);
