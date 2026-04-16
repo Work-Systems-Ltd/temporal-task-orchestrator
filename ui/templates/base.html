@@ -146,5 +146,27 @@
 
   {% block scripts %}{% endblock %}
 
+  <script>
+  // Navigation progress bar — show on internal link clicks
+  (function() {
+    var bar = document.getElementById('nav-progress');
+    if (!bar) return;
+    document.addEventListener('click', function(e) {
+      var a = e.target.closest('a[href]');
+      if (!a || a.target === '_blank' || e.metaKey || e.ctrlKey) return;
+      var url = new URL(a.href, location.origin);
+      if (url.origin !== location.origin) return;
+      if (url.pathname === location.pathname && url.search === location.search) return;
+      bar.classList.remove('is-done');
+      bar.classList.add('is-active');
+    });
+    window.addEventListener('pageshow', function() {
+      bar.classList.remove('is-active');
+      bar.classList.add('is-done');
+      setTimeout(function() { bar.classList.remove('is-done'); }, 500);
+    });
+  })();
+  </script>
+
 </body>
 </html>

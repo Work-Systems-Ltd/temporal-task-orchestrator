@@ -62,7 +62,7 @@ function applyExpandState(): void {
 
 // ── Column picker state (persisted in localStorage) ──
 const COL_STORAGE_KEY = "wf-visible-cols";
-const ALL_COLUMNS = ["id", "type", "started", "duration", "status"];
+const ALL_COLUMNS = ["id", "type", "started", "stopped", "duration", "status", "queue", "run_id", "events", "parent"];
 const DEFAULT_COLUMNS = ["id", "type", "started", "duration", "status"];
 
 function getVisibleColumns(): string[] {
