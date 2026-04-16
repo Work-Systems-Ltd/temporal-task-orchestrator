@@ -56,6 +56,14 @@
   --color-loader-text: #a1a1aa;
   --color-skeleton-from: rgba(0,0,0,0.04);
   --color-skeleton-via: rgba(0,0,0,0.08);
+  --color-pill-amber-bg: rgba(180,83,9,0.10);
+  --color-pill-amber-text: #b45309;
+  --color-pill-blue-bg: rgba(37,99,235,0.10);
+  --color-pill-blue-text: #2563eb;
+  --color-pill-emerald-bg: rgba(5,150,105,0.10);
+  --color-pill-emerald-text: #059669;
+  --color-pill-red-bg: rgba(220,38,38,0.10);
+  --color-pill-red-text: #dc2626;
   --color-pill-zinc-bg: #e4e4e7;
   --color-pill-zinc-text: #52525b;
   --color-empty-border: rgba(0,0,0,0.08);
@@ -104,6 +112,14 @@
   --color-loader-text: rgb(63 63 70);
   --color-skeleton-from: rgba(255,255,255,0.03);
   --color-skeleton-via: rgba(255,255,255,0.06);
+  --color-pill-amber-bg: rgba(180,83,9,0.16);
+  --color-pill-amber-text: #f59e0b;
+  --color-pill-blue-bg: rgba(59,130,246,0.16);
+  --color-pill-blue-text: #60a5fa;
+  --color-pill-emerald-bg: rgba(5,150,105,0.16);
+  --color-pill-emerald-text: #34d399;
+  --color-pill-red-bg: rgba(239,68,68,0.16);
+  --color-pill-red-text: #f87171;
   --color-pill-zinc-bg: #3f3f46;
   --color-pill-zinc-text: #a1a1aa;
   --color-empty-border: rgba(255,255,255,0.06);
@@ -231,19 +247,22 @@
   .pill {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
     letter-spacing: 0.02em;
-    color: #fff;
   }
   .pill-amber {
-    background: #b45309;
+    background: var(--color-pill-amber-bg);
+    color: var(--color-pill-amber-text);
   }
   .pill-blue {
-    background: #2563eb;
+    background: var(--color-pill-blue-bg);
+    color: var(--color-pill-blue-text);
   }
   .pill-emerald {
-    background: #059669;
+    background: var(--color-pill-emerald-bg);
+    color: var(--color-pill-emerald-text);
   }
   .pill-red {
-    background: #dc2626;
+    background: var(--color-pill-red-bg);
+    color: var(--color-pill-red-text);
   }
   .pill-zinc {
     background: var(--color-pill-zinc-bg);
