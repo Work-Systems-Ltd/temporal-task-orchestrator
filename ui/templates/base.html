@@ -6,28 +6,8 @@
   <title>{% block title %}Task Console{% endblock %}</title>
   <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
   <link rel="stylesheet" href="/static/css/style.css" />
-  <script>
-    // Apply theme before Alpine loads to prevent flash
-    (function() {
-      var theme = localStorage.getItem('theme');
-      if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      }
-    })();
-  </script>
+  <script src="/static/js/theme.js"></script>
   <script defer src="/static/vendor/alpine.min.js"></script>
-  <script>
-    document.addEventListener('alpine:init', () => {
-      Alpine.store('theme', {
-        dark: document.documentElement.classList.contains('dark'),
-        toggle() {
-          this.dark = !this.dark;
-          document.documentElement.classList.toggle('dark', this.dark);
-          localStorage.setItem('theme', this.dark ? 'dark' : 'light');
-        }
-      });
-    });
-  </script>
 </head>
 <body class="flex h-full flex-col bg-bg font-sans antialiased" :class="$store.theme.dark ? 'text-white' : 'text-zinc-900'" x-data>
 
@@ -39,24 +19,7 @@
       <div class="page-loader-bar-fill"></div>
     </div>
   </div>
-  <script>
-    (function() {
-      var loader = document.getElementById('page-loader');
-      if (!loader) return;
-      // Only show the loader on the first visit of the session
-      if (sessionStorage.getItem('loaded')) {
-        loader.remove();
-        return;
-      }
-      sessionStorage.setItem('loaded', '1');
-      window.addEventListener('load', function() {
-        setTimeout(function() {
-          loader.classList.add('is-hidden');
-          setTimeout(function() { loader.remove(); }, 500);
-        }, 800);
-      });
-    })();
-  </script>
+  <script defer src="/static/js/loader.js"></script>
 
   <header class="header-glass shrink-0">
     <div class="mx-auto flex h-14 max-w-[1080px] items-center gap-5 px-6">

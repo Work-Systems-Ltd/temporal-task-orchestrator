@@ -136,44 +136,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-function wizardData() {
-  return {
-    step: 1,
-    selectedKey: '',
-    selectedLabel: '',
-    selectedDesc: '',
-    inputLabel: '',
-    inputPlaceholder: '',
-    inputValue: '',
-    submitting: false,
-    workflows: [],
-    filterText: '',
-    get filteredWorkflows() {
-      if (!this.filterText) return this.workflows;
-      var q = this.filterText.toLowerCase();
-      return this.workflows.filter(function(w) {
-        return w.label.toLowerCase().indexOf(q) !== -1 || w.description.toLowerCase().indexOf(q) !== -1;
-      });
-    },
-    init() {
-      this.workflows = window.__workflows || [];
-    },
-    selectWorkflow(wf) {
-      if (wf.input_task_type) {
-        window.location.href = '/start/' + wf.key;
-        return;
-      }
-      this.selectedKey = wf.key;
-      this.selectedLabel = wf.label;
-      this.selectedDesc = wf.description;
-      this.inputLabel = wf.input_label;
-      this.inputPlaceholder = wf.input_placeholder;
-      this.step = 2;
-      var self = this;
-      this.$nextTick(function() { if (self.$refs.inputField) self.$refs.inputField.focus(); });
-    }
-  };
-}
-</script>
+<script src="/static/js/wizard.js"></script>
 {% endblock %}

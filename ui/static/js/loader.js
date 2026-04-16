@@ -1,0 +1,1 @@
+(()=>{(function(){let e=document.getElementById("page-loader");if(e){if(sessionStorage.getItem("loaded")){e.remove();return}sessionStorage.setItem("loaded","1"),window.addEventListener("load",()=>{setTimeout(()=>{e.classList.add("is-hidden"),setTimeout(()=>e.remove(),500)},800)})}})();})();
