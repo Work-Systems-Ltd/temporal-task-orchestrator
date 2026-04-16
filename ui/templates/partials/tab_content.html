@@ -108,10 +108,21 @@
             </svg>
           </a>
         </th>
-        {% if tab in ["completed", "failed", "all"] %}
+        <th class="th" data-col="stopped">
+          <a href="/?tab={{ tab }}{% if per_page %}&per_page={{ per_page }}{% endif %}{% if wf_type %}&type={{ wf_type }}{% endif %}&sort=closed&sort_dir={% if sort == 'closed' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
+             class="th-sortable {% if sort == 'closed' %}th-sortable-active{% endif %}">
+            Stopped
+            <svg class="th-sort-icon {% if sort == 'closed' and sort_dir == 'asc' %}th-sort-asc{% endif %}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </a>
+        </th>
         <th class="th" data-col="duration">Duration</th>
-        {% endif %}
         <th class="th text-right" data-col="status">Status</th>
+        <th class="th" data-col="queue">Task Queue</th>
+        <th class="th" data-col="run_id">Run ID</th>
+        <th class="th" data-col="events">Events</th>
+        <th class="th" data-col="parent">Parent</th>
       </tr>
     </thead>
     <tbody class="divide-y divide-border">
@@ -141,16 +152,33 @@
         <td class="td" data-col="started">
           <span class="td-time">{{ item.started }}</span>
         </td>
-        {% if tab in ["completed", "failed", "all"] %}
+        <td class="td" data-col="stopped">
+          <span class="td-time">{{ item.closed }}</span>
+        </td>
         <td class="td" data-col="duration">
           <span class="td-time">{{ item.duration }}</span>
         </td>
-        {% endif %}
         <td class="td text-right" data-col="status">
           {{ status_badge(item.status) }}
           <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
           </svg>
+        </td>
+        <td class="td" data-col="queue">
+          <span class="td-time">{{ item.task_queue }}</span>
+        </td>
+        <td class="td" data-col="run_id">
+          <span class="td-mono" title="{{ item.run_id }}">{{ item.run_id[:12] }}…</span>
+        </td>
+        <td class="td" data-col="events">
+          <span class="td-time">{{ item.history_length }}</span>
+        </td>
+        <td class="td" data-col="parent">
+          {% if item.parent_id %}
+          <a href="/workflow/{{ item.parent_id }}" class="timeline-link" onclick="event.stopPropagation()">{{ item.parent_id }}</a>
+          {% else %}
+          <span class="text-ghost">—</span>
+          {% endif %}
         </td>
       </tr>
       {% for child in item.children %}
