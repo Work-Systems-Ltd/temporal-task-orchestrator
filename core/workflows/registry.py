@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Type
 
-from core.workflows.base import HumanTaskWorkflow
+from core.workflows.base import WorkSysFlow
 
 if TYPE_CHECKING:
     from core.tasks.base import HumanTask
@@ -14,7 +14,7 @@ class WorkflowDef:
     key: str
     label: str
     description: str
-    workflow_cls: Type[HumanTaskWorkflow]
+    workflow_cls: Type[WorkSysFlow]
     input_label: str
     input_placeholder: str
     input_task: Type[HumanTask] | None = None
@@ -28,7 +28,7 @@ def register_workflow(
     key: str,
     label: str,
     description: str,
-    workflow_cls: Type[HumanTaskWorkflow],
+    workflow_cls: Type[WorkSysFlow],
     input_label: str,
     input_placeholder: str,
     input_task: Type[HumanTask] | None = None,

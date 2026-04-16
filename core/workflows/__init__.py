@@ -1,4 +1,4 @@
-from core.workflows.base import HumanTaskWorkflow
+from core.workflows.base import WorkSysFlow
 from core.workflows.registry import (
     WorkflowDef,
     get_all_workflows,
@@ -8,7 +8,7 @@ from core.workflows.registry import (
 )
 
 __all__ = [
-    "HumanTaskWorkflow",
+    "WorkSysFlow",
     "WorkflowDef",
     "register_workflow",
     "get_workflow",

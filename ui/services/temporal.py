@@ -6,7 +6,7 @@ from typing import Any
 from temporalio.client import Client
 
 from core.models import TaskMeta
-from core.workflows import HumanTaskWorkflow, WorkflowDef
+from core.workflows import WorkSysFlow, WorkflowDef
 from ui.config import STATUS_QUERIES, TAB_ORDER, AppSettings
 from ui.helpers import duration, relative_time, status_name
 from ui.models import PaginatedResult, PendingTaskItem, WorkflowItem
@@ -48,7 +48,7 @@ class TemporalService:
         async for wf in self._client.list_workflows(query, page_size=100):
             try:
                 handle = self._client.get_workflow_handle(wf.id)
-                raw = await handle.query(HumanTaskWorkflow.get_pending_task)
+                raw = await handle.query(WorkSysFlow.get_pending_task)
                 if raw:
                     count += 1
             except Exception:
@@ -79,7 +79,7 @@ class TemporalService:
         async for wf in self._client.list_workflows(query):
             try:
                 handle = self._client.get_workflow_handle(wf.id)
-                raw = await handle.query(HumanTaskWorkflow.get_pending_task)
+                raw = await handle.query(WorkSysFlow.get_pending_task)
                 if raw:
                     meta = TaskMeta.model_validate_json(raw)
                     if search:
@@ -159,14 +159,14 @@ class TemporalService:
 
     async def get_pending_task(self, workflow_id: str) -> TaskMeta | None:
         handle = self._client.get_workflow_handle(workflow_id)
-        raw = await handle.query(HumanTaskWorkflow.get_pending_task)
+        raw = await handle.query(WorkSysFlow.get_pending_task)
         if not raw:
             return None
         return TaskMeta.model_validate_json(raw)
 
     async def signal_complete(self, workflow_id: str, data: str) -> None:
         handle = self._client.get_workflow_handle(workflow_id)
-        await handle.signal(HumanTaskWorkflow.complete_human_task, data)
+        await handle.signal(WorkSysFlow.complete_human_task, data)
 
     async def start_workflow(
         self, wf_def: WorkflowDef, input_value: Any, workflow_id: str

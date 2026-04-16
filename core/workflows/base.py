@@ -8,7 +8,7 @@ from temporalio import workflow
 from core.models import TaskMeta
 
 
-class HumanTaskWorkflow:
+class WorkSysFlow:
     """Base class for workflows that pause for human input.
 
     Subclasses must be decorated with @workflow.defn and must define

@@ -3,7 +3,7 @@ from datetime import timedelta
 from temporalio import activity, workflow
 
 from core.models import TaskMeta
-from core.workflows import HumanTaskWorkflow
+from core.workflows import WorkSysFlow
 from tasks.onboarding_input import OnboardingInputTask
 
 
@@ -26,7 +26,7 @@ async def setup_accounts(employee: str, team: str) -> str:
 
 
 @workflow.defn
-class OnboardingWorkflow(HumanTaskWorkflow):
+class OnboardingWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: OnboardingInputTask.Model) -> str:

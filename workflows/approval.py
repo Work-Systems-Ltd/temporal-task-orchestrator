@@ -3,7 +3,7 @@ from datetime import timedelta
 from temporalio import activity, workflow
 
 from core.models import TaskMeta
-from core.workflows import HumanTaskWorkflow
+from core.workflows import WorkSysFlow
 from tasks.approval_input import ApprovalInputTask
 
 
@@ -32,7 +32,7 @@ async def process_rejection(request: str, comment: str) -> str:
 
 
 @workflow.defn
-class ApprovalWorkflow(HumanTaskWorkflow):
+class ApprovalWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: ApprovalInputTask.Model) -> str:
