@@ -294,6 +294,7 @@ function taskList(): TaskListData {
           "</div>";
       }
 
+      this._lastAppliedHash = "";  // force next update to apply
       this.loading = true;
       this.sendView();
     },
