@@ -78,5 +78,6 @@ class GraphNode(BaseModel):
     status: str  # "running", "completed", "failed", "pending"
     label: str
     is_current: bool = False  # True for the workflow being viewed
+    children: list[GraphNode] = []
 
 

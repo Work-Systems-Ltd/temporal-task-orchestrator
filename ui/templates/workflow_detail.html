@@ -31,10 +31,12 @@
       {% endif %}
     </div>
     <h1 class="text-xl font-semibold text-primary">
-      {% if pending_task %}{{ pending_task.title }}{% else %}{{ workflow_id }}{% endif %}
+      {% if pending_tasks %}{{ pending_tasks[0].title }}{% else %}{{ workflow_id }}{% endif %}
     </h1>
-    {% if pending_task %}
-    <p class="mt-1.5 text-sm text-muted">{{ pending_task.description }}</p>
+    {% if pending_tasks and pending_tasks | length == 1 %}
+    <p class="mt-1.5 text-sm text-muted">{{ pending_tasks[0].description }}</p>
+    {% elif pending_tasks and pending_tasks | length > 1 %}
+    <p class="mt-1.5 text-sm text-muted">{{ pending_tasks | length }} tasks waiting for input</p>
     {% endif %}
     <button type="button" class="task-detail-id mt-3"
             @click="navigator.clipboard.writeText('{{ workflow_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
@@ -46,64 +48,69 @@
     </button>
   </div>
 
+  {% macro render_subtree(node, is_root) %}
+  <div class="wf-graph-subtree">
+    <a href="/workflow/{{ node.workflow_id }}"
+       class="wf-graph-node {% if is_root %}wf-graph-node-root{% endif %} {% if node.is_current %}wf-graph-node-current{% endif %}">
+      <span class="wf-graph-node-label">{{ node.label | replace("Workflow", "") | trim }}</span>
+      <span class="wf-graph-node-status wf-graph-node-status-{{ node.status }}">
+        <span class="wf-graph-node-status-dot"></span>
+        {{ node.status }}
+      </span>
+    </a>
+
+    {% if node.children %}
+    <div class="wf-graph-trunk"></div>
+    <div class="wf-graph-branches">
+      {% for child in node.children %}
+      <div class="wf-graph-branch">
+        <div class="wf-graph-branch-line"></div>
+        {{ render_subtree(child, false) }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endmacro %}
+
   {% if graph %}
   <div class="card mb-5">
     <div class="card-header">
       <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Pipeline</h2>
     </div>
-    <div class="px-5 py-5">
+    <div class="px-5 py-5 overflow-x-auto">
       <div class="wf-graph">
-        {# Root / parent node — always first in the list #}
-        {% set root = graph[0] %}
-        <a href="/workflow/{{ root.workflow_id }}"
-           class="wf-graph-node wf-graph-node-root {% if root.is_current %}wf-graph-node-current{% endif %}">
-          <span class="wf-graph-node-label">{{ root.label | replace("Workflow", "") | trim }}</span>
-          <span class="wf-graph-node-status wf-graph-node-status-{{ root.status }}">
-            <span class="wf-graph-node-status-dot"></span>
-            {{ root.status }}
-          </span>
-        </a>
-
-        {# Vertical trunk + branching connectors to children #}
-        {% set children = graph[1:] %}
-        {% if children %}
-        <div class="wf-graph-trunk"></div>
-        <div class="wf-graph-branches" style="--branch-count: {{ children | length }}">
-          {% for node in children %}
-          <div class="wf-graph-branch">
-            <div class="wf-graph-branch-line"></div>
-            <a href="/workflow/{{ node.workflow_id }}"
-               class="wf-graph-node {% if node.is_current %}wf-graph-node-current{% endif %}">
-              <span class="wf-graph-node-label">{{ node.label | replace("Workflow", "") | trim }}</span>
-              <span class="wf-graph-node-status wf-graph-node-status-{{ node.status }}">
-                <span class="wf-graph-node-status-dot"></span>
-                {{ node.status }}
-              </span>
-            </a>
-          </div>
-          {% endfor %}
-        </div>
-        {% endif %}
+        {{ render_subtree(graph, true) }}
       </div>
     </div>
   </div>
   {% endif %}
 
-  {% if pending_task %}
+  {% if pending_tasks %}
   <div class="card mb-5">
-    <div class="flex items-center justify-between gap-4 px-5 py-3.5">
-      <div class="flex items-center gap-3 min-w-0">
-        {{ task_type_badge(pending_task.task_type) }}
-        <div class="min-w-0">
-          <div class="text-sm font-medium text-primary truncate">{{ pending_task.title }}</div>
+    <div class="card-header">
+      <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Pending Tasks{% if pending_tasks | length > 1 %} ({{ pending_tasks | length }}){% endif %}</h2>
+    </div>
+    <div class="divide-y divide-border">
+      {% for pt in pending_tasks %}
+      <div class="flex items-center justify-between gap-4 px-5 py-3">
+        <div class="flex items-center gap-3 min-w-0">
+          {{ task_type_badge(pt.task_type) }}
+          <div class="min-w-0">
+            <div class="text-sm font-medium text-primary truncate">{{ pt.title }}</div>
+            {% if pt.workflow_id != workflow_id %}
+            <div class="text-[11px] font-mono text-ghost mt-0.5">{{ pt.workflow_id }}</div>
+            {% endif %}
+          </div>
         </div>
+        <a href="/task/{{ pt.workflow_id }}" class="btn btn-primary shrink-0">
+          Open
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </a>
       </div>
-      <a href="/task/{{ workflow_id }}" class="btn btn-primary shrink-0">
-        Open task
-        <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-        </svg>
-      </a>
+      {% endfor %}
     </div>
   </div>
   {% endif %}

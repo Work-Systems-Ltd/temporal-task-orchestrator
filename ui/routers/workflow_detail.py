@@ -30,24 +30,25 @@ async def workflow_detail(
     is_running = detail.status == "running"
     is_child = detail.parent_id is not None
 
-    pending_task_result, timeline_result, graph = await asyncio.gather(
-        service.get_pending_task(workflow_id) if is_running else _noop(),
+    timeline_result, graph = await asyncio.gather(
         service.get_workflow_timeline(workflow_id),
         service.get_workflow_graph(workflow_id, detail),
     )
 
-    pending_task = pending_task_result if is_running else None
     timeline, stats = timeline_result
+
+    # Collect pending tasks from this workflow + all descendants
+    pending_tasks = await service.get_all_pending_tasks(graph, workflow_id) if is_running else []
 
     return templates.TemplateResponse(
         "workflow_detail.html",
         {
             "request": request,
             "detail": detail.model_dump(),
-            "pending_task": pending_task.model_dump() if pending_task else None,
+            "pending_tasks": pending_tasks,
             "timeline": [e.model_dump() for e in timeline],
             "stats": stats.model_dump(),
-            "graph": [n.model_dump() for n in graph],
+            "graph": graph.model_dump() if graph else None,
             "is_child": is_child,
             "workflow_id": workflow_id,
         },

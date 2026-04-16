@@ -842,12 +842,18 @@
   .wf-graph {
     @apply flex flex-col items-center;
     padding: 4px 0;
+    min-width: fit-content;
+  }
+
+  /* ─ Subtree wrapper (enables recursion) ─ */
+  .wf-graph-subtree {
+    @apply flex flex-col items-center;
   }
 
   /* ─ Nodes (shared) ─ */
   .wf-graph-node {
     @apply relative flex flex-col items-center shrink-0 rounded-lg px-5 py-3 text-center;
-    min-width: 130px;
+    min-width: 120px;
     border: 1px solid var(--color-border);
     background: var(--color-bg-raised);
     transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
@@ -856,16 +862,21 @@
   .wf-graph-node:hover {
     border-color: var(--color-border-hover);
     background: var(--color-surface-hover);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   }
   .wf-graph-node-current {
-    border-color: var(--color-text-faint);
+    border-color: #2563eb;
     background: var(--color-surface-active);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-text-faint) 12%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, #2563eb 10%, transparent);
+  }
+  .wf-graph-node-current:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px color-mix(in srgb, #2563eb 16%, transparent);
   }
 
   /* Root node — slightly larger to anchor the hierarchy */
   .wf-graph-node-root {
-    min-width: 150px;
+    min-width: 144px;
     padding: 14px 24px;
   }
   .wf-graph-node-root .wf-graph-node-label {
@@ -873,7 +884,7 @@
   }
 
   .wf-graph-node-label {
-    @apply text-xs font-semibold;
+    @apply text-xs font-semibold leading-tight;
     color: var(--color-text-primary);
   }
   .wf-graph-node-status {
@@ -884,7 +895,15 @@
     height: 6px;
     border-radius: 50%;
   }
-  .wf-graph-node-status-running .wf-graph-node-status-dot { background: #2563eb; }
+  .wf-graph-node-status-running .wf-graph-node-status-dot {
+    background: #2563eb;
+    box-shadow: 0 0 0 2px color-mix(in srgb, #2563eb 20%, transparent);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { box-shadow: 0 0 0 2px color-mix(in srgb, #2563eb 20%, transparent); }
+    50% { box-shadow: 0 0 0 4px color-mix(in srgb, #2563eb 8%, transparent); }
+  }
   .wf-graph-node-status-completed .wf-graph-node-status-dot { background: #059669; }
   .wf-graph-node-status-failed .wf-graph-node-status-dot { background: #dc2626; }
   .wf-graph-node-status-pending .wf-graph-node-status-dot { background: var(--color-text-ghost); }
@@ -893,41 +912,55 @@
   .wf-graph-node-status-failed { color: #dc2626; }
   .wf-graph-node-status-pending { color: var(--color-text-faint); }
 
-  /* ─ Vertical trunk from parent down ─ */
+  /* ─ Vertical trunk from parent node down to branch rail ─ */
   .wf-graph-trunk {
     width: 1px;
-    height: 28px;
+    height: 24px;
     background: var(--color-border);
   }
 
   /* ─ Children row with branching connectors ─ */
   .wf-graph-branches {
     @apply relative flex items-start justify-center;
-    gap: 32px;
+    gap: 24px;
   }
 
-  /* Horizontal rail connecting all branches (hidden for single child) */
-  .wf-graph-branches::before {
+  /* Each branch: vertical drop + subtree (recursive) */
+  .wf-graph-branch {
+    @apply relative flex flex-col items-center;
+  }
+
+  /* Vertical drop line from the horizontal rail into the child node */
+  .wf-graph-branch-line {
+    width: 1px;
+    height: 24px;
+    background: var(--color-border);
+  }
+
+  /* Horizontal rail — drawn per-branch so it bridges the gaps perfectly.
+     Each branch draws a horizontal segment across its full width + gap,
+     clipped at the edges for first/last children. */
+  .wf-graph-branch::before {
     content: "";
     position: absolute;
     top: 0;
     height: 1px;
     background: var(--color-border);
-    left: calc(50% / var(--branch-count));
-    right: calc(50% / var(--branch-count));
+    /* extend into the gap on both sides */
+    left: -12px;
+    right: -12px;
   }
-  .wf-graph-branches[style*="--branch-count: 1"]::before {
+  /* First child: start from center, extend right */
+  .wf-graph-branch:first-child::before {
+    left: 50%;
+  }
+  /* Last child: end at center */
+  .wf-graph-branch:last-child::before {
+    right: 50%;
+  }
+  /* Single child: just a vertical line, no horizontal rail */
+  .wf-graph-branch:only-child::before {
     display: none;
-  }
-
-  /* Each branch: vertical drop line + node */
-  .wf-graph-branch {
-    @apply flex flex-col items-center;
-  }
-  .wf-graph-branch-line {
-    width: 1px;
-    height: 20px;
-    background: var(--color-border);
   }
 
   /* ── Subtask banner ── */

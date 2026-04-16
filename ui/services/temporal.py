@@ -339,36 +339,14 @@ class TemporalService:
 
         return events, stats
 
-    async def get_workflow_graph(self, workflow_id: str, detail: WorkflowDetail) -> list[GraphNode]:
-        """Build a graph of parent + child workflows for visualization.
-
-        If viewing a child, resolve the parent first and build from there.
-        If viewing a parent, build from the current workflow's timeline.
-        """
-        root_id = detail.parent_id or workflow_id
-        root_detail = detail if not detail.parent_id else await self.get_workflow_detail(root_id)
-        if not root_detail:
-            return []
-
-        # Start with the root node
-        nodes: list[GraphNode] = [
-            GraphNode(
-                workflow_id=root_id,
-                workflow_type=root_detail.workflow_type,
-                status=root_detail.status,
-                label=root_detail.workflow_type,
-                is_current=(root_id == workflow_id),
-            )
-        ]
-
-        # Parse root's history to find child workflows
+    async def _find_children(self, parent_wf_id: str) -> list[tuple[str, str, str]]:
+        """Return (wf_type, child_wf_id, status) for direct children of a workflow."""
         try:
-            handle = self._client.get_workflow_handle(root_id)
+            handle = self._client.get_workflow_handle(parent_wf_id)
             history = await handle.fetch_history()
         except Exception:
-            return nodes
+            return []
 
-        # Track initiated children and their final status
         initiated: dict[int, tuple[str, str]] = {}  # init_event_id -> (type, child_id)
         child_status: dict[str, str] = {}  # child_id -> status
 
@@ -402,20 +380,75 @@ class TemporalService:
                     _, child_wf_id = initiated[init_id]
                     child_status[child_wf_id] = "failed"
 
-        # Build child nodes in order of initiation
-        for _init_id, (wf_type, child_wf_id) in sorted(initiated.items()):
-            nodes.append(
-                GraphNode(
-                    workflow_id=child_wf_id,
-                    workflow_type=wf_type,
-                    status=child_status.get(child_wf_id, "pending"),
-                    label=wf_type,
-                    is_current=(child_wf_id == workflow_id),
-                )
-            )
+        return [
+            (wf_type, child_wf_id, child_status.get(child_wf_id, "pending"))
+            for _, (wf_type, child_wf_id) in sorted(initiated.items())
+        ]
 
-        # Only return if there are children (no graph for standalone workflows)
-        return nodes if len(nodes) > 1 else []
+    async def _build_graph_node(
+        self, wf_id: str, wf_type: str, status: str, current_id: str, depth: int = 0, max_depth: int = 4,
+    ) -> GraphNode:
+        """Recursively build a GraphNode tree."""
+        node = GraphNode(
+            workflow_id=wf_id,
+            workflow_type=wf_type,
+            status=status,
+            label=wf_type,
+            is_current=(wf_id == current_id),
+        )
+        if depth < max_depth:
+            child_infos = await self._find_children(wf_id)
+            if child_infos:
+                node.children = await asyncio.gather(*[
+                    self._build_graph_node(cid, ctype, cstatus, current_id, depth + 1, max_depth)
+                    for ctype, cid, cstatus in child_infos
+                ])
+        return node
+
+    async def get_workflow_graph(self, workflow_id: str, detail: WorkflowDetail) -> GraphNode | None:
+        """Build a recursive tree of parent → children workflows.
+
+        If viewing a child, resolve up to the root first.
+        Returns None for standalone workflows with no children.
+        """
+        root_id = detail.parent_id or workflow_id
+        root_detail = detail if not detail.parent_id else await self.get_workflow_detail(root_id)
+        if not root_detail:
+            return None
+
+        root = await self._build_graph_node(
+            root_id, root_detail.workflow_type, root_detail.status, workflow_id,
+        )
+
+        # Only show graph if there are children somewhere
+        return root if root.children else None
+
+    async def get_all_pending_tasks(self, graph: GraphNode | None, workflow_id: str) -> list[dict]:
+        """Collect pending tasks from the current workflow and all descendants in the graph."""
+        wf_ids: list[str] = []
+
+        def _collect_running(node: GraphNode) -> None:
+            if node.status == "running":
+                wf_ids.append(node.workflow_id)
+            for child in node.children:
+                _collect_running(child)
+
+        if graph:
+            _collect_running(graph)
+        elif workflow_id not in [w for w in wf_ids]:
+            wf_ids.append(workflow_id)
+
+        if not wf_ids:
+            return []
+
+        async def _fetch(wid: str) -> dict | None:
+            meta = await self.get_pending_task(wid)
+            if meta:
+                return {"workflow_id": wid, **meta.model_dump()}
+            return None
+
+        results = await asyncio.gather(*[_fetch(wid) for wid in wf_ids])
+        return [r for r in results if r is not None]
 
     async def get_pending_task(self, workflow_id: str) -> TaskMeta | None:
         handle = self._client.get_workflow_handle(workflow_id)
