@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import timezone
 from typing import Any
 
 from temporalio.client import Client
@@ -180,13 +181,14 @@ class TemporalService:
         handle = self._client.get_workflow_handle(workflow_id)
         history = await handle.fetch_history()
 
-        # Track scheduled activity names by event_id so we can label completions/failures
-        scheduled_activities: dict[int, str] = {}
+        # Track scheduled activities/children so we can collapse into single events
+        scheduled_activities: dict[int, str] = {}  # sched_event_id -> name
+        child_workflows: dict[int, tuple[str, str]] = {}  # initiated_event_id -> (type, child_wf_id)
         events: list[TimelineEvent] = []
 
         for event in history.events:
             etype = event.event_type
-            etime = relative_time(event.event_time.ToDatetime()) if event.event_time else "—"
+            etime = relative_time(event.event_time.ToDatetime(tzinfo=timezone.utc)) if event.event_time else "—"
             eid = event.event_id
 
             # Workflow lifecycle
@@ -197,22 +199,21 @@ class TemporalService:
             elif etype == 3:  # WORKFLOW_EXECUTION_FAILED
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow failed", status="failed"))
 
-            # Activity lifecycle
+            # Activity lifecycle — only emit on completion/failure (skip scheduled)
             elif etype == 10:  # ACTIVITY_TASK_SCHEDULED
                 attrs = event.activity_task_scheduled_event_attributes
                 name = attrs.activity_type.name if attrs and attrs.activity_type else "unknown"
                 scheduled_activities[eid] = name
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"{name}", status="info", detail="Scheduled"))
             elif etype == 12:  # ACTIVITY_TASK_COMPLETED
                 attrs = event.activity_task_completed_event_attributes
                 sched_id = attrs.scheduled_event_id if attrs else 0
                 name = scheduled_activities.get(sched_id, "activity")
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"{name}", status="completed", detail="Completed"))
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="completed"))
             elif etype == 13:  # ACTIVITY_TASK_FAILED
                 attrs = event.activity_task_failed_event_attributes
                 sched_id = attrs.scheduled_event_id if attrs else 0
                 name = scheduled_activities.get(sched_id, "activity")
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"{name}", status="failed", detail="Failed"))
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="failed"))
 
             # Signals
             elif etype == 26:  # WORKFLOW_EXECUTION_SIGNALED
@@ -220,15 +221,32 @@ class TemporalService:
                 sig_name = attrs.signal_name if attrs else "signal"
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"Signal: {sig_name}", status="info"))
 
-            # Child workflows
+            # Child workflows — track on initiation, emit on start/complete/fail
+            elif etype == 29:  # START_CHILD_WORKFLOW_EXECUTION_INITIATED
+                attrs = event.start_child_workflow_execution_initiated_event_attributes
+                wf_type = attrs.workflow_type.name if attrs and attrs.workflow_type else "child"
+                child_wf_id = attrs.workflow_id if attrs else ""
+                child_workflows[eid] = (wf_type, child_wf_id)
             elif etype == 31:  # CHILD_WORKFLOW_EXECUTION_STARTED
                 attrs = event.child_workflow_execution_started_event_attributes
-                wf_type = attrs.workflow_type.name if attrs and attrs.workflow_type else "child"
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"Child: {wf_type}", status="info", detail="Started"))
+                init_id = attrs.initiated_event_id if attrs else 0
+                wf_type, child_wf_id = child_workflows.get(init_id, ("child", ""))
+                if not child_wf_id and attrs and attrs.workflow_execution:
+                    child_wf_id = attrs.workflow_execution.workflow_id
+                link = f"/workflow/{child_wf_id}" if child_wf_id else ""
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="info", detail="Child workflow", link=link))
             elif etype == 32:  # CHILD_WORKFLOW_EXECUTION_COMPLETED
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label="Child workflow", status="completed", detail="Completed"))
+                attrs = event.child_workflow_execution_completed_event_attributes
+                init_id = attrs.initiated_event_id if attrs else 0
+                wf_type, child_wf_id = child_workflows.get(init_id, ("child", ""))
+                link = f"/workflow/{child_wf_id}" if child_wf_id else ""
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="completed", detail="Child completed", link=link))
             elif etype == 33:  # CHILD_WORKFLOW_EXECUTION_FAILED
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label="Child workflow", status="failed", detail="Failed"))
+                attrs = event.child_workflow_execution_failed_event_attributes
+                init_id = attrs.initiated_event_id if attrs else 0
+                wf_type, child_wf_id = child_workflows.get(init_id, ("child", ""))
+                link = f"/workflow/{child_wf_id}" if child_wf_id else ""
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="failed", detail="Child failed", link=link))
 
         return events
 

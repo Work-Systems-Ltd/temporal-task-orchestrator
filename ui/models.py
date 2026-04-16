@@ -56,5 +56,6 @@ class TimelineEvent(BaseModel):
     label: str
     status: str  # "completed", "failed", "pending", "info"
     detail: str = ""
+    link: str = ""  # URL for clickable events (e.g. child workflows)
 
 

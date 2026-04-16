@@ -3,7 +3,7 @@
 {% block title %}{{ detail.workflow_type }} — Task Console{% endblock %}
 
 {% block content %}
-<div x-data="{ copied: false }" class="mx-auto max-w-[640px] animate-fade-in">
+<div x-data="{ copied: false }" class="animate-fade-in">
 
   <a href="/" class="back-link">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -12,18 +12,19 @@
     Back to tasks
   </a>
 
+  <!-- Page header -->
   <div class="mb-6">
     <div class="mb-2 flex items-center gap-2.5">
       {{ status_badge(detail.status) }}
       <span class="text-sm text-muted">{{ detail.workflow_type }}</span>
     </div>
-    <h1 class="text-lg font-semibold text-primary">
+    <h1 class="text-xl font-semibold text-primary">
       {% if pending_task %}{{ pending_task.title }}{% else %}{{ workflow_id }}{% endif %}
     </h1>
     {% if pending_task %}
-    <p class="mt-1 text-sm text-muted">{{ pending_task.description }}</p>
+    <p class="mt-1.5 text-sm text-muted">{{ pending_task.description }}</p>
     {% endif %}
-    <button type="button" class="task-detail-id mt-2"
+    <button type="button" class="task-detail-id mt-2.5"
             @click="navigator.clipboard.writeText('{{ workflow_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
             :title="copied ? 'Copied!' : 'Click to copy'">
       <span x-text="copied ? 'Copied!' : '{{ workflow_id }}'"></span>
@@ -33,95 +34,123 @@
     </button>
   </div>
 
-  <!-- Details card -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Details</h2>
-    </div>
-    <div class="p-5">
-      <div class="detail-grid">
-        <div>
-          <div class="detail-label">Status</div>
-          <div class="detail-value">{{ detail.status | capitalize }}</div>
-        </div>
-        <div>
-          <div class="detail-label">Started</div>
-          <div class="detail-value">{{ detail.started }}</div>
-        </div>
-        <div>
-          <div class="detail-label">Duration</div>
-          <div class="detail-value">{{ detail.duration }}</div>
-        </div>
-        <div>
-          <div class="detail-label">Task Queue</div>
-          <div class="detail-value">{{ detail.task_queue }}</div>
-        </div>
-        <div>
-          <div class="detail-label">Run ID</div>
-          <div class="detail-value-mono" title="{{ detail.run_id }}">{{ detail.run_id[:16] }}…</div>
-        </div>
-        <div>
-          <div class="detail-label">History</div>
-          <div class="detail-value">{{ detail.history_length }} events</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Pending task card -->
   {% if pending_task %}
-  <div class="card mb-4">
-    <div class="card-header">
-      <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Pending Task</h2>
-    </div>
-    <div class="p-5">
-      <div class="flex items-start justify-between gap-4">
-        <div>
-          <div class="mb-2">{{ task_type_badge(pending_task.task_type) }}</div>
-          <div class="text-sm font-medium text-primary">{{ pending_task.title }}</div>
-          <div class="mt-0.5 text-xs text-muted">{{ pending_task.description }}</div>
-        </div>
-        <a href="/task/{{ workflow_id }}" class="btn btn-primary shrink-0">
-          Open
-          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-          </svg>
-        </a>
+  <!-- Pending task banner -->
+  <div class="card mb-5">
+    <div class="flex items-center justify-between gap-4 px-5 py-4">
+      <div class="flex items-center gap-3 min-w-0">
+        {{ task_type_badge(pending_task.task_type) }}
+        <span class="text-sm font-medium text-primary truncate">{{ pending_task.title }}</span>
       </div>
+      <a href="/task/{{ workflow_id }}" class="btn btn-primary shrink-0">
+        Open task
+        <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+        </svg>
+      </a>
     </div>
   </div>
   {% endif %}
 
-  <!-- Timeline card -->
-  {% if timeline %}
-  <div class="card">
-    <div class="card-header">
-      <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Timeline</h2>
-    </div>
-    <div class="p-5">
-      <div class="timeline">
-        {% for event in timeline %}
-        <div class="timeline-item">
-          <div class="timeline-dot timeline-dot-{{ event.status }}"></div>
-          <div class="flex flex-1 items-baseline gap-1.5 min-w-0">
-            <span class="timeline-label">{{ event.label }}</span>
-            {% if event.detail %}
-            <span class="timeline-detail">{{ event.detail }}</span>
+  <div class="grid gap-5 lg:grid-cols-5">
+
+    <!-- Left column: details -->
+    <div class="lg:col-span-2">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Details</h2>
+        </div>
+        <div class="p-5">
+          <div class="space-y-4">
+            <div>
+              <div class="detail-label">Status</div>
+              <div class="detail-value">{{ detail.status | capitalize }}</div>
+            </div>
+            <div>
+              <div class="detail-label">Started</div>
+              <div class="detail-value">{{ detail.started }}</div>
+            </div>
+            {% if detail.duration != "—" %}
+            <div>
+              <div class="detail-label">Duration</div>
+              <div class="detail-value">{{ detail.duration }}</div>
+            </div>
+            {% endif %}
+            <div>
+              <div class="detail-label">Task Queue</div>
+              <div class="detail-value">{{ detail.task_queue }}</div>
+            </div>
+            <div>
+              <div class="detail-label">Run ID</div>
+              <div class="detail-value-mono" title="{{ detail.run_id }}">{{ detail.run_id[:20] }}…</div>
+            </div>
+            <div>
+              <div class="detail-label">History</div>
+              <div class="detail-value">{{ detail.history_length }} events</div>
+            </div>
+            {% if detail.parent_id %}
+            <div>
+              <div class="detail-label">Parent</div>
+              <div class="mt-0.5"><a href="/workflow/{{ detail.parent_id }}" class="timeline-link">{{ detail.parent_id }}</a></div>
+            </div>
             {% endif %}
           </div>
-          <span class="timeline-time">{{ event.event_time }}</span>
         </div>
-        {% endfor %}
-        {% if detail.status == "running" %}
-        <div class="timeline-item">
-          <div class="timeline-dot timeline-dot-pending"></div>
-          <span class="timeline-label text-faint">Waiting…</span>
-        </div>
-        {% endif %}
       </div>
     </div>
+
+    <!-- Right column: timeline -->
+    <div class="lg:col-span-3">
+      {% if timeline %}
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Timeline</h2>
+        </div>
+        <div class="p-5">
+          <div class="timeline">
+            {% for event in timeline %}
+            {% if event.link %}
+            <a href="{{ event.link }}" class="timeline-item timeline-item-clickable">
+              <div class="timeline-dot timeline-dot-{{ event.status }}"></div>
+              <div class="min-w-0">
+                <div class="timeline-label">{{ event.label }}</div>
+                {% if event.detail %}
+                <div class="timeline-detail">{{ event.detail }}</div>
+                {% endif %}
+              </div>
+              <span class="timeline-time">{{ event.event_time }}</span>
+              <svg class="row-chevron" style="opacity:0.4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              </svg>
+            </a>
+            {% else %}
+            <div class="timeline-item">
+              <div class="timeline-dot timeline-dot-{{ event.status }}"></div>
+              <div class="min-w-0">
+                <div class="timeline-label">{{ event.label }}</div>
+                {% if event.detail %}
+                <div class="timeline-detail">{{ event.detail }}</div>
+                {% endif %}
+              </div>
+              <span class="timeline-time">{{ event.event_time }}</span>
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% if detail.status == "running" %}
+            <div class="timeline-item">
+              <div class="timeline-dot timeline-dot-pending"></div>
+              <div class="min-w-0">
+                <div class="timeline-label text-faint">Waiting for input…</div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
   </div>
-  {% endif %}
 
 </div>
 {% endblock %}
