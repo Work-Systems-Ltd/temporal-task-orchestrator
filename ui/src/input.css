@@ -838,18 +838,20 @@
     color: var(--color-text-secondary);
   }
 
-  /* ── Workflow graph ── */
+  /* ── Workflow graph (tree layout) ── */
   .wf-graph {
-    @apply flex items-center justify-center overflow-x-auto;
+    @apply flex flex-col items-center;
     padding: 4px 0;
-    gap: 0;
   }
+
+  /* ─ Nodes (shared) ─ */
   .wf-graph-node {
     @apply relative flex flex-col items-center shrink-0 rounded-lg px-5 py-3 text-center;
     min-width: 130px;
     border: 1px solid var(--color-border);
     background: var(--color-bg-raised);
-    transition: all 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    text-decoration: none;
   }
   .wf-graph-node:hover {
     border-color: var(--color-border-hover);
@@ -858,7 +860,18 @@
   .wf-graph-node-current {
     border-color: var(--color-text-faint);
     background: var(--color-surface-active);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-text-faint) 12%, transparent);
   }
+
+  /* Root node — slightly larger to anchor the hierarchy */
+  .wf-graph-node-root {
+    min-width: 150px;
+    padding: 14px 24px;
+  }
+  .wf-graph-node-root .wf-graph-node-label {
+    @apply text-sm;
+  }
+
   .wf-graph-node-label {
     @apply text-xs font-semibold;
     color: var(--color-text-primary);
@@ -879,19 +892,42 @@
   .wf-graph-node-status-completed { color: #059669; }
   .wf-graph-node-status-failed { color: #dc2626; }
   .wf-graph-node-status-pending { color: var(--color-text-faint); }
-  .wf-graph-edge {
-    @apply shrink-0 flex items-center;
-    width: 36px;
-  }
-  .wf-graph-edge-line {
-    flex: 1;
-    height: 1px;
+
+  /* ─ Vertical trunk from parent down ─ */
+  .wf-graph-trunk {
+    width: 1px;
+    height: 28px;
     background: var(--color-border);
   }
-  .wf-graph-edge-arrow {
-    @apply h-3 w-3 shrink-0;
-    color: var(--color-text-faint);
-    margin-left: -2px;
+
+  /* ─ Children row with branching connectors ─ */
+  .wf-graph-branches {
+    @apply relative flex items-start justify-center;
+    gap: 32px;
+  }
+
+  /* Horizontal rail connecting all branches (hidden for single child) */
+  .wf-graph-branches::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    height: 1px;
+    background: var(--color-border);
+    left: calc(50% / var(--branch-count));
+    right: calc(50% / var(--branch-count));
+  }
+  .wf-graph-branches[style*="--branch-count: 1"]::before {
+    display: none;
+  }
+
+  /* Each branch: vertical drop line + node */
+  .wf-graph-branch {
+    @apply flex flex-col items-center;
+  }
+  .wf-graph-branch-line {
+    width: 1px;
+    height: 20px;
+    background: var(--color-border);
   }
 
   /* ── Subtask banner ── */

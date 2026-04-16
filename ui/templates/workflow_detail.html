@@ -51,26 +51,39 @@
     <div class="card-header">
       <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Pipeline</h2>
     </div>
-    <div class="px-5 py-4">
+    <div class="px-5 py-5">
       <div class="wf-graph">
-        {% for node in graph %}
-        {% if not loop.first %}
-        <div class="wf-graph-edge">
-          <div class="wf-graph-edge-line"></div>
-          <svg class="wf-graph-edge-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-          </svg>
-        </div>
-        {% endif %}
-        <a href="/workflow/{{ node.workflow_id }}"
-           class="wf-graph-node {% if node.is_current %}wf-graph-node-current{% endif %}">
-          <span class="wf-graph-node-label">{{ node.label | replace("Workflow", "") | trim }}</span>
-          <span class="wf-graph-node-status wf-graph-node-status-{{ node.status }}">
+        {# Root / parent node — always first in the list #}
+        {% set root = graph[0] %}
+        <a href="/workflow/{{ root.workflow_id }}"
+           class="wf-graph-node wf-graph-node-root {% if root.is_current %}wf-graph-node-current{% endif %}">
+          <span class="wf-graph-node-label">{{ root.label | replace("Workflow", "") | trim }}</span>
+          <span class="wf-graph-node-status wf-graph-node-status-{{ root.status }}">
             <span class="wf-graph-node-status-dot"></span>
-            {{ node.status }}
+            {{ root.status }}
           </span>
         </a>
-        {% endfor %}
+
+        {# Vertical trunk + branching connectors to children #}
+        {% set children = graph[1:] %}
+        {% if children %}
+        <div class="wf-graph-trunk"></div>
+        <div class="wf-graph-branches" style="--branch-count: {{ children | length }}">
+          {% for node in children %}
+          <div class="wf-graph-branch">
+            <div class="wf-graph-branch-line"></div>
+            <a href="/workflow/{{ node.workflow_id }}"
+               class="wf-graph-node {% if node.is_current %}wf-graph-node-current{% endif %}">
+              <span class="wf-graph-node-label">{{ node.label | replace("Workflow", "") | trim }}</span>
+              <span class="wf-graph-node-status wf-graph-node-status-{{ node.status }}">
+                <span class="wf-graph-node-status-dot"></span>
+                {{ node.status }}
+              </span>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
