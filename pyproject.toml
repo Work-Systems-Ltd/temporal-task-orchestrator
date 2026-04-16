@@ -12,6 +12,7 @@ fastapi = "^0.115.0"
 uvicorn = {version = "^0.34.0", extras = ["standard"]}
 jinja2 = "^3.1.0"
 wtforms = "^3.2.0"
+email-validator = "^2.0.0"
 python-multipart = "^0.0.20"
 
 

@@ -681,6 +681,7 @@
   }
   .tab-item-active {
     color: var(--color-text-primary);
+    font-weight: 500;
   }
   .tab-item-active::after {
     content: "";
