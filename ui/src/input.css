@@ -1136,11 +1136,11 @@
     color: var(--color-text-faint);
   }
   .row-chevron {
-    @apply ml-2 inline-block h-3.5 w-3.5;
+    @apply inline-block h-3.5 w-3.5;
     color: var(--color-text-ghost);
     vertical-align: middle;
     opacity: 0;
-    transform: translateX(-4px);
+    transform: translateX(-3px);
     transition: opacity 0.15s ease, transform 0.15s ease;
   }
   .table-row-clickable:hover .row-chevron {
