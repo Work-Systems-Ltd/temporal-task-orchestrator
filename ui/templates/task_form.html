@@ -17,14 +17,13 @@
     <div class="mb-3">{{ task_type_badge(meta.task_type) }}</div>
     <h1 class="text-lg font-semibold text-primary">{{ meta.title }}</h1>
     <p class="mt-1 text-sm text-muted">{{ meta.description }}</p>
-    <button type="button" class="task-detail-id mt-2"
-            @click="navigator.clipboard.writeText('{{ workflow_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
-            :title="copied ? 'Copied!' : 'Click to copy'">
-      <span x-text="copied ? 'Copied!' : '{{ workflow_id }}'"></span>
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+    <div class="detail-hero-id mt-2"
+         @click="navigator.clipboard.writeText('{{ workflow_id }}'); copied = true; setTimeout(() => copied = false, 2000)">
+      <span class="detail-hero-id-text" x-text="copied ? 'Copied!' : '{{ workflow_id }}'"></span>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="detail-hero-id-icon">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
       </svg>
-    </button>
+    </div>
   </div>
 
   <div class="card">
