@@ -9,10 +9,14 @@ from temporalio.client import Client
 import human_tasks.tasks  # noqa: F401
 import workflows  # noqa: F401
 from ui.config import AppSettings
+from workflows.registry import validate_registrations
 from ui.routers import task_list, tasks, workflows as workflows_router, ws
 from ui.services.temporal import TemporalService
 
 _ui_dir = os.path.dirname(__file__)
+
+
+validate_registrations()
 
 
 @asynccontextmanager

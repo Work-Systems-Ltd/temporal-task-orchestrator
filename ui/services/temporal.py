@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import asyncio
-import json
+from typing import Any
 
 from temporalio.client import Client
 
+from models import TaskMeta
 from ui.config import STATUS_QUERIES, TAB_ORDER, AppSettings
 from ui.helpers import duration, relative_time, status_name
-from ui.models import PaginatedResult, PendingTaskItem, TaskMeta, WorkflowItem
+from ui.models import PaginatedResult, PendingTaskItem, WorkflowItem
+from workflows.base import HumanTaskWorkflow
 from workflows.registry import WorkflowDef
 
 
@@ -47,7 +49,7 @@ class TemporalService:
         async for wf in self._client.list_workflows(query, page_size=100):
             try:
                 handle = self._client.get_workflow_handle(wf.id)
-                raw = await handle.query("get_pending_task")
+                raw = await handle.query(HumanTaskWorkflow.get_pending_task)
                 if raw:
                     count += 1
             except Exception:
@@ -78,13 +80,13 @@ class TemporalService:
         async for wf in self._client.list_workflows(query):
             try:
                 handle = self._client.get_workflow_handle(wf.id)
-                raw = await handle.query("get_pending_task")
+                raw = await handle.query(HumanTaskWorkflow.get_pending_task)
                 if raw:
-                    meta = json.loads(raw)
+                    meta = TaskMeta.model_validate_json(raw)
                     if search:
                         haystack = (
-                            f"{wf.id} {meta.get('title', '')} "
-                            f"{meta.get('description', '')} {wf.workflow_type or ''}"
+                            f"{wf.id} {meta.title} "
+                            f"{meta.description} {wf.workflow_type or ''}"
                         ).lower()
                         if search.lower() not in haystack:
                             continue
@@ -92,9 +94,9 @@ class TemporalService:
                         PendingTaskItem(
                             workflow_id=wf.id,
                             workflow_type=wf.workflow_type,
-                            task_type=meta.get("task_type", ""),
-                            title=meta.get("title", ""),
-                            description=meta.get("description", ""),
+                            task_type=meta.task_type,
+                            title=meta.title,
+                            description=meta.description,
                             started=relative_time(wf.start_time),
                         )
                     )
@@ -158,18 +160,17 @@ class TemporalService:
 
     async def get_pending_task(self, workflow_id: str) -> TaskMeta | None:
         handle = self._client.get_workflow_handle(workflow_id)
-        raw = await handle.query("get_pending_task")
+        raw = await handle.query(HumanTaskWorkflow.get_pending_task)
         if not raw:
             return None
-        data = json.loads(raw)
-        return TaskMeta(**data)
+        return TaskMeta.model_validate_json(raw)
 
     async def signal_complete(self, workflow_id: str, data: str) -> None:
         handle = self._client.get_workflow_handle(workflow_id)
-        await handle.signal("complete_human_task", data)
+        await handle.signal(HumanTaskWorkflow.complete_human_task, data)
 
     async def start_workflow(
-        self, wf_def: WorkflowDef, input_value: str, workflow_id: str
+        self, wf_def: WorkflowDef, input_value: Any, workflow_id: str
     ) -> str:
         await self._client.start_workflow(
             wf_def.workflow_cls.run,

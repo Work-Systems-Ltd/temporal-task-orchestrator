@@ -17,8 +17,12 @@ from workflows.onboarding import (
     setup_accounts,
 )
 
+import human_tasks.tasks  # noqa: F401 — trigger task registration
+from workflows.registry import validate_registrations
+
 
 async def main():
+    validate_registrations()
     temporal_address = os.getenv("TEMPORAL_ADDRESS", "localhost:7233")
     client = await Client.connect(temporal_address)
     worker = Worker(

@@ -1,7 +1,10 @@
-import json
 from datetime import timedelta
 
 from temporalio import activity, workflow
+
+from human_tasks.tasks.onboarding_input import OnboardingInputTask
+from models import TaskMeta
+from workflows.base import HumanTaskWorkflow
 
 
 @activity.defn
@@ -23,66 +26,40 @@ async def setup_accounts(employee: str, team: str) -> str:
 
 
 @workflow.defn
-class OnboardingWorkflow:
-    def __init__(self):
-        self._human_task_complete = False
-        self._human_task_data: dict | None = None
-        self._pending_task: dict | None = None
-
-    @workflow.signal
-    async def complete_human_task(self, data: str) -> None:
-        self._human_task_data = json.loads(data)
-        self._human_task_complete = True
-
-    @workflow.query
-    def get_pending_task(self) -> str:
-        if self._pending_task:
-            return json.dumps(self._pending_task)
-        return ""
+class OnboardingWorkflow(HumanTaskWorkflow):
 
     @workflow.run
-    async def run(self, employee: str) -> str:
-        # Parse structured input (from input task) or use raw string
-        try:
-            input_data = json.loads(employee)
-            employee_name = input_data.get("employee_name", employee)
-            employee_email = input_data.get("employee_email", "")
-        except (json.JSONDecodeError, TypeError):
-            employee_name = employee
-            employee_email = ""
-
+    async def run(self, input: OnboardingInputTask.Model) -> str:
         await workflow.execute_activity(
             create_onboarding_ticket,
-            employee_name,
+            input.employee_name,
             start_to_close_timeout=timedelta(seconds=10),
         )
 
-        self._pending_task = {
-            "task_type": "onboarding",
-            "title": f"Onboard: {employee_name}",
-            "description": f"Complete the onboarding checklist for {employee_name}.",
-        }
+        task_meta = TaskMeta(
+            task_type="onboarding",
+            title=f"Onboard: {input.employee_name}",
+            description=f"Complete the onboarding checklist for {input.employee_name}.",
+        )
+        human_data = await self.wait_for_human_task(task_meta)
 
-        await workflow.wait_condition(lambda: self._human_task_complete)
-
-        self._pending_task = None
-        team = self._human_task_data["team"]
-        equipment = self._human_task_data["equipment"]
-        notes = self._human_task_data.get("notes", "")
+        team = human_data["team"]
+        equipment = human_data["equipment"]
+        notes = human_data.get("notes", "")
 
         await workflow.execute_activity(
             provision_equipment,
-            args=[employee_name, equipment],
+            args=[input.employee_name, equipment],
             start_to_close_timeout=timedelta(seconds=10),
         )
 
         await workflow.execute_activity(
             setup_accounts,
-            args=[employee_name, team],
+            args=[input.employee_name, team],
             start_to_close_timeout=timedelta(seconds=10),
         )
 
-        result = f"Onboarding complete for {employee_name}: team={team}, equipment={equipment}"
+        result = f"Onboarding complete for {input.employee_name}: team={team}, equipment={equipment}"
         if notes:
             result += f", notes={notes}"
         return result

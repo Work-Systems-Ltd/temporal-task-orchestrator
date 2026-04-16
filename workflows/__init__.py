@@ -1,3 +1,5 @@
+from human_tasks.tasks.approval_input import ApprovalInputTask
+from human_tasks.tasks.onboarding_input import OnboardingInputTask
 from workflows.approval import ApprovalWorkflow
 from workflows.onboarding import OnboardingWorkflow
 from workflows.registry import register_workflow
@@ -9,7 +11,7 @@ register_workflow(
     workflow_cls=ApprovalWorkflow,
     input_label="Request description",
     input_placeholder="e.g. Expense report: $500 for conference travel",
-    input_task_type="approval_input",
+    input_task=ApprovalInputTask,
     task_types=["approval"],
 )
 
@@ -20,6 +22,6 @@ register_workflow(
     workflow_cls=OnboardingWorkflow,
     input_label="Employee name",
     input_placeholder="e.g. Jane Smith",
-    input_task_type="onboarding_input",
+    input_task=OnboardingInputTask,
     task_types=["onboarding"],
 )

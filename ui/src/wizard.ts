@@ -4,7 +4,7 @@ interface WorkflowOption {
   description: string;
   input_label: string;
   input_placeholder: string;
-  input_task_type: string | null;
+  has_input_task: boolean;
 }
 
 declare global {
@@ -40,7 +40,7 @@ function wizardData() {
     },
 
     selectWorkflow(wf: WorkflowOption) {
-      if (wf.input_task_type) {
+      if (wf.has_input_task) {
         window.location.href = "/start/" + wf.key;
         return;
       }

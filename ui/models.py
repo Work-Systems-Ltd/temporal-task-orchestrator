@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from models import TaskMeta as TaskMeta  # re-export from shared location
+
 
 class TaskListParams(BaseModel):
     tab: str = "pending"
@@ -35,7 +37,3 @@ class PaginatedResult(BaseModel):
     has_next: bool
 
 
-class TaskMeta(BaseModel):
-    task_type: str
-    title: str
-    description: str
