@@ -101,14 +101,14 @@
           <p class="mt-1 text-sm text-muted">Review the details below before starting</p>
         </div>
         <div class="p-5">
-          <dl class="space-y-3">
-            <div>
+          <dl class="divide-y divide-border rounded-lg border border-border overflow-hidden">
+            <div class="px-4 py-3" style="background: var(--color-surface-subtle)">
               <dt class="text-[11px] font-medium uppercase tracking-wider text-faint">Workflow</dt>
-              <dd class="mt-0.5 text-sm text-secondary" x-text="selectedLabel"></dd>
+              <dd class="mt-1 text-sm font-medium text-secondary" x-text="selectedLabel"></dd>
             </div>
-            <div>
+            <div class="px-4 py-3">
               <dt class="text-[11px] font-medium uppercase tracking-wider text-faint" x-text="inputLabel"></dt>
-              <dd class="mt-0.5 text-sm text-secondary" x-text="inputValue"></dd>
+              <dd class="mt-1 text-sm text-secondary" x-text="inputValue"></dd>
             </div>
           </dl>
           <form :action="'/start/' + selectedKey" method="post" @submit="submitting = true" class="mt-4 border-t border-border pt-4">
@@ -160,6 +160,10 @@ function wizardData() {
       this.workflows = window.__workflows || [];
     },
     selectWorkflow(wf) {
+      if (wf.input_task_type) {
+        window.location.href = '/start/' + wf.key;
+        return;
+      }
       this.selectedKey = wf.key;
       this.selectedLabel = wf.label;
       this.selectedDesc = wf.description;

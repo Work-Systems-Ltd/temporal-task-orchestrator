@@ -3,10 +3,10 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import ValidationError
 
 from human_tasks.registry import get_task
 from ui.dependencies import get_templates, get_temporal_service
+from ui.helpers import validate_task_form
 from ui.services.temporal import TemporalService
 
 router = APIRouter(tags=["tasks"])
@@ -66,25 +66,9 @@ async def task_submit(
             },
         )
 
-    # WTForms validation
-    if not form.validate():
-        return _render_errors(form.errors)
-
-    # Pydantic validation
-    try:
-        model = task.Model(**{field.name: field.data for field in form})
-    except ValidationError as exc:
-        field_errors: dict[str, list[str]] = {}
-        for err in exc.errors():
-            loc = err["loc"]
-            field_name = str(loc[0]) if loc else "__root__"
-            field_errors.setdefault(field_name, []).append(err["msg"])
-        return _render_errors(field_errors)
-
-    # Optional pre_submit validation
-    pre_submit_errors = task.pre_submit(model)
-    if pre_submit_errors:
-        return _render_errors(pre_submit_errors)
+    model, errors = validate_task_form(task, form)
+    if errors:
+        return _render_errors(errors)
 
     await service.signal_complete(workflow_id, model.model_dump_json())
 

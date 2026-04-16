@@ -1,56 +1,6 @@
+{% from "partials/form_fields.html" import render_field %}
 {% extends "base.html" %}
 {% block title %}{{ meta.title }} — Task Console{% endblock %}
-
-{% macro render_field(field, extra_errors=None) %}
-{% set all_errors = (field.errors or []) + (extra_errors or []) %}
-{% set has_error = all_errors | length > 0 %}
-<div class="space-y-1.5">
-  <label for="{{ field.id }}" class="block text-sm font-medium text-secondary">
-    {{ field.label.text }}
-  </label>
-
-  {% if field.type == "SelectField" %}
-  <div class="relative">
-    <select id="{{ field.id }}" name="{{ field.name }}"
-            class="input-field appearance-none pr-9 {{ 'input-field-error' if has_error else '' }}">
-      {% for val, label in field.choices %}
-      <option value="{{ val }}" {{ 'selected' if field.data == val else '' }} class="bg-bg-overlay">{{ label }}</option>
-      {% endfor %}
-    </select>
-    <div class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center text-faint">
-      <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-      </svg>
-    </div>
-  </div>
-
-  {% elif field.type == "TextAreaField" %}
-  <textarea id="{{ field.id }}" name="{{ field.name }}" rows="3"
-            class="input-field {{ 'input-field-error' if has_error else '' }}">{{ field.data or '' }}</textarea>
-
-  {% elif field.type == "BooleanField" %}
-  <div x-data="{ on: {{ 'true' if field.data else 'false' }} }" class="flex items-center gap-2.5 pt-0.5">
-    <input type="hidden" name="{{ field.name }}" :value="on ? 'y' : ''">
-    <button type="button" @click="on = !on"
-            :style="on ? 'background: var(--color-toggle-on-bg)' : 'background: var(--color-toggle-off-bg)'"
-            class="relative h-5 w-9 rounded-full border border-transparent transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bg" style="--tw-ring-color: var(--color-focus-ring-outer)">
-      <span :style="on ? 'background: var(--color-toggle-on-knob)' : 'background: var(--color-toggle-off-knob)'"
-            :class="on ? 'translate-x-4' : 'translate-x-0.5'"
-            class="block h-4 w-4 rounded-full transition-all duration-200 shadow-sm"></span>
-    </button>
-    <span class="text-sm text-muted" x-text="on ? 'Yes' : 'No'"></span>
-  </div>
-
-  {% else %}
-  <input type="text" id="{{ field.id }}" name="{{ field.name }}" value="{{ field.data or '' }}"
-         class="input-field {{ 'input-field-error' if has_error else '' }}" />
-  {% endif %}
-
-  {% for err in all_errors %}
-  <p class="text-xs text-red-400">{{ err }}</p>
-  {% endfor %}
-</div>
-{% endmacro %}
 
 {% block content %}
 <div x-data="{ submitting: false }" class="mx-auto max-w-[520px] animate-fade-in">

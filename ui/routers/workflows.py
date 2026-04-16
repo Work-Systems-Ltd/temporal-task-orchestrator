@@ -6,7 +6,9 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from human_tasks.registry import get_task
 from ui.dependencies import get_templates, get_temporal_service
+from ui.helpers import validate_task_form
 from ui.services.temporal import TemporalService
 from workflows.registry import get_all_workflows, get_workflow
 
@@ -25,6 +27,7 @@ async def start_picker(
             "description": w.description,
             "input_label": w.input_label,
             "input_placeholder": w.input_placeholder,
+            "input_task_type": w.input_task_type,
         }
         for w in get_all_workflows()
     ]
@@ -45,9 +48,14 @@ async def start_form(
     except KeyError:
         return RedirectResponse(url="/start", status_code=303)
 
+    form = None
+    if wf_def.input_task_type:
+        task = get_task(wf_def.input_task_type)
+        form = task.Form()
+
     return templates.TemplateResponse(
         "start_workflow.html",
-        {"request": request, "wf": wf_def, "errors": {}},
+        {"request": request, "wf": wf_def, "form": form, "errors": {}},
     )
 
 
@@ -64,17 +72,31 @@ async def start_submit(
         return RedirectResponse(url="/start", status_code=303)
 
     form_data = await request.form()
-    input_value = form_data.get("input_value", "").strip()
 
-    if not input_value:
-        return templates.TemplateResponse(
-            "start_workflow.html",
-            {
-                "request": request,
-                "wf": wf_def,
-                "errors": {"input_value": ["This field is required."]},
-            },
-        )
+    if wf_def.input_task_type:
+        task = get_task(wf_def.input_task_type)
+        form = task.Form(form_data)
+
+        model, errors = validate_task_form(task, form)
+        if errors:
+            return templates.TemplateResponse(
+                "start_workflow.html",
+                {"request": request, "wf": wf_def, "form": form, "errors": errors},
+            )
+
+        input_value = model.model_dump_json()
+    else:
+        input_value = form_data.get("input_value", "").strip()
+        if not input_value:
+            return templates.TemplateResponse(
+                "start_workflow.html",
+                {
+                    "request": request,
+                    "wf": wf_def,
+                    "form": None,
+                    "errors": {"input_value": ["This field is required."]},
+                },
+            )
 
     workflow_id = f"{workflow_key}-{uuid.uuid4().hex[:8]}"
     await service.start_workflow(wf_def, input_value, workflow_id)

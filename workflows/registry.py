@@ -12,6 +12,8 @@ class WorkflowDef:
     workflow_cls: Type[Any]
     input_label: str
     input_placeholder: str
+    input_task_type: str | None = None
+    task_types: list[str] | None = None
 
 
 _WORKFLOW_REGISTRY: dict[str, WorkflowDef] = {}
@@ -24,6 +26,8 @@ def register_workflow(
     workflow_cls: Type[Any],
     input_label: str,
     input_placeholder: str,
+    input_task_type: str | None = None,
+    task_types: list[str] | None = None,
 ) -> None:
     _WORKFLOW_REGISTRY[key] = WorkflowDef(
         key=key,
@@ -32,6 +36,8 @@ def register_workflow(
         workflow_cls=workflow_cls,
         input_label=input_label,
         input_placeholder=input_placeholder,
+        input_task_type=input_task_type,
+        task_types=task_types,
     )
 
 

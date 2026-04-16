@@ -48,16 +48,25 @@ class ApprovalWorkflow:
 
     @workflow.run
     async def run(self, request: str) -> str:
+        # Parse structured input (from input task) or use raw string
+        try:
+            input_data = json.loads(request)
+            description = input_data.get("description", request)
+            urgency = input_data.get("urgency", "normal")
+        except (json.JSONDecodeError, TypeError):
+            description = request
+            urgency = "normal"
+
         await workflow.execute_activity(
             log_request,
-            request,
+            description,
             start_to_close_timeout=timedelta(seconds=10),
         )
 
         self._pending_task = {
             "task_type": "approval",
-            "title": f"Approve: {request}",
-            "description": "Please review this request and approve or reject it.",
+            "title": f"Approve: {description}",
+            "description": f"Please review this {urgency}-priority request and approve or reject it.",
         }
 
         await workflow.wait_condition(lambda: self._human_task_complete)
@@ -69,13 +78,13 @@ class ApprovalWorkflow:
         if decision == "approve":
             result = await workflow.execute_activity(
                 process_approval,
-                args=[request, comment],
+                args=[description, comment],
                 start_to_close_timeout=timedelta(seconds=10),
             )
         else:
             result = await workflow.execute_activity(
                 process_rejection,
-                args=[request, comment],
+                args=[description, comment],
                 start_to_close_timeout=timedelta(seconds=10),
             )
 

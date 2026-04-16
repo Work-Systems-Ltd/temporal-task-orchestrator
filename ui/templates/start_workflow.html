@@ -1,3 +1,4 @@
+{% from "partials/form_fields.html" import render_field %}
 {% extends "base.html" %}
 {% block title %}{{ wf.label }} — Task Console{% endblock %}
 
@@ -19,15 +20,26 @@
     </div>
 
     <form method="post" action="/start/{{ wf.key }}" @submit="submitting = true" class="space-y-4 p-5">
+      {% if form %}
+        {% for field in form %}
+          {{ render_field(field, errors.get(field.name)) }}
+        {% endfor %}
+      {% else %}
       <div class="space-y-1.5">
         <label for="input_value" class="block text-sm font-medium text-secondary">{{ wf.input_label }}</label>
         <textarea id="input_value" name="input_value" rows="3"
                   placeholder="{{ wf.input_placeholder }}"
                   class="input-field {{ 'input-field-error' if errors.get('input_value') else '' }}"></textarea>
         {% for err in errors.get("input_value", []) %}
-        <p class="text-xs text-red-400">{{ err }}</p>
+        <p class="flex items-center gap-1 text-xs text-red-400 animate-fade-in">
+          <svg class="h-3 w-3 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+          </svg>
+          {{ err }}
+        </p>
         {% endfor %}
       </div>
+      {% endif %}
 
       <div class="flex items-center justify-end gap-2 border-t border-border pt-4">
         <a href="/start" class="btn btn-ghost">Cancel</a>
@@ -46,8 +58,4 @@
 
   </div>
 </div>
-
-{% block scripts %}
-<script src="/static/js/task-list.js"></script>
-{% endblock %}
 {% endblock %}

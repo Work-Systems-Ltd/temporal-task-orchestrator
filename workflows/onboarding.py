@@ -42,16 +42,25 @@ class OnboardingWorkflow:
 
     @workflow.run
     async def run(self, employee: str) -> str:
+        # Parse structured input (from input task) or use raw string
+        try:
+            input_data = json.loads(employee)
+            employee_name = input_data.get("employee_name", employee)
+            employee_email = input_data.get("employee_email", "")
+        except (json.JSONDecodeError, TypeError):
+            employee_name = employee
+            employee_email = ""
+
         await workflow.execute_activity(
             create_onboarding_ticket,
-            employee,
+            employee_name,
             start_to_close_timeout=timedelta(seconds=10),
         )
 
         self._pending_task = {
             "task_type": "onboarding",
-            "title": f"Onboard: {employee}",
-            "description": f"Complete the onboarding checklist for {employee}.",
+            "title": f"Onboard: {employee_name}",
+            "description": f"Complete the onboarding checklist for {employee_name}.",
         }
 
         await workflow.wait_condition(lambda: self._human_task_complete)
@@ -63,17 +72,17 @@ class OnboardingWorkflow:
 
         await workflow.execute_activity(
             provision_equipment,
-            args=[employee, equipment],
+            args=[employee_name, equipment],
             start_to_close_timeout=timedelta(seconds=10),
         )
 
         await workflow.execute_activity(
             setup_accounts,
-            args=[employee, team],
+            args=[employee_name, team],
             start_to_close_timeout=timedelta(seconds=10),
         )
 
-        result = f"Onboarding complete for {employee}: team={team}, equipment={equipment}"
+        result = f"Onboarding complete for {employee_name}: team={team}, equipment={equipment}"
         if notes:
             result += f", notes={notes}"
         return result

@@ -9,6 +9,8 @@ register_workflow(
     workflow_cls=ApprovalWorkflow,
     input_label="Request description",
     input_placeholder="e.g. Expense report: $500 for conference travel",
+    input_task_type="approval_input",
+    task_types=["approval"],
 )
 
 register_workflow(
@@ -18,4 +20,6 @@ register_workflow(
     workflow_cls=OnboardingWorkflow,
     input_label="Employee name",
     input_placeholder="e.g. Jane Smith",
+    input_task_type="onboarding_input",
+    task_types=["onboarding"],
 )

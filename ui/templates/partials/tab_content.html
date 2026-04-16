@@ -17,8 +17,10 @@
     <tbody class="divide-y divide-border">
       {% for item in items %}
       <tr class="group table-row table-row-clickable animate-slide-up"
+          tabindex="0" role="link"
           style="animation-delay: {{ loop.index0 * 30 }}ms"
-          onclick="window.location='/task/{{ item.workflow_id }}'">
+          onclick="window.location='/task/{{ item.workflow_id }}'"
+          onkeydown="if(event.key==='Enter')window.location='/task/{{ item.workflow_id }}'">
         <td class="td">
           <div class="td-title">{{ item.title }}</div>
           <div class="td-subtitle">{{ item.description }}</div>

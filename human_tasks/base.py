@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Type
 
 from pydantic import BaseModel
 from wtforms import Form
@@ -13,6 +13,14 @@ class TaskForm(Form):
     All human task forms should extend this class instead of
     wtforms.Form directly.
     """
+
+    def to_model(self, model_cls: Type[BaseModel]) -> BaseModel:
+        """Convert validated form data to a Pydantic model instance.
+
+        Override this method for custom form-to-model mapping.
+        The default implementation maps each form field by name.
+        """
+        return model_cls(**{field.name: field.data for field in self})
 
 
 class HumanTask(ABC):

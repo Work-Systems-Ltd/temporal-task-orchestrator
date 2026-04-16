@@ -192,6 +192,14 @@ document.addEventListener("keydown", (e: KeyboardEvent) => {
   if (e.key === "r") {
     window.location.reload();
   }
+
+  if (e.key === "/") {
+    const searchInput = document.querySelector<HTMLInputElement>(".search-box-input");
+    if (searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+  }
 });
 
 window.addEventListener("popstate", () => {
