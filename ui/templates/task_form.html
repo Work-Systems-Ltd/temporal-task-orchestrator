@@ -32,10 +32,11 @@
   <div x-data="{ on: {{ 'true' if field.data else 'false' }} }" class="flex items-center gap-2.5 pt-0.5">
     <input type="hidden" name="{{ field.name }}" :value="on ? 'y' : ''">
     <button type="button" @click="on = !on"
-            :class="on ? 'bg-white' : 'bg-zinc-800/80 border-zinc-600'"
-            class="relative h-5 w-9 rounded-full border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-white/10 focus:ring-offset-2 focus:ring-offset-bg">
-      <span :class="on ? 'translate-x-4 bg-black' : 'translate-x-0.5 bg-zinc-500'"
-            class="block h-4 w-4 rounded-full transition-all duration-200"></span>
+            :style="on ? 'background: var(--color-toggle-on-bg)' : 'background: var(--color-toggle-off-bg)'"
+            class="relative h-5 w-9 rounded-full border border-transparent transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bg" style="--tw-ring-color: var(--color-focus-ring-outer)">
+      <span :style="on ? 'background: var(--color-toggle-on-knob)' : 'background: var(--color-toggle-off-knob)'"
+            :class="on ? 'translate-x-4' : 'translate-x-0.5'"
+            class="block h-4 w-4 rounded-full transition-all duration-200 shadow-sm"></span>
     </button>
     <span class="text-sm text-muted" x-text="on ? 'Yes' : 'No'"></span>
   </div>
@@ -83,7 +84,7 @@
                 class="btn btn-primary relative">
           <span :class="submitting ? 'invisible' : ''">Submit</span>
           <span x-show="submitting" x-cloak class="absolute inset-0 flex items-center justify-center">
-            <svg class="h-3.5 w-3.5 animate-spin text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg class="h-3.5 w-3.5 animate-spin spinner-on-inverted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
             </svg>

@@ -6,7 +6,7 @@
   window.__workflows = {{ workflows | tojson }};
 </script>
 
-<div class="mx-auto max-w-[560px] animate-fade-in"
+<div class="mx-auto max-w-[520px] animate-fade-in"
      x-data="wizardData()" x-init="init()">
 
   <a href="/" class="back-link">
@@ -37,7 +37,7 @@
   <div class="card">
 
     <template x-if="step === 1">
-      <div>
+      <div class="animate-fade-in">
         <div class="card-header">
           <h1 class="text-base font-semibold text-primary">Choose a workflow</h1>
           <p class="mt-1 text-sm text-muted">Select the type of workflow to start</p>
@@ -70,7 +70,7 @@
     </template>
 
     <template x-if="step === 2">
-      <div>
+      <div class="animate-fade-in">
         <div class="card-header">
           <h1 class="text-base font-semibold text-primary" x-text="selectedLabel"></h1>
           <p class="mt-1 text-sm text-muted" x-text="selectedDesc"></p>
@@ -95,7 +95,7 @@
     </template>
 
     <template x-if="step === 3">
-      <div>
+      <div class="animate-fade-in">
         <div class="card-header">
           <h1 class="text-base font-semibold text-primary">Confirm and start</h1>
           <p class="mt-1 text-sm text-muted">Review the details below before starting</p>
@@ -119,7 +119,7 @@
                       class="btn btn-primary relative">
                 <span :class="submitting ? 'invisible' : ''">Start workflow</span>
                 <span x-show="submitting" x-cloak class="absolute inset-0 flex items-center justify-center">
-                  <svg class="h-3.5 w-3.5 animate-spin text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg class="h-3.5 w-3.5 animate-spin spinner-on-inverted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                   </svg>

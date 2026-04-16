@@ -19,7 +19,6 @@ interface TaskListData {
   connected: boolean;
   ws: WebSocket | null;
   seq: number;
-  skipFirst: boolean;
   reconnectTimer: number | null;
   reconnectDelay: number;
   connect(): void;
@@ -48,7 +47,6 @@ function taskList(): TaskListData {
     connected: false,
     ws: null,
     seq: 0,
-    skipFirst: true,
     reconnectTimer: null,
     reconnectDelay: 1000,
 
@@ -117,12 +115,6 @@ function taskList(): TaskListData {
     applyUpdate(msg: UpdateMessage): void {
       // Drop stale updates from before the latest navigation
       if (msg.seq < this.seq) return;
-
-      // Skip the very first push — SSR already rendered the page
-      if (this.skipFirst) {
-        this.skipFirst = false;
-        return;
-      }
 
       if (document.hidden) return;
 

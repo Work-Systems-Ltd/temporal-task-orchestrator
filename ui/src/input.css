@@ -66,6 +66,10 @@
   --color-focus-ring-outer: rgba(59,130,246,0.15);
   --color-focus-ring-inner: #ffffff;
   --color-tab-active-bar: #18181b;
+  --color-toggle-on-bg: #18181b;
+  --color-toggle-on-knob: #ffffff;
+  --color-toggle-off-bg: #d4d4d8;
+  --color-toggle-off-knob: #ffffff;
 }
 
 .dark {
@@ -110,6 +114,10 @@
   --color-focus-ring-outer: rgba(255,255,255,0.15);
   --color-focus-ring-inner: #09090b;
   --color-tab-active-bar: #ffffff;
+  --color-toggle-on-bg: #ffffff;
+  --color-toggle-on-knob: #09090b;
+  --color-toggle-off-bg: #3f3f46;
+  --color-toggle-off-knob: #71717a;
 }
 
 [x-cloak] {
@@ -151,13 +159,17 @@
     @apply px-4 py-1.5 border border-transparent;
     background: var(--color-invert-bg);
     color: var(--color-invert-text);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   }
   .btn-primary:hover {
-    opacity: 0.88;
+    opacity: 0.92;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transform: translateY(-0.5px);
   }
   .btn-primary:active {
-    opacity: 0.78;
-    transform: scale(0.98);
+    opacity: 0.85;
+    transform: scale(0.98) translateY(0);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   }
   .btn-secondary {
     @apply bg-transparent px-3 py-1.5;
@@ -368,6 +380,12 @@
     height: 6px;
     border-radius: 50%;
     background: rgb(52 211 153);
+    box-shadow: 0 0 0 0 rgba(52,211,153,0.4);
+    animation: statusPulse 2s ease-in-out infinite;
+  }
+  @keyframes statusPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(52,211,153,0); }
   }
 
   /* ── Footer ── */
@@ -396,6 +414,13 @@
     @apply font-mono text-[10px];
     color: var(--color-text-faint);
   }
+  .footer-link {
+    color: var(--color-text-faint);
+    transition: color 0.15s ease;
+  }
+  .footer-link:hover {
+    color: var(--color-text-secondary);
+  }
 
   /* ── Form inputs ── */
   .input-field {
@@ -411,12 +436,14 @@
   }
   .input-field:focus {
     border-color: var(--color-text-muted);
+    box-shadow: 0 0 0 3px var(--color-focus-ring-outer);
   }
   .input-field-error {
     border-color: rgba(239,68,68,0.5);
   }
   .input-field-error:focus {
     border-color: rgba(239,68,68,0.7);
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
   }
 
   /* ── Search box ── */
@@ -444,6 +471,7 @@
   .search-box-input:focus {
     border-color: var(--color-text-muted);
     background: var(--color-bg);
+    box-shadow: 0 0 0 3px var(--color-focus-ring-outer);
   }
   .search-box-icon {
     @apply pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2;
@@ -532,8 +560,9 @@
 
   /* ── Cards ── */
   .card {
-    @apply overflow-hidden rounded-md;
+    @apply overflow-hidden rounded-lg;
     border: 1px solid var(--color-border);
+    box-shadow: 0 1px 3px var(--color-glass-shadow), 0 1px 2px rgba(0,0,0,0.04);
   }
   .card-header {
     @apply border-b border-border bg-bg-raised px-5 py-4;
@@ -555,7 +584,7 @@
 
   /* ── Dropdown menu ── */
   .dropdown-menu {
-    @apply absolute right-0 z-10 mt-1.5 w-48 overflow-hidden rounded-md shadow-xl;
+    @apply absolute right-0 z-10 mt-1.5 w-48 overflow-hidden rounded-lg shadow-xl;
     border: 1px solid var(--color-border);
     background: var(--color-dropdown-bg);
     -webkit-backdrop-filter: blur(12px);
@@ -598,12 +627,36 @@
 
   /* ── Empty state ── */
   .empty-state {
-    @apply flex flex-col items-center justify-center rounded-md py-24;
+    @apply flex flex-col items-center justify-center rounded-lg py-24;
+    border: 1px dashed var(--color-empty-border);
   }
   .empty-state-icon {
-    @apply flex h-14 w-14 items-center justify-center rounded-md;
+    @apply flex h-14 w-14 items-center justify-center rounded-xl;
     border: 1px solid var(--color-empty-icon-border);
     background: var(--color-empty-icon-bg);
+    animation: emptyFloat 3s ease-in-out infinite;
+  }
+  @keyframes emptyFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  /* ── Spinner ── */
+  .spinner-on-inverted {
+    color: var(--color-invert-text);
+  }
+
+  /* ── Per-page size selector ── */
+  .page-size {
+    @apply text-[11px] px-1.5 py-0.5 rounded transition-colors;
+    color: var(--color-text-faint);
+  }
+  .page-size:hover {
+    color: var(--color-text-secondary);
+  }
+  .page-size-active {
+    color: var(--color-text-primary);
+    background: var(--color-surface-active);
   }
 
   /* ── Toast banners ── */
@@ -642,9 +695,9 @@
 
   /* ── Table ── */
   .table-container {
-    @apply overflow-hidden rounded-md;
+    @apply overflow-hidden rounded-lg;
     border: 1px solid var(--color-border);
-    box-shadow: 0 1px 3px var(--color-glass-shadow), 0 0 0 1px rgba(255,255,255,0.02);
+    box-shadow: 0 1px 3px var(--color-glass-shadow), 0 1px 2px rgba(0,0,0,0.04);
   }
   .table-head {
     background: var(--color-surface-subtle);
@@ -747,12 +800,14 @@
 
   /* ── Workflow picker item ── */
   .picker-item {
-    @apply flex w-full items-center justify-between rounded-md p-3 text-left;
+    @apply flex w-full items-center justify-between rounded-lg p-3.5 text-left;
     border: 1px solid var(--color-glass-border);
     transition: all 0.15s ease;
   }
   .picker-item:hover {
     border-color: var(--color-border-hover);
     background: var(--color-surface-subtle);
+    box-shadow: 0 1px 4px var(--color-glass-shadow);
+    transform: translateX(2px);
   }
 }

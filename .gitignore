@@ -29,7 +29,8 @@ uwsgi.ini
 jobs/*
 htmlcov/*
 development/factory_dump.json
-node_modules
+node_modules/
+.context
 __pycache__
 test/
 .claude

@@ -93,7 +93,7 @@
       <span class="text-[11px] text-ghost">Show</span>
       {% for size in [10, 20, 50, 100] %}
       <a href="/?tab={{ tab }}&per_page={{ size }}{% if wf_type %}&type={{ wf_type }}{% endif %}"
-         class="text-[11px] px-1.5 py-0.5 rounded" style="{% if per_page == size %}color:var(--color-text-primary);background:var(--color-surface-active){% else %}color:var(--color-text-faint){% endif %}">{{ size }}</a>
+         class="page-size {% if per_page == size %}page-size-active{% endif %}">{{ size }}</a>
       {% endfor %}
     </div>
   </div>
@@ -119,5 +119,14 @@
     </svg>
   </div>
   <p class="mt-4 text-sm text-muted">No {{ tab }} workflows</p>
+  <p class="mt-1 text-xs text-ghost">{% if tab == 'pending' %}Workflows waiting for input will appear here{% elif tab == 'running' %}Active workflows will appear here{% else %}{{ tab | capitalize }} workflows will appear here{% endif %}</p>
+  {% if tab == "pending" %}
+  <a href="/start" class="btn btn-secondary mt-5 text-xs">
+    <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+    Start a workflow
+  </a>
+  {% endif %}
 </div>
 {% endif %}
