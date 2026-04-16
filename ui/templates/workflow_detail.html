@@ -12,22 +12,20 @@
     Back to tasks
   </a>
 
-  <!-- Subtask banner -->
   {% if is_child %}
   <div class="subtask-banner">
-    <svg class="subtask-banner-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+    <svg class="subtask-banner-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
     </svg>
-    This is a subtask of
+    Subtask of
     <a href="/workflow/{{ detail.parent_id }}">{{ detail.parent_id }}</a>
   </div>
   {% endif %}
 
-  <!-- Page header -->
   <div class="mb-6">
-    <div class="mb-2 flex items-center gap-2.5">
+    <div class="mb-2.5 flex items-center gap-2">
       {{ status_badge(detail.status) }}
-      <span class="text-sm text-muted">{{ detail.workflow_type }}</span>
+      <span class="text-xs text-faint">{{ detail.workflow_type }}</span>
       {% if is_child %}
       <span class="tag">Subtask</span>
       {% endif %}
@@ -38,7 +36,7 @@
     {% if pending_task %}
     <p class="mt-1.5 text-sm text-muted">{{ pending_task.description }}</p>
     {% endif %}
-    <button type="button" class="task-detail-id mt-2.5"
+    <button type="button" class="task-detail-id mt-3"
             @click="navigator.clipboard.writeText('{{ workflow_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
             :title="copied ? 'Copied!' : 'Click to copy'">
       <span x-text="copied ? 'Copied!' : '{{ workflow_id }}'"></span>
@@ -48,22 +46,29 @@
     </button>
   </div>
 
-  <!-- Dependency graph -->
   {% if graph %}
   <div class="card mb-5">
     <div class="card-header">
-      <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Workflow Graph</h2>
+      <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Pipeline</h2>
     </div>
-    <div class="p-5">
+    <div class="px-5 py-4">
       <div class="wf-graph">
         {% for node in graph %}
         {% if not loop.first %}
-        <div class="wf-graph-edge"></div>
+        <div class="wf-graph-edge">
+          <div class="wf-graph-edge-line"></div>
+          <svg class="wf-graph-edge-arrow" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </div>
         {% endif %}
         <a href="/workflow/{{ node.workflow_id }}"
            class="wf-graph-node {% if node.is_current %}wf-graph-node-current{% endif %}">
-          <span class="wf-graph-node-label">{{ node.label }}</span>
-          <span class="wf-graph-node-status wf-graph-node-status-{{ node.status }}">{{ node.status }}</span>
+          <span class="wf-graph-node-label">{{ node.label | replace("Workflow", "") | trim }}</span>
+          <span class="wf-graph-node-status wf-graph-node-status-{{ node.status }}">
+            <span class="wf-graph-node-status-dot"></span>
+            {{ node.status }}
+          </span>
         </a>
         {% endfor %}
       </div>
@@ -71,13 +76,14 @@
   </div>
   {% endif %}
 
-  <!-- Pending task banner -->
   {% if pending_task %}
   <div class="card mb-5">
-    <div class="flex items-center justify-between gap-4 px-5 py-4">
+    <div class="flex items-center justify-between gap-4 px-5 py-3.5">
       <div class="flex items-center gap-3 min-w-0">
         {{ task_type_badge(pending_task.task_type) }}
-        <span class="text-sm font-medium text-primary truncate">{{ pending_task.title }}</span>
+        <div class="min-w-0">
+          <div class="text-sm font-medium text-primary truncate">{{ pending_task.title }}</div>
+        </div>
       </div>
       <a href="/task/{{ workflow_id }}" class="btn btn-primary shrink-0">
         Open task
@@ -89,46 +95,45 @@
   </div>
   {% endif %}
 
-  <div class="grid gap-5 lg:grid-cols-5">
+  <div class="grid items-start gap-5 lg:grid-cols-5">
 
-    <!-- Left column: details -->
     <div class="lg:col-span-2">
       <div class="card">
         <div class="card-header">
           <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Details</h2>
         </div>
         <div class="p-5">
-          <div class="space-y-4">
-            <div>
+          <div class="detail-list">
+            <div class="detail-item">
               <div class="detail-label">Status</div>
               <div class="detail-value">{{ detail.status | capitalize }}</div>
             </div>
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Started</div>
               <div class="detail-value">{{ detail.started }}</div>
             </div>
             {% if detail.duration != "—" %}
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Duration</div>
               <div class="detail-value">{{ detail.duration }}</div>
             </div>
             {% endif %}
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Task Queue</div>
-              <div class="detail-value">{{ detail.task_queue }}</div>
+              <div class="detail-value text-muted">{{ detail.task_queue }}</div>
             </div>
-            <div>
+            <div class="detail-item">
               <div class="detail-label">Run ID</div>
-              <div class="detail-value-mono" title="{{ detail.run_id }}">{{ detail.run_id[:20] }}…</div>
+              <div class="detail-value-mono" title="{{ detail.run_id }}">{{ detail.run_id[:24] }}…</div>
             </div>
-            <div>
-              <div class="detail-label">History</div>
-              <div class="detail-value">{{ detail.history_length }} events</div>
+            <div class="detail-item">
+              <div class="detail-label">Events</div>
+              <div class="detail-value">{{ detail.history_length }}</div>
             </div>
             {% if detail.parent_id %}
-            <div>
-              <div class="detail-label">Parent Workflow</div>
-              <div class="mt-0.5"><a href="/workflow/{{ detail.parent_id }}" class="timeline-link">{{ detail.parent_id }}</a></div>
+            <div class="detail-item">
+              <div class="detail-label">Parent</div>
+              <div class="mt-1"><a href="/workflow/{{ detail.parent_id }}" class="text-xs font-medium text-secondary" style="transition:color .15s">{{ detail.parent_id }}</a></div>
             </div>
             {% endif %}
           </div>
@@ -136,7 +141,6 @@
       </div>
     </div>
 
-    <!-- Right column: timeline -->
     <div class="lg:col-span-3">
       {% if timeline %}
       <div class="card">
@@ -148,36 +152,49 @@
             {% for event in timeline %}
             {% if event.link %}
             <a href="{{ event.link }}" class="timeline-item timeline-item-clickable">
-              <div class="timeline-dot timeline-dot-{{ event.status }}"></div>
-              <div class="min-w-0">
-                <div class="timeline-label">{{ event.label }}</div>
-                {% if event.detail %}
-                <div class="timeline-detail">{{ event.detail }}</div>
-                {% endif %}
+              <div class="timeline-track">
+                <div class="timeline-dot timeline-dot-{{ event.status }}"></div>
+                <div class="timeline-stem"></div>
               </div>
-              <span class="timeline-time">{{ event.event_time }}</span>
-              <svg class="h-3.5 w-3.5 shrink-0 text-ghost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-              </svg>
+              <div class="timeline-content">
+                <div class="min-w-0 flex-1">
+                  <span class="timeline-label">{{ event.label | replace("Workflow", "") | trim }}</span>
+                  {% if event.detail %}
+                  <span class="timeline-detail ml-1.5">{{ event.detail }}</span>
+                  {% endif %}
+                </div>
+                <span class="timeline-time">{{ event.event_time }}</span>
+                <svg class="h-3 w-3 shrink-0 text-ghost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                </svg>
+              </div>
             </a>
             {% else %}
             <div class="timeline-item">
-              <div class="timeline-dot timeline-dot-{{ event.status }}"></div>
-              <div class="min-w-0">
-                <div class="timeline-label">{{ event.label }}</div>
-                {% if event.detail %}
-                <div class="timeline-detail">{{ event.detail }}</div>
-                {% endif %}
+              <div class="timeline-track">
+                <div class="timeline-dot timeline-dot-{{ event.status }}"></div>
+                <div class="timeline-stem"></div>
               </div>
-              <span class="timeline-time">{{ event.event_time }}</span>
+              <div class="timeline-content">
+                <div class="min-w-0 flex-1">
+                  <span class="timeline-label">{{ event.label | replace("Workflow", "") | trim }}</span>
+                  {% if event.detail %}
+                  <span class="timeline-detail ml-1.5">{{ event.detail }}</span>
+                  {% endif %}
+                </div>
+                <span class="timeline-time">{{ event.event_time }}</span>
+              </div>
             </div>
             {% endif %}
             {% endfor %}
             {% if detail.status == "running" %}
             <div class="timeline-item">
-              <div class="timeline-dot timeline-dot-pending"></div>
-              <div class="min-w-0">
-                <div class="timeline-label text-faint">Waiting for input…</div>
+              <div class="timeline-track">
+                <div class="timeline-dot timeline-dot-pending"></div>
+                <div class="timeline-stem"></div>
+              </div>
+              <div class="timeline-content">
+                <span class="timeline-label text-faint">Waiting for input…</span>
               </div>
             </div>
             {% endif %}

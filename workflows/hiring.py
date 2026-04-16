@@ -39,11 +39,39 @@ class HiringWorkflow(WorkSysFlow):
         onboarding_data = await self.wait_for_human_task(onboarding_meta)
         onboarding_input = OnboardingInputTask.Model(**onboarding_data)
 
+        # # Step 3: Run onboarding
+        # onboarding_result = await workflow.execute_child_workflow(
+        #     OnboardingWorkflow.run,
+        #     onboarding_input,
+        #     id=f"{workflow.info().workflow_id}-onboarding",
+        # )
+
+        # onboarding_result = await workflow.execute_child_workflow(
+        #     OnboardingWorkflow.run,
+        #     onboarding_input,
+        #     id=f"{workflow.info().workflow_id}-onboarding-test",
+        # )
+
         # Step 3: Run onboarding
-        onboarding_result = await workflow.execute_child_workflow(
+        import asyncio
+        # Start both child workflows concurrently
+        onboarding1 = await workflow.start_child_workflow(
             OnboardingWorkflow.run,
             onboarding_input,
             id=f"{workflow.info().workflow_id}-onboarding",
         )
 
-        return f"Hiring complete for {onboarding_input.employee_name}: {onboarding_result}"
+        onboarding2 = await workflow.start_child_workflow(
+            OnboardingWorkflow.run,
+            onboarding_input,
+            id=f"{workflow.info().workflow_id}-onboarding-test",
+        )
+
+        # Now wait for both results
+        result1, result2 = await asyncio.gather(
+            onboarding1,
+            onboarding2,
+        )
+
+        return "foo"
+        #return f"Hiring complete for {onboarding_input.employee_name}: {onboarding_result}"

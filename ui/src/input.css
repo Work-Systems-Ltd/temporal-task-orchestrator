@@ -714,44 +714,58 @@
   .detail-label {
     @apply text-[11px] font-medium uppercase tracking-wider;
     color: var(--color-text-faint);
+    letter-spacing: 0.05em;
   }
   .detail-value {
-    @apply mt-0.5 text-sm;
-    color: var(--color-text-secondary);
+    @apply mt-1 text-sm;
+    color: var(--color-text-primary);
   }
   .detail-value-mono {
-    @apply mt-0.5 text-[11px] font-mono;
+    @apply mt-1 text-[11px] font-mono;
     color: var(--color-text-muted);
+  }
+  .detail-item {
+    @apply py-3;
+  }
+  .detail-list {
+    @apply divide-y divide-border;
+  }
+  .detail-list > :first-child {
+    padding-top: 0;
+  }
+  .detail-list > :last-child {
+    padding-bottom: 0;
   }
 
   /* ── Timeline ── */
   .timeline {
-    @apply relative;
-    padding-left: 28px;
-  }
-  .timeline::before {
-    content: "";
-    position: absolute;
-    left: 5px;
-    top: 8px;
-    bottom: 8px;
-    width: 1px;
-    background: var(--color-border);
+    @apply relative flex flex-col;
   }
   .timeline-item {
-    @apply relative flex items-center gap-3 py-2;
-    min-height: 36px;
+    @apply flex gap-3;
+    padding: 8px 0;
+  }
+  .timeline-track {
+    @apply flex flex-col items-center shrink-0;
+    width: 20px;
   }
   .timeline-dot {
-    position: absolute;
-    left: -28px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 11px;
-    height: 11px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     border: 2px solid;
-    z-index: 1;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .timeline-stem {
+    flex: 1;
+    width: 1px;
+    min-height: 6px;
+    background: var(--color-border);
+    margin-top: 4px;
+  }
+  .timeline-item:last-child .timeline-stem {
+    background: transparent;
   }
   .timeline-dot-completed {
     background: #059669;
@@ -769,17 +783,22 @@
     background: var(--color-bg);
     border-color: #b45309;
   }
+  .timeline-content {
+    @apply flex flex-1 items-start gap-2 min-w-0;
+    padding-top: 1px;
+  }
   .timeline-label {
-    @apply text-sm font-medium;
+    @apply text-sm;
     color: var(--color-text-secondary);
   }
   .timeline-detail {
-    @apply text-xs;
-    color: var(--color-text-faint);
+    @apply text-[11px];
+    color: var(--color-text-ghost);
   }
   .timeline-time {
     @apply ml-auto shrink-0 text-xs tabular-nums;
     color: var(--color-text-ghost);
+    padding-top: 1px;
   }
   .timeline-link {
     @apply text-xs font-medium;
@@ -796,65 +815,79 @@
   .timeline-item-clickable:hover {
     background: var(--color-surface-hover);
   }
+  .timeline-item-clickable:hover .timeline-label {
+    color: var(--color-text-primary);
+  }
 
   /* ── Workflow graph ── */
   .wf-graph {
-    @apply flex items-center gap-0 overflow-x-auto py-1;
+    @apply flex items-center justify-center overflow-x-auto;
+    padding: 4px 0;
+    gap: 0;
   }
   .wf-graph-node {
-    @apply relative flex flex-col items-center shrink-0 rounded-lg px-4 py-3 text-center;
-    min-width: 120px;
+    @apply relative flex flex-col items-center shrink-0 rounded-lg px-5 py-3 text-center;
+    min-width: 130px;
     border: 1px solid var(--color-border);
+    background: var(--color-bg-raised);
     transition: all 0.15s ease;
   }
   .wf-graph-node:hover {
     border-color: var(--color-border-hover);
-    background: var(--color-surface-subtle);
+    background: var(--color-surface-hover);
   }
   .wf-graph-node-current {
-    border-color: var(--color-border-hover);
+    border-color: var(--color-text-faint);
     background: var(--color-surface-active);
   }
   .wf-graph-node-label {
-    @apply text-xs font-medium;
-    color: var(--color-text-secondary);
+    @apply text-xs font-semibold;
+    color: var(--color-text-primary);
   }
   .wf-graph-node-status {
-    @apply mt-1 text-[10px] font-medium uppercase tracking-wider;
+    @apply mt-1.5 inline-flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider;
   }
+  .wf-graph-node-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .wf-graph-node-status-running .wf-graph-node-status-dot { background: #2563eb; }
+  .wf-graph-node-status-completed .wf-graph-node-status-dot { background: #059669; }
+  .wf-graph-node-status-failed .wf-graph-node-status-dot { background: #dc2626; }
+  .wf-graph-node-status-pending .wf-graph-node-status-dot { background: var(--color-text-ghost); }
   .wf-graph-node-status-running { color: #2563eb; }
   .wf-graph-node-status-completed { color: #059669; }
   .wf-graph-node-status-failed { color: #dc2626; }
   .wf-graph-node-status-pending { color: var(--color-text-faint); }
   .wf-graph-edge {
-    @apply shrink-0;
-    width: 32px;
+    @apply shrink-0 flex items-center;
+    width: 36px;
+  }
+  .wf-graph-edge-line {
+    flex: 1;
     height: 1px;
     background: var(--color-border);
-    position: relative;
   }
-  .wf-graph-edge::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    border: 4px solid transparent;
-    border-left: 5px solid var(--color-border-hover);
+  .wf-graph-edge-arrow {
+    @apply h-3 w-3 shrink-0;
+    color: var(--color-text-faint);
+    margin-left: -2px;
   }
 
   /* ── Subtask banner ── */
   .subtask-banner {
-    @apply mb-5 flex items-center gap-2.5 rounded-lg px-4 py-2.5 text-xs font-medium;
+    @apply mb-5 flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs;
     border: 1px solid var(--color-border);
-    background: var(--color-surface-subtle);
+    background: var(--color-bg-raised);
     color: var(--color-text-muted);
   }
   .subtask-banner-icon {
     @apply h-3.5 w-3.5 shrink-0;
-    color: var(--color-text-faint);
+    color: var(--color-text-ghost);
   }
   .subtask-banner a {
+    @apply font-medium;
     color: var(--color-text-secondary);
     transition: color 0.15s ease;
   }
