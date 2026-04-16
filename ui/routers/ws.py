@@ -129,6 +129,7 @@ async def tasks_ws(
                     await ws.send_json({
                         "type": "update",
                         "seq": state["seq"],
+                        "hash": payload["hash"],
                         "tab_bar": payload["tab_bar"],
                         "tab_content": payload["tab_content"],
                     })

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
@@ -45,11 +47,17 @@ async def task_list(
         list_coro,
     )
 
+    items = [item.model_dump() for item in result.items]
+
+    # Compute data hash for the client to compare against WS updates
+    stable = [{k: v for k, v in it.items() if k not in ("started", "closed", "duration")} for it in items]
+    data_hash = hashlib.md5(json.dumps({"counts": counts, "items": stable, "has_next": result.has_next}, sort_keys=True).encode()).hexdigest()
+
     return templates.TemplateResponse(
         "task_list.html",
         {
             "request": request,
-            "items": [item.model_dump() for item in result.items],
+            "items": items,
             "tab": tab,
             "tabs": TAB_ORDER,
             "counts": counts,
@@ -60,5 +68,6 @@ async def task_list(
             "wf_type": wf_type,
             "search": search or "",
             "workflow_types": _get_workflow_types(),
+            "data_hash": data_hash,
         },
     )

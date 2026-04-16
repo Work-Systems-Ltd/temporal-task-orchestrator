@@ -11,6 +11,7 @@ interface ViewParams {
 interface UpdateMessage {
   type: "update";
   seq: number;
+  hash: string;
   tab_bar: string;
   tab_content: string;
 }
@@ -207,20 +208,26 @@ function taskList(): TaskListData {
       }
     },
 
-    _isInitialLoad: true,
+    _lastAppliedHash: "",
 
     applyUpdate(msg: UpdateMessage): void {
       // Drop stale updates from before the latest navigation
       if (msg.seq < this.seq) return;
 
-      // Skip the first WS push — SSR already rendered the correct content.
-      // The server-side hash check ensures subsequent pushes only happen
-      // when data actually changes.
-      if (this._isInitialLoad) {
-        this._isInitialLoad = false;
+      // Compare hash: if the data hasn't changed since SSR or last update, skip DOM replacement.
+      // This prevents the flash when the first WS push has identical data to SSR.
+      if (!this._lastAppliedHash) {
+        // Read the SSR hash from the DOM on first update
+        const root = document.querySelector("[data-initial-hash]");
+        this._lastAppliedHash = root?.getAttribute("data-initial-hash") || "";
+      }
+
+      if (msg.hash && msg.hash === this._lastAppliedHash) {
         this.loading = false;
         return;
       }
+
+      this._lastAppliedHash = msg.hash || "";
 
       const tabBar = document.querySelector("[data-tab-bar]");
       if (tabBar && msg.tab_bar) {
