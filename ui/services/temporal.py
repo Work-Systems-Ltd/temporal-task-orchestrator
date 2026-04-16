@@ -68,21 +68,30 @@ class TemporalService:
 
     @staticmethod
     def _group_by_parent(items: list) -> list:
-        """Group child workflows under their parents using ID convention.
+        """Group child workflows under their parents.
 
-        Children have IDs like "{parent_id}-{suffix}". Attach them to
-        the parent's children list and remove them from the top-level.
+        Uses the authoritative parent_id field from Temporal (populated by
+        WorkflowExecution.parent_id). Falls back to ID convention
+        ({parent_id}-{suffix}) if parent_id is empty but a matching parent
+        exists in the list.
         """
         by_id = {item.workflow_id: item for item in items}
         children_ids: set[str] = set()
 
         for item in items:
+            # First: use the authoritative parent_id from Temporal
+            pid = getattr(item, "parent_id", "") or ""
+            if pid and pid in by_id:
+                by_id[pid].children.append(item.model_dump())
+                children_ids.add(item.workflow_id)
+                continue
+
+            # Fallback: ID convention (e.g., "hiring-123-approval" → parent "hiring-123")
             parts = item.workflow_id.rsplit("-", 1)
             if len(parts) == 2:
                 potential_parent = parts[0]
                 if potential_parent in by_id and potential_parent != item.workflow_id:
-                    parent = by_id[potential_parent]
-                    parent.children.append(item.model_dump())
+                    by_id[potential_parent].children.append(item.model_dump())
                     item.parent_id = potential_parent
                     children_ids.add(item.workflow_id)
 
