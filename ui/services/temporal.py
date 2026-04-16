@@ -392,12 +392,25 @@ class TemporalService:
         self, wf_id: str, wf_type: str, status: str, current_id: str, depth: int = 0, max_depth: int = 4,
     ) -> GraphNode:
         """Recursively build a GraphNode tree."""
+        # Fetch timing info
+        started_str = ""
+        duration_str = ""
+        try:
+            handle = self._client.get_workflow_handle(wf_id)
+            desc = await handle.describe()
+            started_str = relative_time(desc.start_time)
+            duration_str = duration(desc.start_time, desc.close_time)
+        except Exception:
+            pass
+
         node = GraphNode(
             workflow_id=wf_id,
             workflow_type=wf_type,
             status=status,
             label=wf_type,
             is_current=(wf_id == current_id),
+            started=started_str,
+            duration=duration_str,
         )
         if depth < max_depth:
             child_infos = await self._find_children(wf_id)

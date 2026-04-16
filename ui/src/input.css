@@ -898,11 +898,25 @@
     @apply text-xs font-semibold leading-tight;
     color: var(--color-text-primary);
   }
+  .wf-graph-node-id {
+    @apply mt-1 block max-w-[120px] truncate font-mono text-[9px] leading-tight;
+    color: var(--color-text-ghost);
+  }
+  .wf-graph-node-root .wf-graph-node-id {
+    max-width: 140px;
+  }
+  .wf-graph-node:hover .wf-graph-node-id {
+    color: var(--color-text-faint);
+  }
   .wf-graph-node-pill {
     @apply mt-2;
   }
   .wf-graph-node-pill .pill {
     @apply text-[10px] px-2 py-px;
+  }
+  .wf-graph-node-meta {
+    @apply mt-1 block text-[10px] font-mono tabular-nums;
+    color: var(--color-text-ghost);
   }
 
   /* ─ Vertical trunk from parent node down to branch rail ─ */
