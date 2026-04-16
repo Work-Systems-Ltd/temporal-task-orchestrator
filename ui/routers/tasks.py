@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from human_tasks.registry import get_task
+from core.tasks import get_task
 from ui.dependencies import get_templates, get_temporal_service
 from ui.helpers import validate_task_form
 from ui.services.temporal import TemporalService

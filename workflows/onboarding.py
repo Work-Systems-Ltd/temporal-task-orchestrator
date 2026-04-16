@@ -2,9 +2,9 @@ from datetime import timedelta
 
 from temporalio import activity, workflow
 
-from human_tasks.tasks.onboarding_input import OnboardingInputTask
-from models import TaskMeta
-from workflows.base import HumanTaskWorkflow
+from core.models import TaskMeta
+from core.workflows import HumanTaskWorkflow
+from tasks.onboarding_input import OnboardingInputTask
 
 
 @activity.defn

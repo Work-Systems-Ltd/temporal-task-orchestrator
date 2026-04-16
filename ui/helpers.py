@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from pydantic import BaseModel, ValidationError
 
 if TYPE_CHECKING:
-    from human_tasks.base import HumanTask, TaskForm
+    from core.tasks.base import HumanTask, TaskForm
 
 
 def relative_time(dt: datetime | None) -> str:

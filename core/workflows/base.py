@@ -5,7 +5,7 @@ from typing import Any
 
 from temporalio import workflow
 
-from models import TaskMeta
+from core.models import TaskMeta
 
 
 class HumanTaskWorkflow:

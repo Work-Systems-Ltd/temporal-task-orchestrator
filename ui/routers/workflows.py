@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from ui.dependencies import get_templates, get_temporal_service
 from ui.helpers import validate_task_form
 from ui.services.temporal import TemporalService
-from workflows.registry import get_all_workflows, get_workflow
+from core.workflows import get_all_workflows, get_workflow
 
 router = APIRouter(tags=["workflows"])
 

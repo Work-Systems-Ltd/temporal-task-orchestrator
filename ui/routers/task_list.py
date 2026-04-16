@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from ui.config import TAB_ORDER
 from ui.dependencies import get_templates, get_temporal_service
 from ui.services.temporal import TemporalService
-from workflows.registry import get_all_workflows
+from core.workflows import get_all_workflows
 
 router = APIRouter(tags=["task_list"])
 

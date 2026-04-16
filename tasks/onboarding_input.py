@@ -1,8 +1,7 @@
 from pydantic import BaseModel, Field
 from wtforms import StringField, validators
 
-from human_tasks.base import HumanTask, TaskForm
-from human_tasks.registry import register_task
+from core.tasks import HumanTask, TaskForm, register_task
 
 
 @register_task

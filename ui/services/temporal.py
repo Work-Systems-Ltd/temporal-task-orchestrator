@@ -5,12 +5,11 @@ from typing import Any
 
 from temporalio.client import Client
 
-from models import TaskMeta
+from core.models import TaskMeta
+from core.workflows import HumanTaskWorkflow, WorkflowDef
 from ui.config import STATUS_QUERIES, TAB_ORDER, AppSettings
 from ui.helpers import duration, relative_time, status_name
 from ui.models import PaginatedResult, PendingTaskItem, WorkflowItem
-from workflows.base import HumanTaskWorkflow
-from workflows.registry import WorkflowDef
 
 
 class TemporalService:

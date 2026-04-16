@@ -3,10 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Type
 
-from workflows.base import HumanTaskWorkflow
+from core.workflows.base import HumanTaskWorkflow
 
 if TYPE_CHECKING:
-    from human_tasks.base import HumanTask
+    from core.tasks.base import HumanTask
 
 
 @dataclass
@@ -58,7 +58,7 @@ def get_all_workflows() -> list[WorkflowDef]:
 
 def validate_registrations() -> None:
     """Validate cross-registry references at startup."""
-    from human_tasks.registry import get_all_task_types
+    from core.tasks.registry import get_all_task_types
 
     known_task_types = set(get_all_task_types())
     for wf in _WORKFLOW_REGISTRY.values():

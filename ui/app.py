@@ -6,10 +6,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from temporalio.client import Client
 
-import human_tasks.tasks  # noqa: F401
-import workflows  # noqa: F401
+import tasks  # noqa: F401 — trigger task registration
+import workflows  # noqa: F401 — trigger workflow registration
+from core.workflows import validate_registrations
 from ui.config import AppSettings
-from workflows.registry import validate_registrations
 from ui.routers import task_list, tasks, workflows as workflows_router, ws
 from ui.services.temporal import TemporalService
 

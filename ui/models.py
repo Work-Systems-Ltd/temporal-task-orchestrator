@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
-from models import TaskMeta as TaskMeta  # re-export from shared location
+from core.models import TaskMeta as TaskMeta  # re-export from shared location
 
 
 class TaskListParams(BaseModel):

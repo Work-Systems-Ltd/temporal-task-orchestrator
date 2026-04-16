@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Type
 
-from human_tasks.base import HumanTask
+from core.tasks.base import HumanTask
 
 _TASK_REGISTRY: dict[str, HumanTask] = {}
 

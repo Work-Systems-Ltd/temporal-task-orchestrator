@@ -17,8 +17,8 @@ from workflows.onboarding import (
     setup_accounts,
 )
 
-import human_tasks.tasks  # noqa: F401 — trigger task registration
-from workflows.registry import validate_registrations
+import tasks  # noqa: F401 — trigger task registration
+from core.workflows import validate_registrations
 
 
 async def main():

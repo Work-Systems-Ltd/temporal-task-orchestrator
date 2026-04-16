@@ -1,8 +1,8 @@
-from human_tasks.tasks.approval_input import ApprovalInputTask
-from human_tasks.tasks.onboarding_input import OnboardingInputTask
+from core.workflows import register_workflow
+from tasks.approval_input import ApprovalInputTask
+from tasks.onboarding_input import OnboardingInputTask
 from workflows.approval import ApprovalWorkflow
 from workflows.onboarding import OnboardingWorkflow
-from workflows.registry import register_workflow
 
 register_workflow(
     key="approval",
