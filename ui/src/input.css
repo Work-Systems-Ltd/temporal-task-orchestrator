@@ -954,25 +954,6 @@
   }
 
   /* ── Subtask banner ── */
-  .subtask-banner {
-    @apply mb-5 flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs;
-    border: 1px solid var(--color-border);
-    background: var(--color-bg-raised);
-    color: var(--color-text-muted);
-  }
-  .subtask-banner-icon {
-    @apply h-3.5 w-3.5 shrink-0;
-    color: var(--color-text-ghost);
-  }
-  .subtask-banner a {
-    @apply font-medium;
-    color: var(--color-text-secondary);
-    transition: color 0.15s ease;
-  }
-  .subtask-banner a:hover {
-    color: var(--color-text-primary);
-  }
-
   /* ── JSON viewer (CodeMirror) ── */
   .json-viewer {
     @apply overflow-hidden rounded-lg;
@@ -990,21 +971,48 @@
   }
 
   /* ── Task detail page ── */
-  .task-detail-id {
-    @apply inline-flex items-center gap-1.5 font-mono text-[11px] cursor-pointer;
+  /* ── Detail hero ── */
+  .detail-hero {
+    @apply mb-6;
+  }
+  .detail-hero-title {
+    @apply mt-2 text-xl font-semibold;
+    color: var(--color-text-primary);
+  }
+  .detail-hero-id {
+    @apply mt-3 inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 font-mono text-[11px] cursor-pointer;
+    color: var(--color-text-faint);
+    background: var(--color-surface-active);
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+  }
+  .detail-hero-id:hover {
+    color: var(--color-text-secondary);
+    border-color: var(--color-border);
+  }
+  .detail-hero-id-text {
+    @apply select-all;
+  }
+  .detail-hero-id-icon {
+    @apply h-3 w-3 shrink-0;
+    opacity: 0.4;
+    transition: opacity 0.15s ease;
+  }
+  .detail-hero-id:hover .detail-hero-id-icon {
+    opacity: 1;
+  }
+  .detail-hero-parent {
+    @apply inline-flex items-center gap-1 ml-1 pl-2;
+    border-left: 1px solid var(--color-border);
+    color: var(--color-text-ghost);
+  }
+  .detail-hero-parent a {
+    @apply text-[11px] font-medium;
     color: var(--color-text-faint);
     transition: color 0.15s ease;
   }
-  .task-detail-id:hover {
-    color: var(--color-text-secondary);
-  }
-  .task-detail-id svg {
-    @apply h-3 w-3;
-    opacity: 0;
-    transition: opacity 0.15s ease;
-  }
-  .task-detail-id:hover svg {
-    opacity: 1;
+  .detail-hero-parent a:hover {
+    color: var(--color-text-primary);
   }
 
   /* ── Spinner ── */

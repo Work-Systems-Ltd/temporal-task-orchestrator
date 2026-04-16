@@ -12,40 +12,35 @@
     Back to tasks
   </a>
 
-  {% if is_child %}
-  <div class="subtask-banner">
-    <svg class="subtask-banner-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-    </svg>
-    Subtask of
-    <a href="/workflow/{{ detail.parent_id }}">{{ detail.parent_id }}</a>
-  </div>
-  {% endif %}
-
-  <div class="mb-6">
-    <div class="mb-2.5 flex items-center gap-2">
+  <div class="detail-hero">
+    <div class="flex items-center gap-2 flex-wrap">
       {{ status_badge(detail.status) }}
       <span class="text-xs text-faint">{{ detail.workflow_type }}</span>
       {% if is_child %}
       <span class="tag">Subtask</span>
       {% endif %}
     </div>
-    <h1 class="text-xl font-semibold text-primary">
-      {% if pending_tasks %}{{ pending_tasks[0].title }}{% else %}{{ workflow_id }}{% endif %}
-    </h1>
+    <h1 class="detail-hero-title">{{ detail.workflow_type | replace("Workflow", "") | trim }}</h1>
     {% if pending_tasks and pending_tasks | length == 1 %}
-    <p class="mt-1.5 text-sm text-muted">{{ pending_tasks[0].description }}</p>
+    <p class="mt-1 text-sm text-muted">{{ pending_tasks[0].description }}</p>
     {% elif pending_tasks and pending_tasks | length > 1 %}
-    <p class="mt-1.5 text-sm text-muted">{{ pending_tasks | length }} tasks waiting for input</p>
+    <p class="mt-1 text-sm text-muted">{{ pending_tasks | length }} tasks waiting for input</p>
     {% endif %}
-    <button type="button" class="task-detail-id mt-3"
-            @click="navigator.clipboard.writeText('{{ workflow_id }}'); copied = true; setTimeout(() => copied = false, 2000)"
-            :title="copied ? 'Copied!' : 'Click to copy'">
-      <span x-text="copied ? 'Copied!' : '{{ workflow_id }}'"></span>
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+    <div class="detail-hero-id"
+         @click="navigator.clipboard.writeText('{{ workflow_id }}'); copied = true; setTimeout(() => copied = false, 2000)">
+      <span class="detail-hero-id-text" x-text="copied ? 'Copied!' : '{{ workflow_id }}'"></span>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="detail-hero-id-icon">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
       </svg>
-    </button>
+      {% if is_child %}
+      <span class="detail-hero-parent">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-3 w-3">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+        </svg>
+        <a href="/workflow/{{ detail.parent_id }}">Parent</a>
+      </span>
+      {% endif %}
+    </div>
   </div>
 
   {% macro render_subtree(node, is_root) %}
@@ -113,50 +108,6 @@
   {% endif %}
 
   <div class="grid items-start gap-5 lg:grid-cols-5">
-
-    <div class="lg:col-span-2">
-      <div class="card">
-        <div class="card-header">
-          <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Details</h2>
-        </div>
-        <div class="p-5">
-          <div class="detail-list">
-            <div class="detail-item">
-              <div class="detail-label">Status</div>
-              <div class="detail-value">{{ detail.status | capitalize }}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Started</div>
-              <div class="detail-value">{{ detail.started }}</div>
-            </div>
-            {% if detail.duration != "—" %}
-            <div class="detail-item">
-              <div class="detail-label">Duration</div>
-              <div class="detail-value">{{ detail.duration }}</div>
-            </div>
-            {% endif %}
-            <div class="detail-item">
-              <div class="detail-label">Task Queue</div>
-              <div class="detail-value text-muted">{{ detail.task_queue }}</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Run ID</div>
-              <div class="detail-value-mono" title="{{ detail.run_id }}">{{ detail.run_id[:24] }}…</div>
-            </div>
-            <div class="detail-item">
-              <div class="detail-label">Events</div>
-              <div class="detail-value">{{ detail.history_length }}</div>
-            </div>
-            {% if detail.parent_id %}
-            <div class="detail-item">
-              <div class="detail-label">Parent</div>
-              <div class="mt-1"><a href="/workflow/{{ detail.parent_id }}" class="text-xs font-medium text-secondary" style="transition:color .15s">{{ detail.parent_id }}</a></div>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
 
     <div class="lg:col-span-3">
       {% if timeline %}
@@ -249,24 +200,56 @@
       {% endif %}
     </div>
 
-  </div>
+    <div class="lg:col-span-2 flex flex-col gap-5">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Details</h2>
+        </div>
+        <div class="p-5">
+          <div class="detail-list">
+            <div class="detail-item">
+              <div class="detail-label">Started</div>
+              <div class="detail-value">{{ detail.started }}</div>
+            </div>
+            {% if detail.duration != "—" %}
+            <div class="detail-item">
+              <div class="detail-label">Duration</div>
+              <div class="detail-value">{{ detail.duration }}</div>
+            </div>
+            {% endif %}
+            <div class="detail-item">
+              <div class="detail-label">Task Queue</div>
+              <div class="detail-value text-muted">{{ detail.task_queue }}</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Run ID</div>
+              <div class="detail-value-mono" title="{{ detail.run_id }}">{{ detail.run_id[:24] }}…</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">Events</div>
+              <div class="detail-value">{{ detail.history_length }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-  {% if stats.workflow_input or stats.workflow_output %}
-  <div class="mt-5 grid gap-5 lg:grid-cols-2">
-    {% if stats.workflow_input %}
-    <div class="json-viewer">
-      <div class="json-viewer-label">Input</div>
-      <div data-json-viewer="{{ stats.workflow_input | e }}"></div>
+      {% if stats.workflow_input or stats.workflow_output %}
+      {% if stats.workflow_input %}
+      <div class="json-viewer">
+        <div class="json-viewer-label">Input</div>
+        <div data-json-viewer="{{ stats.workflow_input | e }}"></div>
+      </div>
+      {% endif %}
+      {% if stats.workflow_output %}
+      <div class="json-viewer">
+        <div class="json-viewer-label">Output</div>
+        <div data-json-viewer="{{ stats.workflow_output | e }}"></div>
+      </div>
+      {% endif %}
+      {% endif %}
     </div>
-    {% endif %}
-    {% if stats.workflow_output %}
-    <div class="json-viewer">
-      <div class="json-viewer-label">Output</div>
-      <div data-json-viewer="{{ stats.workflow_output | e }}"></div>
-    </div>
-    {% endif %}
+
   </div>
-  {% endif %}
 
 </div>
 {% endblock %}
