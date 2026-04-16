@@ -702,6 +702,24 @@
     background: var(--color-empty-icon-bg);
   }
 
+  /* ── Task detail page ── */
+  .task-detail-id {
+    @apply inline-flex items-center gap-1.5 font-mono text-[11px] cursor-pointer;
+    color: var(--color-text-faint);
+    transition: color 0.15s ease;
+  }
+  .task-detail-id:hover {
+    color: var(--color-text-secondary);
+  }
+  .task-detail-id svg {
+    @apply h-3 w-3;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .task-detail-id:hover svg {
+    opacity: 1;
+  }
+
   /* ── Spinner ── */
   .spinner-on-inverted {
     color: var(--color-invert-text);

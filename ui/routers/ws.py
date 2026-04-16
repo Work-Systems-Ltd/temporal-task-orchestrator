@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import logging
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
@@ -14,6 +15,8 @@ from core.workflows import get_all_workflows
 
 router = APIRouter()
 
+logger = logging.getLogger(__name__)
+
 PUSH_INTERVAL = 3
 
 
@@ -23,7 +26,6 @@ def _get_workflow_types() -> list[str]:
 
 def _data_hash(counts: dict, items: list[dict], has_next: bool) -> str:
     """Hash the actual data (ignoring time-formatted strings) to detect real changes."""
-    # Strip time-display fields that change every render
     stable_items = []
     for item in items:
         stable = {k: v for k, v in item.items() if k not in ("started", "closed", "duration")}
@@ -90,72 +92,74 @@ async def tasks_ws(
 ) -> None:
     await ws.accept()
 
-    tab = "pending"
-    page = 1
-    per_page: int | None = None
-    wf_type: str | None = None
-    search: str | None = None
-    seq = 0
+    # Shared state — only modified by the receive loop, read by push_loop
+    state = {
+        "tab": "pending",
+        "page": 1,
+        "per_page": None,
+        "wf_type": None,
+        "search": None,
+        "seq": 0,
+    }
     last_hash = ""
+    # Event fired to wake push_loop immediately (on navigation or visibility)
+    nudge = asyncio.Event()
 
     async def push_loop() -> None:
-        nonlocal tab, page, per_page, wf_type, search, seq, last_hash
+        nonlocal last_hash
         while True:
-            snap_seq = seq
-            snap_tab = tab
-            snap_page = page
-            snap_per_page = per_page
-            snap_wf_type = wf_type
-            snap_search = search
+            # Wait for either the interval or a nudge
+            try:
+                await asyncio.wait_for(nudge.wait(), timeout=PUSH_INTERVAL)
+                nudge.clear()
+                # On nudge, always push (even if hash matches) for responsiveness
+                force = True
+            except asyncio.TimeoutError:
+                force = False
+
             try:
                 payload = await _build_update(
                     ws, templates, service,
-                    snap_tab, snap_page, snap_wf_type, snap_search,
-                    per_page=snap_per_page,
+                    state["tab"], state["page"],
+                    state["wf_type"], state["search"],
+                    per_page=state["per_page"],
                 )
-                # Only push if data actually changed
-                if payload["hash"] != last_hash:
+                if force or payload["hash"] != last_hash:
                     last_hash = payload["hash"]
                     await ws.send_json({
                         "type": "update",
-                        "seq": snap_seq,
+                        "seq": state["seq"],
                         "tab_bar": payload["tab_bar"],
                         "tab_content": payload["tab_content"],
                     })
             except WebSocketDisconnect:
                 return
             except Exception:
-                pass
-            await asyncio.sleep(PUSH_INTERVAL)
+                logger.exception("push_loop error")
 
     push_task = asyncio.create_task(push_loop())
 
     try:
         while True:
             msg = await ws.receive_json()
-            if msg.get("type") == "view":
-                tab = msg.get("tab", "pending")
-                page = max(1, int(msg.get("page", 1)))
+            msg_type = msg.get("type")
+
+            if msg_type == "view":
+                state["tab"] = msg.get("tab", "pending")
+                state["page"] = max(1, int(msg.get("page", 1)))
                 raw_per_page = msg.get("per_page")
-                per_page = max(10, min(100, int(raw_per_page))) if raw_per_page is not None else None
-                wf_type = msg.get("wf_type") or None
-                search = msg.get("search") or None
-                seq = int(msg.get("seq", 0))
-                # Always push immediately on navigation (user expects visual feedback)
-                try:
-                    payload = await _build_update(
-                        ws, templates, service, tab, page, wf_type, search,
-                        per_page=per_page,
-                    )
-                    last_hash = payload["hash"]
-                    await ws.send_json({
-                        "type": "update",
-                        "seq": seq,
-                        "tab_bar": payload["tab_bar"],
-                        "tab_content": payload["tab_content"],
-                    })
-                except Exception:
-                    pass
+                state["per_page"] = max(10, min(100, int(raw_per_page))) if raw_per_page is not None else None
+                state["wf_type"] = msg.get("wf_type") or None
+                state["search"] = msg.get("search") or None
+                state["seq"] = int(msg.get("seq", 0))
+                last_hash = ""  # force update on navigation
+                nudge.set()
+
+            elif msg_type == "visible":
+                # Tab became visible again — force a fresh push
+                last_hash = ""
+                nudge.set()
+
     except WebSocketDisconnect:
         pass
     finally:

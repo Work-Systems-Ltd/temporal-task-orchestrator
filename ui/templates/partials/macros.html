@@ -12,3 +12,13 @@
 {% set color = status_colors.get(status | lower, "zinc") %}
 <span class="pill pill-{{ color }}">{{ status | capitalize }}</span>
 {% endmacro %}
+
+{% set task_type_colors = {
+  "approval": "amber",
+  "onboarding": "blue",
+} %}
+
+{% macro task_type_badge(task_type) %}
+{% set color = task_type_colors.get(task_type | lower, "zinc") %}
+<span class="pill pill-{{ color }}">{{ task_type }}</span>
+{% endmacro %}

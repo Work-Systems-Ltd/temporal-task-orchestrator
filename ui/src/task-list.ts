@@ -28,6 +28,8 @@ interface TaskListData {
   applyUpdate(msg: UpdateMessage): void;
   refresh(): void;
   navigateTab(e: Event): void;
+  _visibilityHandler: (() => void) | null;
+  _listenVisibility(): void;
 }
 
 function getViewParams(seq: number): ViewParams {
@@ -62,8 +64,8 @@ function taskList(): TaskListData {
       ws.onopen = () => {
         this.connected = true;
         this.reconnectDelay = 1000;
-        // Sync view params with server so the push loop knows what to render
         this.sendView();
+        this._listenVisibility();
       };
 
       ws.onmessage = (event: MessageEvent) => {
@@ -101,6 +103,10 @@ function taskList(): TaskListData {
         clearTimeout(this.reconnectTimer);
         this.reconnectTimer = null;
       }
+      if (this._visibilityHandler) {
+        document.removeEventListener("visibilitychange", this._visibilityHandler);
+        this._visibilityHandler = null;
+      }
       if (this.ws) {
         this.ws.close();
         this.ws = null;
@@ -118,8 +124,6 @@ function taskList(): TaskListData {
       // Drop stale updates from before the latest navigation
       if (msg.seq < this.seq) return;
 
-      if (document.hidden) return;
-
       const tabBar = document.querySelector("[data-tab-bar]");
       if (tabBar && msg.tab_bar) {
         tabBar.innerHTML = msg.tab_bar;
@@ -131,6 +135,18 @@ function taskList(): TaskListData {
       }
 
       this.loading = false;
+    },
+
+    _visibilityHandler: null as (() => void) | null,
+
+    _listenVisibility(): void {
+      if (this._visibilityHandler) return;
+      this._visibilityHandler = () => {
+        if (!document.hidden && this.ws && this.ws.readyState === WebSocket.OPEN) {
+          this.ws.send(JSON.stringify({ type: "visible" }));
+        }
+      };
+      document.addEventListener("visibilitychange", this._visibilityHandler);
     },
 
     refresh(): void {
