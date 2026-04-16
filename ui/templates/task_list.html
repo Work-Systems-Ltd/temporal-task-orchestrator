@@ -80,7 +80,7 @@
              x-transition:leave-end="opacity-0 scale-95"
              class="dropdown-menu origin-top-right" style="min-width:160px">
           <div class="px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ghost">Columns</div>
-          {% for col_id, col_label in [("id", "Workflow ID"), ("type", "Type"), ("started", "Started"), ("duration", "Duration"), ("status", "Status")] %}
+          {% for col_id, col_label in [("id", "Workflow ID"), ("type", "Type"), ("started", "Started"), ("stopped", "Stopped"), ("duration", "Duration"), ("status", "Status"), ("queue", "Task Queue"), ("run_id", "Run ID"), ("events", "Events"), ("parent", "Parent")] %}
           <label class="dropdown-item cursor-pointer" onclick="event.preventDefault();toggleColumn('{{ col_id }}')">
             <input type="checkbox" data-col-toggle="{{ col_id }}" class="accent-current rounded" checked />
             <span>{{ col_label }}</span>

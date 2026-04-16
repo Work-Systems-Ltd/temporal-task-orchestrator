@@ -200,16 +200,29 @@
         <td class="td" data-col="started">
           <span class="td-time">{{ child.started }}</span>
         </td>
-        {% if tab in ["completed", "failed", "all"] %}
+        <td class="td" data-col="stopped">
+          <span class="td-time">{{ child.closed }}</span>
+        </td>
         <td class="td" data-col="duration">
           <span class="td-time">{{ child.duration }}</span>
         </td>
-        {% endif %}
         <td class="td text-right" data-col="status">
           {{ status_badge(child.status) }}
           <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
           </svg>
+        </td>
+        <td class="td" data-col="queue">
+          <span class="td-time">{{ child.task_queue }}</span>
+        </td>
+        <td class="td" data-col="run_id">
+          <span class="td-mono" title="{{ child.run_id }}">{{ child.run_id[:12] }}…</span>
+        </td>
+        <td class="td" data-col="events">
+          <span class="td-time">{{ child.history_length }}</span>
+        </td>
+        <td class="td" data-col="parent">
+          <a href="/workflow/{{ item.workflow_id }}" class="timeline-link" onclick="event.stopPropagation()">{{ item.workflow_id }}</a>
         </td>
       </tr>
       {% endfor %}
