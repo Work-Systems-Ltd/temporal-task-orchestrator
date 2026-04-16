@@ -43,8 +43,6 @@ async def _build_update(
     wf_type: str | None,
     search: str | None,
     per_page: int | None = None,
-    sort: str | None = None,
-    sort_dir: str | None = None,
 ) -> dict:
     """Build a full update payload with rendered fragments and data hash."""
     if tab not in TAB_ORDER:
@@ -53,7 +51,7 @@ async def _build_update(
     if tab == "pending":
         list_coro = service.list_pending(page, wf_type, search, per_page=per_page)
     else:
-        list_coro = service.list_workflows(tab, page, wf_type, search, per_page=per_page, sort=sort, sort_dir=sort_dir)
+        list_coro = service.list_workflows(tab, page, wf_type, search, per_page=per_page)
 
     counts, result = await asyncio.gather(
         service.get_tab_counts(wf_type),
@@ -73,8 +71,6 @@ async def _build_update(
         "has_prev": page > 1,
         "wf_type": wf_type,
         "search": search or "",
-        "sort": sort or "",
-        "sort_dir": sort_dir or "",
         "workflow_types": _get_workflow_types(),
     }
 
@@ -103,8 +99,6 @@ async def tasks_ws(
         "per_page": None,
         "wf_type": None,
         "search": None,
-        "sort": None,
-        "sort_dir": None,
         "seq": 0,
     }
     last_hash = ""
@@ -129,7 +123,6 @@ async def tasks_ws(
                     state["tab"], state["page"],
                     state["wf_type"], state["search"],
                     per_page=state["per_page"],
-                    sort=state["sort"], sort_dir=state["sort_dir"],
                 )
                 if force or payload["hash"] != last_hash:
                     last_hash = payload["hash"]
@@ -158,8 +151,6 @@ async def tasks_ws(
                 state["per_page"] = max(10, min(100, int(raw_per_page))) if raw_per_page is not None else None
                 state["wf_type"] = msg.get("wf_type") or None
                 state["search"] = msg.get("search") or None
-                state["sort"] = msg.get("sort") or None
-                state["sort_dir"] = msg.get("sort_dir") or None
                 state["seq"] = int(msg.get("seq", 0))
                 last_hash = ""  # force update on navigation
                 nudge.set()

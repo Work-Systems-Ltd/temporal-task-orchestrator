@@ -26,28 +26,14 @@ class TemporalService:
     def task_queue(self) -> str:
         return self._settings.task_queue
 
-    # Temporal fields that support ORDER BY
-    SORTABLE_FIELDS: dict[str, str] = {
-        "started": "StartTime",
-        "closed": "CloseTime",
-    }
-
-    @classmethod
-    def _build_query(cls, base_query: str | None, wf_type: str | None, sort: str | None = None, sort_dir: str | None = None) -> str | None:
+    @staticmethod
+    def _build_query(base_query: str | None, wf_type: str | None) -> str | None:
         parts: list[str] = []
         if base_query:
             parts.append(base_query)
         if wf_type:
             parts.append(f'WorkflowType="{wf_type}"')
-        q = " AND ".join(parts) if parts else None
-
-        temporal_field = cls.SORTABLE_FIELDS.get(sort or "")
-        if temporal_field:
-            direction = "ASC" if sort_dir == "asc" else "DESC"
-            order_clause = f"ORDER BY {temporal_field} {direction}"
-            q = f"{q} {order_clause}" if q else order_clause
-
-        return q
+        return " AND ".join(parts) if parts else None
 
     async def count_workflows(self, query: str | None) -> int:
         count = 0
@@ -155,10 +141,8 @@ class TemporalService:
         wf_type: str | None = None,
         search: str | None = None,
         per_page: int | None = None,
-        sort: str | None = None,
-        sort_dir: str | None = None,
     ) -> PaginatedResult:
-        query = self._build_query(STATUS_QUERIES.get(tab), wf_type, sort, sort_dir)
+        query = self._build_query(STATUS_QUERIES.get(tab), wf_type)
         items: list[WorkflowItem] = []
         size = per_page or self.page_size
         skip = (page - 1) * size

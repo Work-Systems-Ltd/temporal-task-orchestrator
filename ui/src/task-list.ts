@@ -6,8 +6,6 @@ interface ViewParams {
   per_page: number | null;
   wf_type: string | null;
   search: string | null;
-  sort: string | null;
-  sort_dir: string | null;
 }
 
 interface UpdateMessage {
@@ -127,8 +125,6 @@ function getViewParams(seq: number): ViewParams {
     per_page: params.has("per_page") ? Math.max(10, Math.min(100, parseInt(params.get("per_page")!, 10))) : null,
     wf_type: params.get("type") || null,
     search: params.get("q") || null,
-    sort: params.get("sort") || null,
-    sort_dir: params.get("sort_dir") || null,
   };
 }
 
