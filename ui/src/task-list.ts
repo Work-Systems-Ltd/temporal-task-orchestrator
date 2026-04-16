@@ -60,6 +60,61 @@ function applyExpandState(): void {
   });
 }
 
+// ── Column picker state (persisted in localStorage) ──
+const COL_STORAGE_KEY = "wf-visible-cols";
+const ALL_COLUMNS = ["id", "type", "started", "duration", "status"];
+const DEFAULT_COLUMNS = ["id", "type", "started", "duration", "status"];
+
+function getVisibleColumns(): string[] {
+  try {
+    const raw = localStorage.getItem(COL_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as string[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch { /* ignore */ }
+  return [...DEFAULT_COLUMNS];
+}
+
+function setVisibleColumns(cols: string[]): void {
+  localStorage.setItem(COL_STORAGE_KEY, JSON.stringify(cols));
+  applyColumnState();
+}
+
+function toggleColumn(col: string): void {
+  const cols = getVisibleColumns();
+  const idx = cols.indexOf(col);
+  if (idx >= 0 && cols.length > 1) {
+    cols.splice(idx, 1);
+  } else if (idx < 0) {
+    // Insert in default order
+    const defaultIdx = ALL_COLUMNS.indexOf(col);
+    let insertAt = cols.length;
+    for (let i = 0; i < cols.length; i++) {
+      if (ALL_COLUMNS.indexOf(cols[i]) > defaultIdx) {
+        insertAt = i;
+        break;
+      }
+    }
+    cols.splice(insertAt, 0, col);
+  }
+  setVisibleColumns(cols);
+}
+
+function applyColumnState(): void {
+  const visible = new Set(getVisibleColumns());
+  document.querySelectorAll<HTMLElement>("[data-col]").forEach((el) => {
+    const col = el.getAttribute("data-col")!;
+    el.style.display = visible.has(col) ? "" : "none";
+  });
+  // Update checkbox states in the picker dropdown
+  document.querySelectorAll<HTMLInputElement>("[data-col-toggle]").forEach((cb) => {
+    cb.checked = visible.has(cb.getAttribute("data-col-toggle")!);
+  });
+}
+
+(window as Record<string, unknown>).toggleColumn = toggleColumn;
+(window as Record<string, unknown>).applyColumnState = applyColumnState;
 (window as Record<string, unknown>).toggleExpand = toggleExpand;
 
 function getViewParams(seq: number): ViewParams {

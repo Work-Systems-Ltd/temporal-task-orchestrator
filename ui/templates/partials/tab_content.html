@@ -97,9 +97,9 @@
   <table class="w-full text-left">
     <thead class="table-head">
       <tr>
-        <th class="th">Workflow ID</th>
-        <th class="hidden th sm:table-cell">Type</th>
-        <th class="th">
+        <th class="th" data-col="id">Workflow ID</th>
+        <th class="th" data-col="type">Type</th>
+        <th class="th" data-col="started">
           <a href="/?tab={{ tab }}{% if per_page %}&per_page={{ per_page }}{% endif %}{% if wf_type %}&type={{ wf_type }}{% endif %}&sort=started&sort_dir={% if sort == 'started' and sort_dir == 'asc' %}desc{% else %}asc{% endif %}"
              class="th-sortable {% if sort == 'started' %}th-sortable-active{% endif %}">
             Started
@@ -109,9 +109,9 @@
           </a>
         </th>
         {% if tab in ["completed", "failed", "all"] %}
-        <th class="hidden th md:table-cell">Duration</th>
+        <th class="th" data-col="duration">Duration</th>
         {% endif %}
-        <th class="th text-right">Status</th>
+        <th class="th text-right" data-col="status">Status</th>
       </tr>
     </thead>
     <tbody class="divide-y divide-border">
@@ -122,7 +122,7 @@
           style="animation-delay: {{ loop.index0 * 30 }}ms"
           onclick="window.location='/workflow/{{ item.workflow_id }}'"
           onkeydown="if(event.key==='Enter')window.location='/workflow/{{ item.workflow_id }}'">
-        <td class="td">
+        <td class="td" data-col="id">
           <div class="flex items-center">
             {% if item.children %}
             <span class="expand-toggle" onclick="event.stopPropagation();toggleExpand('{{ item.workflow_id }}')">
@@ -135,18 +135,18 @@
             {% if item.children %}<span class="child-count">{{ item.children | length }}</span>{% endif %}
           </div>
         </td>
-        <td class="hidden td sm:table-cell">
+        <td class="td" data-col="type">
           <span class="tag">{{ item.workflow_type }}</span>
         </td>
-        <td class="td">
+        <td class="td" data-col="started">
           <span class="td-time">{{ item.started }}</span>
         </td>
         {% if tab in ["completed", "failed", "all"] %}
-        <td class="hidden td md:table-cell">
+        <td class="td" data-col="duration">
           <span class="td-time">{{ item.duration }}</span>
         </td>
         {% endif %}
-        <td class="td text-right">
+        <td class="td text-right" data-col="status">
           {{ status_badge(item.status) }}
           <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -159,25 +159,25 @@
           data-child-of="{{ item.workflow_id }}"
           onclick="window.location='/workflow/{{ child.workflow_id }}'"
           onkeydown="if(event.key==='Enter')window.location='/workflow/{{ child.workflow_id }}'">
-        <td class="td td-indent">
+        <td class="td td-indent" data-col="id">
           <span class="tree-branch">└</span>
           <span class="inline-block max-w-[180px] truncate font-mono text-xs text-muted group-hover:text-secondary" title="{{ child.workflow_id }}">{{ child.workflow_id }}</span>
         </td>
-        <td class="hidden td sm:table-cell">
+        <td class="td" data-col="type">
           <span class="subtask-tag">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>
             {{ child.workflow_type }}
           </span>
         </td>
-        <td class="td">
+        <td class="td" data-col="started">
           <span class="td-time">{{ child.started }}</span>
         </td>
         {% if tab in ["completed", "failed", "all"] %}
-        <td class="hidden td md:table-cell">
+        <td class="td" data-col="duration">
           <span class="td-time">{{ child.duration }}</span>
         </td>
         {% endif %}
-        <td class="td text-right">
+        <td class="td text-right" data-col="status">
           {{ status_badge(child.status) }}
           <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />

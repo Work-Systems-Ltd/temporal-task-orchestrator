@@ -307,12 +307,12 @@
   }
   .header-divider {
     width: 1px;
-    height: 20px;
+    height: 24px;
     background: linear-gradient(180deg, transparent, var(--color-divider), transparent);
     flex-shrink: 0;
   }
   .header-brand-text {
-    @apply hidden text-[11px] font-semibold uppercase sm:flex;
+    @apply hidden text-xs font-semibold uppercase sm:flex;
     letter-spacing: 0.06em;
     color: var(--color-text-faint);
     transition: color 0.2s ease;
@@ -323,7 +323,7 @@
 
   /* ── Nav ── */
   .nav-link {
-    @apply relative inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium whitespace-nowrap;
+    @apply relative inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap;
     color: var(--color-text-muted);
     transition: all 0.2s ease;
   }
@@ -338,7 +338,7 @@
   .nav-link--active::after {
     content: "";
     position: absolute;
-    bottom: -9px;
+    bottom: -13px;
     left: 50%;
     transform: translateX(-50%);
     width: 24px;
@@ -349,7 +349,7 @@
 
   /* ── Theme toggle ── */
   .theme-toggle {
-    @apply relative inline-flex items-center justify-center rounded-lg p-1.5;
+    @apply relative inline-flex items-center justify-center rounded-lg p-2;
     color: var(--color-text-faint);
     border: 1px solid transparent;
     transition: all 0.2s ease;
