@@ -20,8 +20,8 @@
           tabindex="0" role="link"
           {% if item.children %}data-parent-id="{{ item.workflow_id }}"{% endif %}
           style="animation-delay: {{ loop.index0 * 30 }}ms"
-          onclick="{% if item.children %}event.preventDefault();toggleExpand('{{ item.workflow_id }}'){% else %}window.location='/task/{{ item.workflow_id }}'{% endif %}"
-          onkeydown="if(event.key==='Enter'){% if item.children %}toggleExpand('{{ item.workflow_id }}'){% else %}window.location='/task/{{ item.workflow_id }}'{% endif %}">
+          onclick="window.location='/task/{{ item.workflow_id }}'"
+          onkeydown="if(event.key==='Enter')window.location='/task/{{ item.workflow_id }}'">
         <td class="td">
           <div class="flex items-center">
             {% if item.children %}
