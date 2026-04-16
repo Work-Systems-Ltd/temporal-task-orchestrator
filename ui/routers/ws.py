@@ -43,6 +43,8 @@ async def _build_update(
     wf_type: str | None,
     search: str | None,
     per_page: int | None = None,
+    sort: str | None = None,
+    sort_dir: str | None = None,
 ) -> dict:
     """Build a full update payload with rendered fragments and data hash."""
     if tab not in TAB_ORDER:
@@ -51,7 +53,7 @@ async def _build_update(
     if tab == "pending":
         list_coro = service.list_pending(page, wf_type, search, per_page=per_page)
     else:
-        list_coro = service.list_workflows(tab, page, wf_type, search, per_page=per_page)
+        list_coro = service.list_workflows(tab, page, wf_type, search, per_page=per_page, sort=sort, sort_dir=sort_dir)
 
     counts, result = await asyncio.gather(
         service.get_tab_counts(wf_type),
@@ -71,6 +73,8 @@ async def _build_update(
         "has_prev": page > 1,
         "wf_type": wf_type,
         "search": search or "",
+        "sort": sort or "",
+        "sort_dir": sort_dir or "",
         "workflow_types": _get_workflow_types(),
     }
 

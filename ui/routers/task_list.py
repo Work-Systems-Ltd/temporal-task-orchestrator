@@ -26,6 +26,8 @@ async def task_list(
     per_page: int | None = Query(None, ge=10, le=100),
     type: str | None = Query(None),
     q: str | None = Query(None),
+    sort: str | None = Query(None),
+    sort_dir: str | None = Query(None),
     service: TemporalService = Depends(get_temporal_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
@@ -38,7 +40,7 @@ async def task_list(
     if tab == "pending":
         list_coro = service.list_pending(page, wf_type, search, per_page=per_page)
     else:
-        list_coro = service.list_workflows(tab, page, wf_type, search, per_page=per_page)
+        list_coro = service.list_workflows(tab, page, wf_type, search, per_page=per_page, sort=sort, sort_dir=sort_dir)
 
     counts, result = await asyncio.gather(
         service.get_tab_counts(wf_type),
@@ -59,6 +61,8 @@ async def task_list(
             "per_page": per_page,
             "wf_type": wf_type,
             "search": search or "",
+            "sort": sort or "",
+            "sort_dir": sort_dir or "",
             "workflow_types": _get_workflow_types(),
         },
     )
