@@ -743,49 +743,50 @@
   }
   .timeline-item {
     @apply flex gap-3;
-    padding: 8px 0;
+    padding: 6px 0;
   }
   .timeline-track {
     @apply flex flex-col items-center shrink-0;
-    width: 20px;
+    width: 24px;
   }
-  .timeline-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 2px solid;
-    flex-shrink: 0;
-    margin-top: 5px;
+  .timeline-icon {
+    @apply flex items-center justify-center shrink-0 rounded-full;
+    width: 24px;
+    height: 24px;
+  }
+  .timeline-icon svg {
+    width: 12px;
+    height: 12px;
+  }
+  .timeline-icon-completed {
+    background: rgba(5,150,105,0.12);
+    color: #059669;
+  }
+  .timeline-icon-failed {
+    background: rgba(220,38,38,0.12);
+    color: #dc2626;
+  }
+  .timeline-icon-info {
+    background: var(--color-surface-active);
+    color: var(--color-text-muted);
+  }
+  .timeline-icon-pending {
+    background: rgba(180,83,9,0.10);
+    color: #b45309;
   }
   .timeline-stem {
     flex: 1;
     width: 1px;
-    min-height: 6px;
+    min-height: 4px;
     background: var(--color-border);
-    margin-top: 4px;
+    margin-top: 3px;
   }
   .timeline-item:last-child .timeline-stem {
     background: transparent;
   }
-  .timeline-dot-completed {
-    background: #059669;
-    border-color: #059669;
-  }
-  .timeline-dot-failed {
-    background: #dc2626;
-    border-color: #dc2626;
-  }
-  .timeline-dot-info {
-    background: var(--color-bg);
-    border-color: var(--color-text-faint);
-  }
-  .timeline-dot-pending {
-    background: var(--color-bg);
-    border-color: #b45309;
-  }
   .timeline-content {
-    @apply flex flex-1 items-start gap-2 min-w-0;
-    padding-top: 1px;
+    @apply flex flex-1 items-center gap-2 min-w-0;
+    min-height: 24px;
   }
   .timeline-label {
     @apply text-sm;
@@ -796,9 +797,8 @@
     color: var(--color-text-ghost);
   }
   .timeline-time {
-    @apply ml-auto shrink-0 text-xs tabular-nums;
+    @apply ml-auto shrink-0 text-[11px] tabular-nums;
     color: var(--color-text-ghost);
-    padding-top: 1px;
   }
   .timeline-link {
     @apply text-xs font-medium;
