@@ -148,6 +148,28 @@
           <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Timeline</h2>
         </div>
         <div class="p-5">
+          {% if stats.total_time != "—" or stats.activity_time != "—" %}
+          <div class="timeline-stats">
+            {% if stats.total_time != "—" %}
+            <div class="timeline-stat">
+              <span class="timeline-stat-label">Total</span>
+              <span class="timeline-stat-value">{{ stats.total_time }}</span>
+            </div>
+            {% endif %}
+            {% if stats.activity_time != "—" %}
+            <div class="timeline-stat">
+              <span class="timeline-stat-label">Activities</span>
+              <span class="timeline-stat-value">{{ stats.activity_time }}</span>
+            </div>
+            {% endif %}
+            {% if stats.wait_time != "—" %}
+            <div class="timeline-stat">
+              <span class="timeline-stat-label">Waiting</span>
+              <span class="timeline-stat-value">{{ stats.wait_time }}</span>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
           <div class="timeline">
             {% for event in timeline %}
             {% if event.link %}
@@ -163,6 +185,9 @@
                   <span class="timeline-detail ml-1.5">{{ event.detail }}</span>
                   {% endif %}
                 </div>
+                {% if event.duration %}
+                <span class="timeline-duration">{{ event.duration }}</span>
+                {% endif %}
                 <span class="timeline-time">{{ event.event_time }}</span>
                 <svg class="h-3 w-3 shrink-0 text-ghost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -182,6 +207,9 @@
                   <span class="timeline-detail ml-1.5">{{ event.detail }}</span>
                   {% endif %}
                 </div>
+                {% if event.duration %}
+                <span class="timeline-duration">{{ event.duration }}</span>
+                {% endif %}
                 <span class="timeline-time">{{ event.event_time }}</span>
               </div>
             </div>
