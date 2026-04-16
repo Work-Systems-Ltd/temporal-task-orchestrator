@@ -1,4 +1,4 @@
-{% from "partials/macros.html" import status_badge, task_type_badge %}
+{% from "partials/macros.html" import status_badge, task_type_badge, timeline_icon %}
 {% extends "base.html" %}
 {% block title %}{{ detail.workflow_type }} — Task Console{% endblock %}
 
@@ -153,7 +153,7 @@
             {% if event.link %}
             <a href="{{ event.link }}" class="timeline-item timeline-item-clickable">
               <div class="timeline-track">
-                <div class="timeline-dot timeline-dot-{{ event.status }}"></div>
+                {{ timeline_icon(event.status) }}
                 <div class="timeline-stem"></div>
               </div>
               <div class="timeline-content">
@@ -172,7 +172,7 @@
             {% else %}
             <div class="timeline-item">
               <div class="timeline-track">
-                <div class="timeline-dot timeline-dot-{{ event.status }}"></div>
+                {{ timeline_icon(event.status) }}
                 <div class="timeline-stem"></div>
               </div>
               <div class="timeline-content">
@@ -190,7 +190,7 @@
             {% if detail.status == "running" %}
             <div class="timeline-item">
               <div class="timeline-track">
-                <div class="timeline-dot timeline-dot-pending"></div>
+                {{ timeline_icon("pending") }}
                 <div class="timeline-stem"></div>
               </div>
               <div class="timeline-content">
