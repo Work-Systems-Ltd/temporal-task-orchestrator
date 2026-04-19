@@ -31,6 +31,11 @@ function refreshContent(): void {
         Alpine.destroyTree(currentMain);
         currentMain.innerHTML = newMain.innerHTML;
         Alpine.initTree(currentMain);
+
+        // Re-initialize JSON viewers on the new DOM
+        if (typeof (window as any).mountJsonViewers === "function") {
+          (window as any).mountJsonViewers();
+        }
       }
 
       window.scrollTo(0, scrollY);

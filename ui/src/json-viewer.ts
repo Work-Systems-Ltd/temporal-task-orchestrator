@@ -99,3 +99,6 @@ if (document.readyState === "loading") {
 } else {
   mountViewers();
 }
+
+// Expose for re-initialization after dynamic content swaps
+(window as any).mountJsonViewers = mountViewers;
