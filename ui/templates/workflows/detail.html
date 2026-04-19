@@ -15,7 +15,7 @@
 
   {# ═══ HEADER ═══ #}
   <div data-ws-section="hero">
-  <div class="card mb-5">
+  <div class="card mb-5" style="border-top: 2px solid {% if detail.status == 'completed' %}var(--color-pill-emerald-text){% elif detail.status == 'failed' %}var(--color-pill-red-text){% elif detail.status == 'running' %}var(--color-pill-blue-text){% else %}var(--color-pill-amber-text){% endif %}">
     <div class="px-5 py-4">
       <div class="flex items-center justify-between gap-3 mb-3">
         <div class="flex items-center gap-2 flex-wrap">
@@ -79,6 +79,9 @@
           <div class="wf-task-kind">{% if event.link %}workflow{% else %}system{% endif %}</div>
           <div class="wf-task-name">
             <span class="wf-task-label">{{ event.label | replace("Workflow", "") | trim }}</span>
+            {% if event.detail and event.status != 'failed' %}
+            <span class="wf-task-desc">{{ event.detail }}</span>
+            {% endif %}
           </div>
           <div class="wf-task-meta">
             {% if event.duration %}<span class="timeline-duration">{{ event.duration }}</span>{% endif %}
