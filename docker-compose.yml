@@ -54,7 +54,7 @@ services:
 
   worker:
     build: .
-    command: watchfiles --filter python "taskorch worker" /app
+    command: watchfiles --filter python "python run.py worker" /app
     depends_on:
       temporal:
         condition: service_healthy
@@ -68,7 +68,7 @@ services:
 
   human-task-ui:
     build: .
-    command: sh -c "taskorch migrate && taskorch ui --reload"
+    command: sh -c "python run.py migrate && python run.py ui --reload"
     depends_on:
       temporal:
         condition: service_healthy
