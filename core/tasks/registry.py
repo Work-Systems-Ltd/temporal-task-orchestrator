@@ -26,14 +26,12 @@ def register_task(cls: Type[Task]) -> Type[Task]:
     if issubclass(cls, SystemTask):
         # Auto-generate a Temporal activity from the run method
         instance = cls()
-        _run = instance.run
 
-        async def _make_activity(*args):
-            return await _run(*args)
+        @activity.defn(name=cls.task_type)
+        async def _activity(*args) -> object:
+            return await instance.run(*args)
 
-        _make_activity.__name__ = cls.task_type
-        _make_activity.__qualname__ = f"{cls.__name__}.run"
-        cls._activity = activity.defn(name=cls.task_type)(_make_activity)
+        cls._activity = _activity
     else:
         instance = cls()
 

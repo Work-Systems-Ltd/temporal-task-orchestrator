@@ -30,7 +30,6 @@
 document.addEventListener("click", (e) => {
   const row = (e.target as HTMLElement).closest("tr[data-href]") as HTMLElement | null;
   if (!row) return;
-  // Don't navigate if clicking on an interactive element inside the row
   const target = e.target as HTMLElement;
   if (target.closest("a, button, input, select, textarea, [onclick]")) return;
   window.location.href = row.dataset.href!;
@@ -42,22 +41,12 @@ document.addEventListener("keydown", (e) => {
   if (row) window.location.href = row.dataset.href!;
 });
 
-// ── Expand/collapse toggle ──
-// Used by workflow list for parent/child rows.
-function toggleExpand(parentId: string) {
-  const children = document.querySelectorAll(`[data-child-of="${parentId}"]`);
-  const toggle = document.querySelector(`[data-parent-id="${parentId}"] .expand-toggle`);
-  children.forEach((el) => el.classList.toggle("hidden"));
-  if (toggle) toggle.classList.toggle("expand-toggle-open");
-}
-
-// Expose globally for any remaining callers
-(window as Record<string, unknown>).toggleExpand = toggleExpand;
-
-// Delegated click handler for [data-expand] elements
+// ── Expand/collapse delegation ──
+// Delegates click on [data-expand] to window.toggleExpand (defined by task-list.ts).
 document.addEventListener("click", (e) => {
   const el = (e.target as HTMLElement).closest("[data-expand]") as HTMLElement | null;
   if (!el) return;
   e.stopPropagation();
-  toggleExpand(el.dataset.expand!);
+  const fn = (window as Record<string, unknown>).toggleExpand as ((id: string) => void) | undefined;
+  if (fn) fn(el.dataset.expand!);
 });
