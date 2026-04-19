@@ -9,8 +9,8 @@
       <tr>
         <th class="th">Task</th>
         <th class="hidden th sm:table-cell">Type</th>
-        <th class="hidden th md:table-cell">Assigned</th>
-        <th class="hidden th lg:table-cell">Workflow</th>
+        <th class="hidden th sm:table-cell">Assigned</th>
+        <th class="hidden th md:table-cell">Workflow</th>
         <th class="th">
           <span class="hidden sm:inline">Waiting since</span>
           <span class="sm:hidden">Since</span>
@@ -45,27 +45,21 @@
         <td class="hidden td sm:table-cell">
           <span class="tag">{{ item.task_type }}</span>
         </td>
-        <td class="hidden td md:table-cell">
-          <div class="flex flex-col gap-1">
+        <td class="hidden td sm:table-cell">
+          <div class="flex items-center gap-1.5 flex-wrap">
             {% if item.assigned_user %}
-            <span class="pill pill-blue" title="User: {{ item.assigned_user }}">
-              <svg class="mr-0.5 h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
-              {{ item.assigned_user }}
-            </span>
+            <span class="pill pill-blue" title="User">{{ item.assigned_user }}</span>
             {% endif %}
             {% if item.assigned_group %}
-            <span class="pill pill-emerald" title="Group: {{ item.assigned_group }}">
-              <svg class="mr-0.5 h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
-              {{ item.assigned_group }}
-            </span>
+            <span class="pill pill-emerald" title="Group">{{ item.assigned_group }}</span>
             {% endif %}
             {% if not item.assigned_user and not item.assigned_group %}
             <span class="text-xs text-ghost">—</span>
             {% endif %}
           </div>
         </td>
-        <td class="hidden td lg:table-cell">
-          <span class="td-mono" title="{{ item.workflow_id }}">{{ item.workflow_id }}</span>
+        <td class="hidden td md:table-cell">
+          <a href="/workflow/{{ item.workflow_id }}" class="td-mono timeline-link" title="{{ item.workflow_id }}" onclick="event.stopPropagation()">{{ item.workflow_id }}</a>
         </td>
         <td class="td">
           <span class="td-time">{{ item.started }}</span>
@@ -95,27 +89,21 @@
             {{ child.task_type }}
           </span>
         </td>
-        <td class="hidden td md:table-cell">
-          <div class="flex flex-col gap-1">
+        <td class="hidden td sm:table-cell">
+          <div class="flex items-center gap-1.5 flex-wrap">
             {% if child.assigned_user %}
-            <span class="pill pill-blue">
-              <svg class="mr-0.5 h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
-              {{ child.assigned_user }}
-            </span>
+            <span class="pill pill-blue" title="User">{{ child.assigned_user }}</span>
             {% endif %}
             {% if child.assigned_group %}
-            <span class="pill pill-emerald">
-              <svg class="mr-0.5 h-2.5 w-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" /></svg>
-              {{ child.assigned_group }}
-            </span>
+            <span class="pill pill-emerald" title="Group">{{ child.assigned_group }}</span>
             {% endif %}
             {% if not child.assigned_user and not child.assigned_group %}
             <span class="text-xs text-ghost">—</span>
             {% endif %}
           </div>
         </td>
-        <td class="hidden td lg:table-cell">
-          <span class="td-mono" title="{{ child.workflow_id }}">{{ child.workflow_id }}</span>
+        <td class="hidden td md:table-cell">
+          <a href="/workflow/{{ child.workflow_id }}" class="td-mono timeline-link" title="{{ child.workflow_id }}" onclick="event.stopPropagation()">{{ child.workflow_id }}</a>
         </td>
         <td class="td">
           <span class="td-time">{{ child.started }}</span>
