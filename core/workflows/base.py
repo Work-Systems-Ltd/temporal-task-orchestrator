@@ -28,14 +28,20 @@ class WorkSysFlow(ABC):
 
     @workflow.signal
     async def complete_human_task(self, data: str) -> None:
-        self._human_task_data = json.loads(data)
+        try:
+            self._human_task_data = json.loads(data)
+        except (json.JSONDecodeError, TypeError) as exc:
+            raise ValueError(f"Invalid task completion data: {exc}") from exc
         self._human_task_complete = True
 
     @workflow.signal
     async def reassign_task(self, data: str) -> None:
         """Update the assignment on the current pending task."""
         if self._pending_task:
-            payload = json.loads(data)
+            try:
+                payload = json.loads(data)
+            except (json.JSONDecodeError, TypeError):
+                return  # ignore malformed reassign signals
             self._pending_task = self._pending_task.model_copy(update=payload)
 
     @workflow.query
@@ -50,7 +56,8 @@ class WorkSysFlow(ABC):
         await workflow.wait_condition(lambda: self._human_task_complete)
         self._pending_task = None
         self._human_task_complete = False
-        assert self._human_task_data is not None
+        if self._human_task_data is None:
+            raise RuntimeError("Human task signal received but no data was set")
         data = self._human_task_data
         self._human_task_data = None
         return data
