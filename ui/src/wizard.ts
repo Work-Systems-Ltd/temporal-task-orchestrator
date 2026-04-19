@@ -31,7 +31,8 @@ function wizardData() {
 
     init() {
       const el = (this as any).$el as HTMLElement;
-      const raw = el.dataset.workflows;
+      const script = el.querySelector("script[data-workflows]");
+      const raw = script?.textContent;
       this.workflows = raw ? JSON.parse(raw) : [];
     },
 

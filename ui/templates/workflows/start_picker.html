@@ -3,8 +3,8 @@
 
 {% block content %}
 <div class="mx-auto max-w-[520px] animate-slide-up stagger-in"
-     x-data="wizardData()" x-init="init()"
-     data-workflows="{{ workflows | tojson }}">
+     x-data="wizardData()" x-init="init()">
+  <script type="application/json" data-workflows>{{ workflows | tojson }}</script>
 
   <a href="{{ request.url_for('tasks_page') }}" class="back-link">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
