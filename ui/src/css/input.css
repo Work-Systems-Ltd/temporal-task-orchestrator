@@ -249,44 +249,39 @@
     letter-spacing: 0.02em;
   }
   .pill-amber {
-    background: #fbbf24;
-    color: #78350f;
+    background: #f59e0b;
+    color: #fff;
   }
   .pill-blue {
-    background: #60a5fa;
-    color: #1e3a5f;
+    background: #3b82f6;
+    color: #fff;
   }
   .pill-emerald {
-    background: #34d399;
-    color: #064e3b;
+    background: #10b981;
+    color: #fff;
   }
   .pill-red {
-    background: #f87171;
-    color: #7f1d1d;
+    background: #ef4444;
+    color: #fff;
   }
   .pill-zinc {
-    background: #a1a1aa;
-    color: #27272a;
+    background: #71717a;
+    color: #fff;
   }
   .dark .pill-amber {
-    background: #b45309;
-    color: #fef3c7;
+    background: #d97706;
   }
   .dark .pill-blue {
     background: #2563eb;
-    color: #dbeafe;
   }
   .dark .pill-emerald {
     background: #059669;
-    color: #d1fae5;
   }
   .dark .pill-red {
     background: #dc2626;
-    color: #fee2e2;
   }
   .dark .pill-zinc {
     background: #52525b;
-    color: #d4d4d8;
   }
   .tag {
     @apply inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold;
