@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import Type
 
-from temporalio import activity
-
 from core.tasks.base import HumanTask, SystemTask, Task
 
 _TASK_REGISTRY: dict[str, Task] = {}
@@ -22,16 +20,6 @@ def register_task(cls: Type[Task]) -> Type[Task]:
 
     if issubclass(cls, HumanTask) and not hasattr(cls, "Form"):
         raise ValueError(f"{cls.__name__} must define an inner 'Form' class")
-
-    if issubclass(cls, SystemTask):
-        # Register run() as a Temporal activity.
-        # Get the raw function from the staticmethod descriptor.
-        run_fn = cls.__dict__["run"]
-        if isinstance(run_fn, staticmethod):
-            run_fn = run_fn.__func__
-        cls._activity = activity.defn(name=cls.task_type)(run_fn)
-        # Verify it works
-        assert callable(cls._activity), f"{cls.__name__}._activity is not callable"
 
     instance = cls()
     _TASK_REGISTRY[cls.task_type] = instance
@@ -60,9 +48,9 @@ def get_all_task_types() -> list[str]:
 def get_all_activities() -> list:
     """Return all activity functions from registered SystemTasks."""
     return [
-        task._activity
+        task._activity_fn
         for task in _TASK_REGISTRY.values()
-        if isinstance(task, SystemTask) and hasattr(task, "_activity")
+        if isinstance(task, SystemTask) and hasattr(task, "_activity_fn")
     ]
 
 
