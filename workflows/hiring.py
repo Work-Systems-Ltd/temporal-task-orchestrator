@@ -2,7 +2,6 @@ import asyncio
 
 from temporalio import workflow
 
-from core.models import TaskMeta
 from core.workflows import WorkSysFlow
 from tasks.approval_input import ApprovalInputTask
 from tasks.hiring_input import HiringInputTask
@@ -31,13 +30,12 @@ class HiringWorkflow(WorkSysFlow):
             return f"Hiring rejected: {approval_result}"
 
         # Step 2: Collect onboarding details via human task
-        onboarding_meta = TaskMeta(
-            task_type="onboarding_input",
+        onboarding_data = await self.wait_for_task(
+            OnboardingInputTask,
             title="Provide onboarding details",
             description=f"The hire for {input.employee_name} has been approved. Please provide onboarding details.",
             assigned_group="admin",
         )
-        onboarding_data = await self.wait_for_human_task(onboarding_meta)
         onboarding_input = OnboardingInputTask.Model(**onboarding_data)
 
         # Step 3: Run onboarding workflows concurrently

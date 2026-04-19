@@ -1,28 +1,24 @@
 /**
  * Inline task submission + WebSocket-driven live updates for the workflow detail page.
- *
- * The WebSocket at /ws/workflow/{id} sends {"type": "refresh"} when the workflow
- * state changes. The client fetches the page and does targeted section replacement
- * using data-ws-section markers — only sections whose content actually changed get
- * swapped, preserving Alpine state and avoiding visual jumpiness.
  */
+
+import { fetchHtml } from "./api/client";
+import { submitTask } from "./api/tasks";
+import { createSocket, type SocketHandle } from "./api/ws";
 
 declare const Alpine: any;
 
-let _ws: WebSocket | null = null;
+let _socket: SocketHandle | null = null;
 let _refreshing = false;
 
 /**
  * Fetch the current page and update only the sections that changed.
- * Sections are identified by data-ws-section attributes.
- * Sections containing the active element (e.g. a form being filled) are skipped.
  */
 function refreshContent(): void {
   if (_refreshing) return;
   _refreshing = true;
 
-  fetch(window.location.href, { headers: { Accept: "text/html" } })
-    .then((r) => r.text())
+  fetchHtml(window.location.href)
     .then((html) => {
       const doc = new DOMParser().parseFromString(html, "text/html");
 
@@ -31,23 +27,18 @@ function refreshContent(): void {
         if (!id) return;
 
         const current = document.querySelector(
-          '[data-ws-section="' + id + '"]'
+          '[data-ws-section="' + id + '"]',
         );
         if (!current) return;
 
-        // Skip sections where the user is actively interacting
         if (current.contains(document.activeElement)) return;
-
-        // Skip if content hasn't changed
         if (current.innerHTML === newSection.innerHTML) return;
 
-        // Swap the section content
         Alpine.destroyTree(current);
         current.innerHTML = newSection.innerHTML;
         Alpine.initTree(current);
       });
 
-      // Re-initialize JSON viewers on any new data-json-viewer elements
       if (typeof (window as any).mountJsonViewers === "function") {
         (window as any).mountJsonViewers();
       }
@@ -60,39 +51,18 @@ function refreshContent(): void {
 
 /**
  * Connect to the workflow detail WebSocket.
- * Called from the template with the workflow ID.
  */
 function connectWorkflowWs(workflowId: string): void {
-  const proto = location.protocol === "https:" ? "wss:" : "ws:";
-  const url = proto + "//" + location.host + "/ws/workflow/" + workflowId;
+  _socket = createSocket(`/ws/workflow/${workflowId}`, {
+    onMessage(data: any) {
+      if (data.type === "refresh") {
+        refreshContent();
+      }
+    },
+  });
 
-  function connect(): void {
-    _ws = new WebSocket(url);
-
-    _ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === "refresh") {
-          refreshContent();
-        }
-      } catch {}
-    };
-
-    _ws.onclose = () => {
-      // Reconnect after a delay
-      setTimeout(connect, 3000);
-    };
-
-    _ws.onerror = () => {
-      _ws?.close();
-    };
-  }
-
-  connect();
-
-  // Refresh when the tab becomes visible again
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && _ws?.readyState === WebSocket.OPEN) {
+    if (!document.hidden && _socket?.isConnected()) {
       refreshContent();
     }
   });
@@ -113,29 +83,24 @@ function submitInlineTask(event: Event, workflowId: string): void {
     .forEach((el) => el.classList.remove("input-field-error"));
 
   const formData = new FormData(form);
+  const data: Record<string, string> = {};
+  formData.forEach((v, k) => {
+    data[k] = v as string;
+  });
 
-  fetch("/task/" + workflowId + "/submit", {
-    method: "POST",
-    body: new URLSearchParams(formData as any),
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  })
-    .then((r) => r.json())
-    .then((data: { ok: boolean; gone?: boolean; errors?: Record<string, string[]> }) => {
+  submitTask(workflowId, data)
+    .then((result) => {
       scope.submitting = false;
 
-      if (data.ok || data.gone) {
-        // Tell the WS server a task was submitted so it checks sooner
-        if (_ws?.readyState === WebSocket.OPEN) {
-          _ws.send(JSON.stringify({ type: "submitted" }));
-        }
-        // Also do an immediate refresh as a fallback
+      if (result.ok || result.gone) {
+        _socket?.send({ type: "submitted" });
         setTimeout(refreshContent, 600);
         return;
       }
 
-      if (data.errors) {
-        Object.keys(data.errors).forEach((fieldName) => {
-          const msgs = data.errors![fieldName];
+      if (result.errors) {
+        Object.keys(result.errors).forEach((fieldName) => {
+          const msgs = result.errors![fieldName];
           const input = form.querySelector('[name="' + fieldName + '"]');
           if (!input) return;
 
@@ -166,7 +131,6 @@ function submitInlineTask(event: Event, workflowId: string): void {
 (window as any).submitInlineTask = submitInlineTask;
 (window as any).connectWorkflowWs = connectWorkflowWs;
 
-// Auto-initialize from data attribute on any element
 document.addEventListener("DOMContentLoaded", () => {
   const el = document.querySelector("[data-workflow-ws]") as HTMLElement | null;
   if (el?.dataset.workflowWs) {

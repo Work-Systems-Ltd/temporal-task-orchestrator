@@ -18,7 +18,7 @@ class WorkflowDef:
     input_label: str
     input_placeholder: str
     input_task: Type[HumanTask] | None = None
-    task_types: list[str] = field(default_factory=list)
+    task_types: list[Type[HumanTask]] = field(default_factory=list)
     required_users: list[str] = field(default_factory=list)
     required_groups: list[str] = field(default_factory=list)
 
@@ -34,7 +34,7 @@ def register_workflow(
     input_label: str,
     input_placeholder: str,
     input_task: Type[HumanTask] | None = None,
-    task_types: list[str] | None = None,
+    task_types: list[Type[HumanTask]] | None = None,
     required_users: list[str] | None = None,
     required_groups: list[str] | None = None,
 ) -> None:
@@ -129,9 +129,10 @@ def validate_registrations() -> None:
                 f"{wf.input_task.__name__!r} (task_type={wf.input_task.task_type!r}) "
                 f"which is not registered"
             )
-        for tt in wf.task_types:
-            if tt not in known_task_types:
+        for task_cls in wf.task_types:
+            if task_cls.task_type not in known_task_types:
                 raise ValueError(
-                    f"Workflow {wf.key!r} references task_type "
-                    f"{tt!r} which is not registered"
+                    f"Workflow {wf.key!r} references task "
+                    f"{task_cls.__name__!r} (task_type={task_cls.task_type!r}) "
+                    f"which is not registered"
                 )

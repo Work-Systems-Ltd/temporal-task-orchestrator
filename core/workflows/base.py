@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import json
 from datetime import timedelta
-from typing import Any
+from typing import Any, Type
 
 from temporalio import workflow
 
 from core.models import TaskMeta
+from core.tasks.base import HumanTask
 
 
 class WorkSysFlow:
@@ -40,11 +41,8 @@ class WorkSysFlow:
             return self._pending_task.model_dump_json()
         return ""
 
-    async def wait_for_human_task(self, task_meta: TaskMeta) -> dict[str, Any]:
-        """Set the pending task and block until the human signal arrives.
-
-        Returns the parsed human task data dict.
-        """
+    async def _wait_for_signal(self, task_meta: TaskMeta) -> dict[str, Any]:
+        """Internal: set pending task and block until the human signal arrives."""
         self._pending_task = task_meta
         await workflow.wait_condition(lambda: self._human_task_complete)
         self._pending_task = None
@@ -54,11 +52,41 @@ class WorkSysFlow:
         self._human_task_data = None
         return data
 
+    async def wait_for_task(
+        self,
+        task: Type[HumanTask],
+        *,
+        title: str,
+        description: str,
+        assigned_user: str = "",
+        assigned_group: str = "",
+    ) -> dict[str, Any]:
+        """Block until a human completes the given task type.
+
+        Args:
+            task: The HumanTask class (used for type-safe task_type resolution).
+            title: Human-readable task title shown in the UI.
+            description: Task description shown in the UI.
+            assigned_user: Optional user slug to assign the task to.
+            assigned_group: Optional group slug to assign the task to.
+
+        Returns:
+            The parsed human task data dict.
+        """
+        task_meta = TaskMeta(
+            task_type=task.task_type,
+            title=title,
+            description=description,
+            assigned_user=assigned_user,
+            assigned_group=assigned_group,
+        )
+        return await self._wait_for_signal(task_meta)
+
     async def create_human_task(
         self,
         activity,
         *args,
-        task_type: str,
+        task: Type[HumanTask],
         title: str,
         description: str,
         assigned_user: str = "",
@@ -67,7 +95,7 @@ class WorkSysFlow:
     ) -> dict[str, Any]:
         """Execute an activity then block until a human task is completed.
 
-        Combines ``workflow.execute_activity`` + ``wait_for_human_task``
+        Combines ``workflow.execute_activity`` + ``wait_for_task``
         into a single call.
         """
         await workflow.execute_activity(
@@ -75,14 +103,13 @@ class WorkSysFlow:
             args=list(args),
             start_to_close_timeout=start_to_close_timeout,
         )
-        task_meta = TaskMeta(
-            task_type=task_type,
+        return await self.wait_for_task(
+            task,
             title=title,
             description=description,
             assigned_user=assigned_user,
             assigned_group=assigned_group,
         )
-        return await self.wait_for_human_task(task_meta)
 
     async def create_system_task(
         self,

@@ -7,6 +7,8 @@ from core.tasks import HumanTask, TaskForm, register_task
 @register_task
 class TestingInputTask(HumanTask):
     task_type = "testing_input"
+    color = "zinc"
+    label = "Test"
 
     class Form(TaskForm):
         message = TextAreaField(

@@ -1,3 +1,5 @@
+import { createSocket, type SocketHandle } from "./api/ws";
+
 interface ViewParams {
   type: "view";
   seq: number;
@@ -14,23 +16,6 @@ interface UpdateMessage {
   hash: string;
   tab_bar: string;
   tab_content: string;
-}
-
-interface TaskListData {
-  loading: boolean;
-  connected: boolean;
-  ws: WebSocket | null;
-  seq: number;
-  reconnectTimer: number | null;
-  reconnectDelay: number;
-  connect(): void;
-  disconnect(): void;
-  sendView(): void;
-  applyUpdate(msg: UpdateMessage): void;
-  refresh(): void;
-  navigateTab(e: Event): void;
-  _visibilityHandler: (() => void) | null;
-  _listenVisibility(): void;
 }
 
 // ── Expand/collapse state for parent/child rows ──
@@ -54,14 +39,28 @@ function applyExpandState(): void {
     const parentId = row.getAttribute("data-parent-id")!;
     const toggle = row.querySelector(".expand-toggle");
     if (toggle) {
-      toggle.classList.toggle("expand-toggle-open", expandedParents.has(parentId));
+      toggle.classList.toggle(
+        "expand-toggle-open",
+        expandedParents.has(parentId),
+      );
     }
   });
 }
 
 // ── Column picker state (persisted in localStorage) ──
 const COL_STORAGE_KEY = "wf-visible-cols";
-const ALL_COLUMNS = ["id", "type", "started", "stopped", "duration", "status", "queue", "run_id", "events", "parent"];
+const ALL_COLUMNS = [
+  "id",
+  "type",
+  "started",
+  "stopped",
+  "duration",
+  "status",
+  "queue",
+  "run_id",
+  "events",
+  "parent",
+];
 const DEFAULT_COLUMNS = ["id", "type", "started", "duration", "status"];
 
 function getVisibleColumns(): string[] {
@@ -71,7 +70,9 @@ function getVisibleColumns(): string[] {
       const parsed = JSON.parse(raw) as string[];
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return [...DEFAULT_COLUMNS];
 }
 
@@ -86,7 +87,6 @@ function toggleColumn(col: string): void {
   if (idx >= 0 && cols.length > 1) {
     cols.splice(idx, 1);
   } else if (idx < 0) {
-    // Insert in default order
     const defaultIdx = ALL_COLUMNS.indexOf(col);
     let insertAt = cols.length;
     for (let i = 0; i < cols.length; i++) {
@@ -101,7 +101,6 @@ function toggleColumn(col: string): void {
 }
 
 function applyColumnState(): void {
-  // Remove the preload style if present (SSR anti-flash)
   const preload = document.getElementById("col-preload");
   if (preload) preload.remove();
 
@@ -110,10 +109,11 @@ function applyColumnState(): void {
     const col = el.getAttribute("data-col")!;
     el.style.display = visible.has(col) ? "" : "none";
   });
-  // Update checkbox states in the picker dropdown
-  document.querySelectorAll<HTMLInputElement>("[data-col-toggle]").forEach((cb) => {
-    cb.checked = visible.has(cb.getAttribute("data-col-toggle")!);
-  });
+  document
+    .querySelectorAll<HTMLInputElement>("[data-col-toggle]")
+    .forEach((cb) => {
+      cb.checked = visible.has(cb.getAttribute("data-col-toggle")!);
+    });
 }
 
 (window as Record<string, unknown>).toggleColumn = toggleColumn;
@@ -122,7 +122,9 @@ function applyColumnState(): void {
 
 // Delegated click handler for [data-toggle-col] labels
 document.addEventListener("click", (e) => {
-  const label = (e.target as HTMLElement).closest("[data-toggle-col]") as HTMLElement | null;
+  const label = (e.target as HTMLElement).closest(
+    "[data-toggle-col]",
+  ) as HTMLElement | null;
   if (!label) return;
   e.preventDefault();
   toggleColumn(label.dataset.toggleCol!);
@@ -135,112 +137,75 @@ function getViewParams(seq: number): ViewParams {
     seq,
     tab: params.get("tab") || "pending",
     page: Math.max(1, parseInt(params.get("page") || "1", 10)),
-    per_page: params.has("per_page") ? Math.max(10, Math.min(100, parseInt(params.get("per_page")!, 10))) : null,
+    per_page: params.has("per_page")
+      ? Math.max(10, Math.min(100, parseInt(params.get("per_page")!, 10)))
+      : null,
     wf_type: params.get("type") || null,
     search: params.get("q") || null,
   };
 }
 
-function taskList(): TaskListData {
+function taskList() {
+  let socket: SocketHandle | null = null;
+  let seq = 0;
+  let lastAppliedHash = "";
+  let loadingTimeout: number | null = null;
+
   return {
     loading: false,
     connected: false,
-    ws: null,
-    seq: 0,
-    reconnectTimer: null,
-    reconnectDelay: 1000,
 
     connect(): void {
-      if (this.ws) return;
+      if (socket) return;
 
-      const proto = location.protocol === "https:" ? "wss:" : "ws:";
-      const url = `${proto}//${location.host}/ws/tasks`;
-      const ws = new WebSocket(url);
-
-      ws.onopen = () => {
-        this.connected = true;
-        this.reconnectDelay = 1000;
-        this.sendView();
-        this._listenVisibility();
-      };
-
-      ws.onmessage = (event: MessageEvent) => {
-        try {
-          const msg: UpdateMessage = JSON.parse(event.data);
-          if (msg.type === "update") {
-            this.applyUpdate(msg);
+      socket = createSocket("/ws/tasks", {
+        onMessage: (data: any) => {
+          if (data.type === "update") {
+            this.applyUpdate(data as UpdateMessage);
           }
-        } catch {
-          // ignore malformed messages
-        }
-      };
-
-      ws.onclose = (ev: CloseEvent) => {
-        this.connected = false;
-        this.ws = null;
-        // Server rejected with 4401 — session expired, redirect to login
-        if (ev.code === 4401) {
-          window.location.href = "/login";
-          return;
-        }
-        if (!this.reconnectTimer) {
-          this.reconnectTimer = window.setTimeout(() => {
-            this.reconnectTimer = null;
-            this.connect();
-          }, this.reconnectDelay);
-          this.reconnectDelay = Math.min(this.reconnectDelay * 2, 30000);
-        }
-      };
-
-      ws.onerror = () => {
-        ws.close();
-      };
-
-      this.ws = ws;
+        },
+        onConnect: () => {
+          this.connected = true;
+          this.sendView();
+          this._listenVisibility();
+        },
+        onDisconnect: () => {
+          this.connected = false;
+        },
+      });
     },
 
     disconnect(): void {
-      if (this.reconnectTimer) {
-        clearTimeout(this.reconnectTimer);
-        this.reconnectTimer = null;
-      }
       if (this._visibilityHandler) {
-        document.removeEventListener("visibilitychange", this._visibilityHandler);
+        document.removeEventListener(
+          "visibilitychange",
+          this._visibilityHandler,
+        );
         this._visibilityHandler = null;
       }
-      if (this.ws) {
-        this.ws.close();
-        this.ws = null;
-      }
+      socket?.close();
+      socket = null;
     },
 
     sendView(): void {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.seq++;
-        this.ws.send(JSON.stringify(getViewParams(this.seq)));
-      }
+      seq++;
+      socket?.send(getViewParams(seq));
     },
 
-    _lastAppliedHash: "",
-
     applyUpdate(msg: UpdateMessage): void {
-      // Drop stale updates from before the latest navigation
-      if (msg.seq < this.seq) return;
+      if (msg.seq < seq) return;
 
-      // Compare hash: if the data hasn't changed since SSR or last update, skip DOM replacement.
-      // This prevents the flash when the first WS push has identical data to SSR.
-      if (!this._lastAppliedHash) {
-        // Read the SSR hash from the DOM on first update
+      if (!lastAppliedHash) {
         const root = document.querySelector("[data-initial-hash]");
-        this._lastAppliedHash = root?.getAttribute("data-initial-hash") || "";
+        lastAppliedHash = root?.getAttribute("data-initial-hash") || "";
       }
 
-      if (msg.hash && msg.hash === this._lastAppliedHash) {
+      if (msg.hash && msg.hash === lastAppliedHash) {
         this.loading = false;
         return;
       }
 
-      this._lastAppliedHash = msg.hash || "";
+      lastAppliedHash = msg.hash || "";
 
       const tabBar = document.querySelector("[data-tab-bar]");
       if (tabBar && msg.tab_bar) {
@@ -255,9 +220,9 @@ function taskList(): TaskListData {
       applyExpandState();
       applyColumnState();
       this.loading = false;
-      if ((this as any)._loadingTimeout) {
-        clearTimeout((this as any)._loadingTimeout);
-        (this as any)._loadingTimeout = null;
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        loadingTimeout = null;
       }
     },
 
@@ -266,8 +231,8 @@ function taskList(): TaskListData {
     _listenVisibility(): void {
       if (this._visibilityHandler) return;
       this._visibilityHandler = () => {
-        if (!document.hidden && this.ws && this.ws.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify({ type: "visible" }));
+        if (!document.hidden) {
+          socket?.send({ type: "visible" });
         }
       };
       document.addEventListener("visibilitychange", this._visibilityHandler);
@@ -283,41 +248,40 @@ function taskList(): TaskListData {
       const link = e.currentTarget as HTMLAnchorElement;
       history.pushState(null, "", link.href);
 
-      // Optimistic: immediately highlight the clicked tab
       const clickedTab = link.getAttribute("data-tab");
       if (clickedTab) {
-        document.querySelectorAll("[data-tab-bar] a[data-tab]").forEach((el) => {
-          const isActive = el.getAttribute("data-tab") === clickedTab;
-          el.classList.toggle("tab-item-active", isActive);
-          const badge = el.querySelector(".count-badge");
-          if (badge) {
-            badge.classList.toggle("count-badge-active", isActive);
-            badge.classList.toggle("count-badge-muted", !isActive);
-          }
-        });
+        document
+          .querySelectorAll("[data-tab-bar] a[data-tab]")
+          .forEach((el) => {
+            const isActive = el.getAttribute("data-tab") === clickedTab;
+            el.classList.toggle("tab-item-active", isActive);
+            const badge = el.querySelector(".count-badge");
+            if (badge) {
+              badge.classList.toggle("count-badge-active", isActive);
+              badge.classList.toggle("count-badge-muted", !isActive);
+            }
+          });
       }
 
-      // Show equalizer loader while waiting for server
       const tabContent = document.querySelector("[data-tab-content]");
       if (tabContent) {
         tabContent.innerHTML =
           '<div class="skeleton-loader">' +
-            '<div class="flex flex-col items-center">' +
-              '<div class="skeleton-bars">' +
-                "<span></span><span></span><span></span><span></span><span></span>" +
-              "</div>" +
-              '<div class="skeleton-label">Loading</div>' +
-            "</div>" +
+          '<div class="flex flex-col items-center">' +
+          '<div class="skeleton-bars">' +
+          "<span></span><span></span><span></span><span></span><span></span>" +
+          "</div>" +
+          '<div class="skeleton-label">Loading</div>' +
+          "</div>" +
           "</div>";
       }
 
-      this._lastAppliedHash = "";  // force next update to apply
+      lastAppliedHash = "";
       this.loading = true;
       this.sendView();
 
-      // Safety: if no WS response in 5s, fall back to full page navigation
-      if ((this as any)._loadingTimeout) clearTimeout((this as any)._loadingTimeout);
-      (this as any)._loadingTimeout = setTimeout(() => {
+      if (loadingTimeout) clearTimeout(loadingTimeout);
+      loadingTimeout = window.setTimeout(() => {
         if (this.loading) {
           window.location.href = link.href;
         }
@@ -327,9 +291,11 @@ function taskList(): TaskListData {
 }
 
 document.addEventListener("keydown", (e: KeyboardEvent) => {
-  // Escape: blur active input or close dropdowns
   if (e.key === "Escape") {
-    if (document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement) {
+    if (
+      document.activeElement instanceof HTMLInputElement ||
+      document.activeElement instanceof HTMLTextAreaElement
+    ) {
       (document.activeElement as HTMLElement).blur();
     }
     return;
@@ -342,16 +308,11 @@ document.addEventListener("keydown", (e: KeyboardEvent) => {
   )
     return;
 
-  if (e.key === "n") {
-    window.location.href = "/start";
-  }
-
-  if (e.key === "r") {
-    window.location.reload();
-  }
-
+  if (e.key === "n") window.location.href = "/start";
+  if (e.key === "r") window.location.reload();
   if (e.key === "/") {
-    const searchInput = document.querySelector<HTMLInputElement>(".search-box-input");
+    const searchInput =
+      document.querySelector<HTMLInputElement>(".search-box-input");
     if (searchInput) {
       e.preventDefault();
       searchInput.focus();
@@ -363,7 +324,6 @@ window.addEventListener("popstate", () => {
   window.location.reload();
 });
 
-// Apply column visibility on initial load
 applyColumnState();
 
 (window as Record<string, unknown>).taskList = taskList;

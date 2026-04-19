@@ -7,6 +7,8 @@ from core.tasks import HumanTask, TaskForm, register_task
 @register_task
 class OnboardingInputTask(HumanTask):
     task_type = "onboarding_input"
+    color = "blue"
+    label = "Onboarding Details"
 
     class Form(TaskForm):
         employee_name = StringField(

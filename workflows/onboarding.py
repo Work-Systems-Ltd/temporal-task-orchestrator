@@ -1,6 +1,7 @@
 from temporalio import activity, workflow
 
 from core.workflows import WorkSysFlow
+from tasks.onboarding import OnboardingTask
 from tasks.onboarding_input import OnboardingInputTask
 
 
@@ -30,7 +31,7 @@ class OnboardingWorkflow(WorkSysFlow):
         human_data = await self.create_human_task(
             create_onboarding_ticket,
             input.employee_name,
-            task_type="onboarding",
+            task=OnboardingTask,
             title=f"Onboard: {input.employee_name}",
             description=f"Complete the onboarding checklist for {input.employee_name}.",
             assigned_user="admin",

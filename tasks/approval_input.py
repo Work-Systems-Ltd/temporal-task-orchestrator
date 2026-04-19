@@ -7,6 +7,8 @@ from core.tasks import HumanTask, TaskForm, register_task
 @register_task
 class ApprovalInputTask(HumanTask):
     task_type = "approval_input"
+    color = "amber"
+    label = "Approval Request"
 
     class Form(TaskForm):
         description = TextAreaField(

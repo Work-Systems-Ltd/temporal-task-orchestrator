@@ -7,6 +7,8 @@ from core.tasks import HumanTask, TaskForm, register_task
 @register_task
 class HiringInputTask(HumanTask):
     task_type = "hiring_input"
+    color = "emerald"
+    label = "Hiring Request"
 
     class Form(TaskForm):
         urgency = SelectField(

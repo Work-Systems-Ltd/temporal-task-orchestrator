@@ -37,6 +37,8 @@ class HumanTask(ABC):
     """
 
     task_type: ClassVar[str]
+    color: ClassVar[str] = "zinc"
+    label: ClassVar[str] = ""
 
     @abstractmethod
     class Form(TaskForm):

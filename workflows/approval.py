@@ -3,6 +3,7 @@ from datetime import timedelta
 from temporalio import activity, workflow
 
 from core.workflows import WorkSysFlow
+from tasks.approval import ApprovalTask
 from tasks.approval_input import ApprovalInputTask
 
 
@@ -38,7 +39,7 @@ class ApprovalWorkflow(WorkSysFlow):
         human_data = await self.create_human_task(
             log_request,
             input.description,
-            task_type="approval",
+            task=ApprovalTask,
             title=f"Approve: {input.description}",
             description=f"Please review this {input.urgency}-priority request and approve or reject it.",
             assigned_group="admin",

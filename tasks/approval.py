@@ -7,6 +7,8 @@ from core.tasks import HumanTask, TaskForm, register_task
 @register_task
 class ApprovalTask(HumanTask):
     task_type = "approval"
+    color = "amber"
+    label = "Approval"
 
     class Form(TaskForm):
         decision = SelectField(

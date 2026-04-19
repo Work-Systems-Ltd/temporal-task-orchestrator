@@ -30,3 +30,15 @@ def get_task(task_type: str) -> HumanTask:
 
 def get_all_task_types() -> list[str]:
     return list(_TASK_REGISTRY.keys())
+
+
+def get_task_color(task_type: str) -> str:
+    """Return the pill color for a task type, defaulting to 'zinc'."""
+    task = _TASK_REGISTRY.get(task_type)
+    return task.color if task else "zinc"
+
+
+def get_task_label(task_type: str) -> str:
+    """Return the display label for a task type, defaulting to the task_type string."""
+    task = _TASK_REGISTRY.get(task_type)
+    return task.label if task and task.label else task_type
