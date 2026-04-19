@@ -953,164 +953,52 @@
     @apply flex flex-col items-center;
   }
 
-  /* ─ Nodes (shared) ─ */
+  /* ─ Nodes ─ */
   .wf-graph-node {
-    @apply relative flex flex-col items-center shrink-0 rounded-lg px-5 py-3 text-center;
-    min-width: 120px;
+    @apply relative flex flex-col items-center shrink-0 rounded-lg px-4 py-2.5 text-center;
+    min-width: 100px;
     border: 1px solid var(--color-border);
     background: var(--color-bg-raised);
-    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease;
     text-decoration: none;
   }
   .wf-graph-node:hover {
     border-color: var(--color-border-hover);
     background: var(--color-surface-hover);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
   }
   .wf-graph-node-current {
-    border-color: #2563eb;
+    border-color: var(--color-text-muted);
     background: var(--color-surface-active);
-    box-shadow: 0 0 0 3px color-mix(in srgb, #2563eb 10%, transparent);
-  }
-  .wf-graph-node-current:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px color-mix(in srgb, #2563eb 16%, transparent);
   }
 
-  /* Root node — slightly larger to anchor the hierarchy */
   .wf-graph-node-root {
-    min-width: 144px;
-    padding: 14px 24px;
+    min-width: 120px;
+    padding: 12px 20px;
   }
   .wf-graph-node-root .wf-graph-node-label {
     @apply text-sm;
   }
 
   .wf-graph-node-label {
-    @apply text-xs font-semibold leading-tight;
+    @apply text-xs font-medium leading-tight;
     color: var(--color-text-primary);
   }
   .wf-graph-node-id {
-    @apply mt-1 block max-w-[120px] truncate font-mono text-[9px] leading-tight;
+    @apply mt-0.5 block max-w-[110px] truncate font-mono text-[9px];
     color: var(--color-text-ghost);
-  }
-  .wf-graph-node-root .wf-graph-node-id {
-    max-width: 140px;
   }
   .wf-graph-node:hover .wf-graph-node-id {
     color: var(--color-text-faint);
   }
   .wf-graph-node-pill {
-    @apply mt-2;
+    @apply mt-1.5;
   }
   .wf-graph-node-pill .pill {
-    @apply text-[10px] px-2 py-px;
+    @apply text-[9px] px-1.5 py-px;
   }
   .wf-graph-node-meta {
-    @apply mt-1 block text-[10px] font-mono tabular-nums;
+    @apply mt-0.5 block text-[9px] font-mono tabular-nums;
     color: var(--color-text-ghost);
-  }
-
-  /* Task node variant — dashed border + amber accent */
-  .wf-graph-node-task {
-    border-style: dashed;
-    border-width: 2px;
-    border-color: var(--color-pill-amber-text);
-    background: var(--color-pill-amber-bg);
-  }
-  .wf-graph-node-task:hover {
-    border-color: var(--color-pill-amber-text);
-    background: var(--color-pill-amber-bg);
-    box-shadow: 0 2px 8px rgba(180, 83, 9, 0.15);
-  }
-  .wf-graph-node-task .wf-graph-node-type-icon {
-    color: var(--color-pill-amber-text);
-  }
-  .wf-graph-node-tag {
-    @apply inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider mb-1.5 px-2 py-0.5 rounded-full;
-    color: var(--color-pill-amber-text);
-    background: color-mix(in srgb, var(--color-pill-amber-text) 12%, transparent);
-  }
-
-  /* Completed task node — emerald instead of amber */
-  .wf-graph-node-task-done {
-    border-color: var(--color-pill-emerald-text);
-    background: var(--color-pill-emerald-bg);
-  }
-  .wf-graph-node-task-done:hover {
-    border-color: var(--color-pill-emerald-text);
-    background: var(--color-pill-emerald-bg);
-    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);
-  }
-  .wf-graph-node-task-done .wf-graph-node-type-icon {
-    color: var(--color-pill-emerald-text);
-  }
-  .wf-graph-node-tag-done {
-    color: var(--color-pill-emerald-text);
-    background: color-mix(in srgb, var(--color-pill-emerald-text) 12%, transparent);
-  }
-
-  /* Task branch connector — dashed line */
-  .wf-graph-branch-line-task {
-    border-left: 2px dashed var(--color-pill-amber-text) !important;
-    background: none !important;
-    width: 0 !important;
-  }
-  .wf-graph-branch-task::before {
-    border-top: 2px dashed var(--color-pill-amber-text) !important;
-    background: none !important;
-    height: 0 !important;
-  }
-
-  /* Activity nodes — blue/zinc styling */
-  .wf-graph-node-activity {
-    border-style: dashed;
-    border-color: var(--color-pill-blue-text);
-    background: var(--color-pill-blue-bg);
-    cursor: default;
-  }
-  .wf-graph-node-activity:hover {
-    border-color: var(--color-pill-blue-text);
-    background: var(--color-pill-blue-bg);
-    box-shadow: none;
-  }
-  .wf-graph-node-activity .wf-graph-node-type-icon {
-    color: var(--color-pill-blue-text);
-  }
-  .wf-graph-node-activity-done {
-    border-color: var(--color-pill-zinc-text);
-    background: var(--color-surface-subtle);
-  }
-  .wf-graph-node-activity-done:hover {
-    border-color: var(--color-pill-zinc-text);
-    background: var(--color-surface-subtle);
-  }
-  .wf-graph-node-activity-done .wf-graph-node-type-icon {
-    color: var(--color-pill-zinc-text);
-  }
-  .wf-graph-node-activity-failed {
-    border-color: var(--color-pill-red-text);
-    background: var(--color-pill-red-bg);
-  }
-  .wf-graph-node-activity-failed:hover {
-    border-color: var(--color-pill-red-text);
-    background: var(--color-pill-red-bg);
-  }
-  .wf-graph-node-activity-failed .wf-graph-node-type-icon {
-    color: var(--color-pill-red-text);
-  }
-  .wf-graph-node-tag-activity {
-    color: var(--color-pill-blue-text);
-    background: color-mix(in srgb, var(--color-pill-blue-text) 12%, transparent);
-  }
-
-  /* Type icon above label */
-  .wf-graph-node-type-icon {
-    @apply flex items-center justify-center mb-1.5;
-    color: var(--color-text-faint);
-  }
-  .wf-graph-node-root .wf-graph-node-type-icon {
-    @apply mb-2;
   }
 
   /* ─ Vertical trunk from parent node down to branch rail ─ */

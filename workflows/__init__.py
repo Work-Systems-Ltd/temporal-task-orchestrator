@@ -40,7 +40,7 @@ register_workflow(
     label="Ping",
     description="Simple test — runs one system task and returns the result",
     workflow_cls=PingWorkflow,
-    input_label="Message",
+    input_label="ip address",
     input_placeholder="e.g. hello",
     task_types=[],
 )

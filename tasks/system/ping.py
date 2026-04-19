@@ -3,11 +3,23 @@ from temporalio import activity
 
 from core.tasks import SystemTask, register_task
 
+import subprocess
 
 @activity.defn
-async def ping(message: str) -> str:
-    print(f"[Ping] {message}")
-    return f"pong: {message}"
+async def ping(ip_address: str) -> str:
+    # Use the system's ping command to ping the specified IP address and return the raw result
+    result = subprocess.run(
+        ["ping", "-c", "4", ip_address], 
+        capture_output=True, 
+        text=True, 
+        timeout=30
+    )
+    # Return both stdout and stderr for complete output
+    output = result.stdout
+    if result.stderr:
+        output += f"\nErrors:\n{result.stderr}"
+    return output
+
 
 
 @register_task

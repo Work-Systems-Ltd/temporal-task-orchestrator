@@ -8,6 +8,6 @@ from tasks.system.ping import ping
 class PingWorkflow(WorkSysFlow):
 
     @workflow.run
-    async def run(self, message: str) -> str:
-        result = await self.create_system_task(ping, message)
+    async def run(self, ip_address: str) -> str:
+        result = await self.create_system_task(ping, ip_address)
         return result
