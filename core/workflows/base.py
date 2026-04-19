@@ -10,8 +10,9 @@ from temporalio.common import RetryPolicy
 from core.models import TaskMeta
 from core.tasks.base import HumanTask
 
+from abc import ABC
 
-class WorkSysFlow:
+class WorkSysFlow(ABC):
     """Base class for workflows that pause for human input.
 
     Subclasses must be decorated with @workflow.defn and must define
