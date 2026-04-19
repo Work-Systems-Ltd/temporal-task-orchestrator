@@ -696,6 +696,40 @@
     color: var(--color-text-ghost);
   }
 
+  /* ── Reassign picker ── */
+  .reassign-dropdown {
+    @apply absolute w-48 overflow-hidden rounded-lg shadow-xl;
+    top: 100%;
+    left: 0;
+    margin-top: 4px;
+    border: 1px solid var(--color-border);
+    background: var(--color-dropdown-bg);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  .reassign-search-wrap {
+    @apply px-2 pt-2 pb-1;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .reassign-search {
+    @apply w-full rounded-md px-2.5 py-1.5 text-xs outline-none;
+    background: var(--color-bg);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+  }
+  .reassign-search::placeholder {
+    color: var(--color-text-ghost);
+  }
+  .reassign-search:focus {
+    border-color: var(--color-text-muted);
+  }
+  .reassign-options {
+    @apply py-1;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+
   /* ── Tab bar ── */
   .tab-bar {
     @apply mb-4 flex items-center gap-0.5 border-b border-border;
@@ -1193,8 +1227,12 @@
 
   /* ── Table ── */
   .table-container {
-    @apply overflow-hidden rounded-lg;
+    @apply rounded-lg overflow-visible;
     border: 1px solid var(--color-border);
+  }
+  .table-container > table {
+    border-radius: inherit;
+    overflow: hidden;
   }
   .table-container tbody tr:last-child {
     border-bottom: none;

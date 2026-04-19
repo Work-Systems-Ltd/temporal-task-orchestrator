@@ -530,8 +530,15 @@ class TemporalService:
                     for ctype, cid, cstatus in child_infos
                 ])
 
-        # Leaf nodes (no children) are tasks; nodes with children are orchestrators
-        node.node_type = "workflow" if node.children else "task"
+        # Determine if this node has a pending human task
+        node.node_type = "workflow"
+        if not node.children and node.status == "running":
+            try:
+                meta = await self.get_pending_task(wf_id)
+                if meta:
+                    node.node_type = "task"
+            except Exception:
+                pass
         return node
 
     async def get_workflow_graph(self, workflow_id: str, detail: WorkflowDetail) -> GraphNode | None:

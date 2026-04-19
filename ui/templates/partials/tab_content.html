@@ -1,5 +1,77 @@
 {% from "partials/macros.html" import status_badge %}
 
+{% macro reassign_picker(workflow_id, field, current_value, other_value, color) %}
+{# field is "user" or "group"; other_value is the value of the other field to preserve #}
+<td class="hidden td sm:table-cell" style="position:relative;overflow:visible" onclick="event.stopPropagation()"
+    x-data="{
+      open: false,
+      value: '{{ current_value }}',
+      search: '',
+      options: [],
+      get filtered() {
+        if (!this.search) return this.options;
+        const q = this.search.toLowerCase();
+        return this.options.filter(o => o.label.toLowerCase().includes(q));
+      },
+      load() {
+        if (!this.options.length) {
+          fetch('/api/assignees').then(r => r.json()).then(d => {
+            this.options = d.{{ field }}s;
+          });
+        }
+      },
+      toggle() {
+        this.load();
+        this.open = !this.open;
+        if (this.open) this.$nextTick(() => this.$refs.searchInput.focus());
+      },
+      assign(slug) {
+        const body = {{ '{}' }};
+        body.assigned_{{ field }} = slug;
+        body.{{ 'assigned_group' if field == 'user' else 'assigned_user' }} = '{{ other_value }}';
+        fetch('/tasks/{{ workflow_id }}/reassign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        }).then(() => { this.value = slug; this.open = false; this.search = ''; });
+      }
+    }"
+    @click.away="open = false; search = ''"
+    @reassign-close.window="open = false; search = ''">
+  <button @click="$dispatch('reassign-close'); toggle()"
+          class="pill cursor-pointer transition-opacity hover:opacity-80"
+          :class="value ? 'pill-{{ color }}' : 'pill-zinc'"
+          x-text="value || '—'"></button>
+  <div x-show="open" x-cloak
+       x-transition:enter="transition ease-out duration-100"
+       x-transition:enter-start="opacity-0 scale-95"
+       x-transition:enter-end="opacity-100 scale-100"
+       x-transition:leave="transition ease-in duration-75"
+       x-transition:leave-start="opacity-100 scale-100"
+       x-transition:leave-end="opacity-0 scale-95"
+       class="reassign-dropdown">
+    <div class="reassign-search-wrap">
+      <input x-ref="searchInput"
+             x-model="search"
+             type="text"
+             placeholder="Search…"
+             class="reassign-search"
+             @keydown.escape="open = false; search = ''" />
+    </div>
+    <div class="reassign-options">
+      <button @click="assign('')" class="dropdown-item w-full text-left text-ghost text-xs">Unassign</button>
+      <template x-for="opt in filtered" :key="opt.slug">
+        <button @click="assign(opt.slug)"
+                class="dropdown-item w-full text-left text-xs"
+                :class="opt.slug === value ? 'dropdown-item-active' : ''"
+                x-text="opt.label"></button>
+      </template>
+      <div x-show="filtered.length === 0 && search" class="px-3 py-2 text-xs text-ghost">No matches</div>
+    </div>
+  </div>
+</td>
+{% endmacro %}
+
 {% if items %}
 
 {% if tab == "pending" %}
@@ -43,38 +115,8 @@
         <td class="hidden td sm:table-cell">
           <span class="tag">{{ item.task_type }}</span>
         </td>
-        <td class="hidden td sm:table-cell relative" onclick="event.stopPropagation()"
-            x-data="{ open: false, value: '{{ item.assigned_user }}', options: [] }"
-            @click.away="open = false">
-          <button @click="if(!options.length){fetch('/api/assignees').then(r=>r.json()).then(d=>{options=d.users})}; open=!open"
-                  class="pill cursor-pointer transition-opacity hover:opacity-80"
-                  :class="value ? 'pill-blue' : 'pill-zinc'"
-                  x-text="value || '—'"></button>
-          <div x-show="open" x-cloak class="dropdown-menu left-0 origin-top-left" style="min-width:140px; z-index:20;">
-            <button @click="fetch('/tasks/{{ item.workflow_id }}/reassign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_user:'',assigned_group:'{{ item.assigned_group }}'})}).then(()=>{value='';open=false})"
-                    class="dropdown-item w-full text-left text-ghost">Unassign</button>
-            <template x-for="opt in options" :key="opt.slug">
-              <button @click="fetch('/tasks/{{ item.workflow_id }}/reassign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_user:opt.slug,assigned_group:'{{ item.assigned_group }}'})}).then(()=>{value=opt.slug;open=false})"
-                      class="dropdown-item w-full text-left" x-text="opt.label"></button>
-            </template>
-          </div>
-        </td>
-        <td class="hidden td sm:table-cell relative" onclick="event.stopPropagation()"
-            x-data="{ open: false, value: '{{ item.assigned_group }}', options: [] }"
-            @click.away="open = false">
-          <button @click="if(!options.length){fetch('/api/assignees').then(r=>r.json()).then(d=>{options=d.groups})}; open=!open"
-                  class="pill cursor-pointer transition-opacity hover:opacity-80"
-                  :class="value ? 'pill-emerald' : 'pill-zinc'"
-                  x-text="value || '—'"></button>
-          <div x-show="open" x-cloak class="dropdown-menu left-0 origin-top-left" style="min-width:140px; z-index:20;">
-            <button @click="fetch('/tasks/{{ item.workflow_id }}/reassign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_user:'{{ item.assigned_user }}',assigned_group:''})}).then(()=>{value='';open=false})"
-                    class="dropdown-item w-full text-left text-ghost">Unassign</button>
-            <template x-for="opt in options" :key="opt.slug">
-              <button @click="fetch('/tasks/{{ item.workflow_id }}/reassign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_user:'{{ item.assigned_user }}',assigned_group:opt.slug})}).then(()=>{value=opt.slug;open=false})"
-                      class="dropdown-item w-full text-left" x-text="opt.label"></button>
-            </template>
-          </div>
-        </td>
+        {{ reassign_picker(item.workflow_id, 'user', item.assigned_user, item.assigned_group, 'blue') }}
+        {{ reassign_picker(item.workflow_id, 'group', item.assigned_group, item.assigned_user, 'emerald') }}
         <td class="hidden td md:table-cell">
           <a href="/workflow/{{ item.workflow_id }}" class="td-mono timeline-link" title="{{ item.workflow_id }}" onclick="event.stopPropagation()">{{ item.workflow_id }}</a>
         </td>
@@ -106,20 +148,8 @@
             {{ child.task_type }}
           </span>
         </td>
-        <td class="hidden td sm:table-cell">
-          {% if child.assigned_user %}
-          <span class="pill pill-blue">{{ child.assigned_user }}</span>
-          {% else %}
-          <span class="text-xs text-ghost">—</span>
-          {% endif %}
-        </td>
-        <td class="hidden td sm:table-cell">
-          {% if child.assigned_group %}
-          <span class="pill pill-emerald">{{ child.assigned_group }}</span>
-          {% else %}
-          <span class="text-xs text-ghost">—</span>
-          {% endif %}
-        </td>
+        {{ reassign_picker(child.workflow_id, 'user', child.assigned_user, child.assigned_group, 'blue') }}
+        {{ reassign_picker(child.workflow_id, 'group', child.assigned_group, child.assigned_user, 'emerald') }}
         <td class="hidden td md:table-cell">
           <a href="/workflow/{{ child.workflow_id }}" class="td-mono timeline-link" title="{{ child.workflow_id }}" onclick="event.stopPropagation()">{{ child.workflow_id }}</a>
         </td>
