@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from wtforms import SelectField, validators
+from wtforms import SelectField, StringField, validators
 
 from core.tasks import HumanTask, TaskForm, register_task
 
