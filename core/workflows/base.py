@@ -83,3 +83,19 @@ class WorkSysFlow:
             assigned_group=assigned_group,
         )
         return await self.wait_for_human_task(task_meta)
+
+    async def create_system_task(
+        self,
+        activity,
+        *args,
+        start_to_close_timeout: timedelta = timedelta(seconds=10),
+    ) -> Any:
+        """Execute an activity as a system task (no human input required).
+
+        Returns the activity result directly without waiting for a signal.
+        """
+        return await workflow.execute_activity(
+            activity,
+            args=list(args),
+            start_to_close_timeout=start_to_close_timeout,
+        )
