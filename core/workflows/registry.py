@@ -22,6 +22,18 @@ class WorkflowDef:
     required_users: list[str] = field(default_factory=list)
     required_groups: list[str] = field(default_factory=list)
 
+    def can_access(self, user_slug: str, user_group_slugs: list[str], is_admin: bool = False) -> bool:
+        """Whether the given user is allowed to see and start this workflow."""
+        if is_admin:
+            return True
+        if not self.required_users and not self.required_groups:
+            return True
+        if self.required_users and user_slug in self.required_users:
+            return True
+        if self.required_groups and any(g in self.required_groups for g in user_group_slugs):
+            return True
+        return False
+
 
 _WORKFLOW_REGISTRY: dict[str, WorkflowDef] = {}
 

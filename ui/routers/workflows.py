@@ -20,6 +20,11 @@ async def start_picker(
     request: Request,
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
+    user = getattr(request.state, "user", None)
+    user_slug = user.slug if user else ""
+    user_group_slugs = user.group_slugs if user else []
+    is_admin = user.is_admin if user else False
+
     wf_list = [
         {
             "key": w.key,
@@ -30,6 +35,7 @@ async def start_picker(
             "has_input_task": w.input_task is not None,
         }
         for w in get_all_workflows()
+        if w.can_access(user_slug, user_group_slugs, is_admin)
     ]
     return templates.TemplateResponse(
         "workflows/start_picker.html",
@@ -46,6 +52,14 @@ async def start_form(
     try:
         wf_def = get_workflow(workflow_key)
     except KeyError:
+        return RedirectResponse(url="/start", status_code=303)
+
+    user = getattr(request.state, "user", None)
+    if not wf_def.can_access(
+        user.slug if user else "",
+        user.group_slugs if user else [],
+        user.is_admin if user else False,
+    ):
         return RedirectResponse(url="/start", status_code=303)
 
     form = None
@@ -68,6 +82,14 @@ async def start_submit(
     try:
         wf_def = get_workflow(workflow_key)
     except KeyError:
+        return RedirectResponse(url="/start", status_code=303)
+
+    user = getattr(request.state, "user", None)
+    if not wf_def.can_access(
+        user.slug if user else "",
+        user.group_slugs if user else [],
+        user.is_admin if user else False,
+    ):
         return RedirectResponse(url="/start", status_code=303)
 
     form_data = await request.form()
