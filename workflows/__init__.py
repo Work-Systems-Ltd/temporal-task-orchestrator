@@ -20,7 +20,7 @@ register_workflow(
     input_placeholder="e.g. Expense report: $500 for conference travel",
     input_task=ApprovalInputTask,
     task_types=[ApprovalTask],
-    required_groups=["admin"],
+    required_groups=[],
 )
 
 register_workflow(

@@ -13,7 +13,7 @@ class OnboardingWorkflow(WorkSysFlow):
     async def run(self, input: OnboardingInputTask.Model) -> str:
         await self.create_system_task(create_onboarding_ticket, input.employee_name)
 
-        human_data = await self.wait_for_task(
+        human_data = await self.create_human_task(
             OnboardingTask,
             title=f"Onboard: {input.employee_name}",
             description=f"Complete the onboarding checklist for {input.employee_name}.",

@@ -13,11 +13,11 @@ class ApprovalWorkflow(WorkSysFlow):
     async def run(self, input: ApprovalInputTask.Model) -> str:
         await self.create_system_task(log_request, input.description)
 
-        human_data = await self.wait_for_task(
+        human_data = await self.create_human_task(
             ApprovalTask,
             title=f"Approve: {input.description}",
             description=f"Please review this {input.urgency}-priority request and approve or reject it.",
-            assigned_group="admin",
+            assigned_group="foo",
         )
 
         decision = human_data["decision"]

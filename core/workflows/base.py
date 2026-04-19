@@ -52,7 +52,7 @@ class WorkSysFlow:
         self._human_task_data = None
         return data
 
-    async def wait_for_task(
+    async def create_human_task(
         self,
         task: Type[HumanTask],
         *,

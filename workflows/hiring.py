@@ -30,7 +30,7 @@ class HiringWorkflow(WorkSysFlow):
             return f"Hiring rejected: {approval_result}"
 
         # Step 2: Collect onboarding details via human task
-        onboarding_data = await self.wait_for_task(
+        onboarding_data = await self.create_human_task(
             OnboardingInputTask,
             title="Provide onboarding details",
             description=f"The hire for {input.employee_name} has been approved. Please provide onboarding details.",
