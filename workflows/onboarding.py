@@ -2,7 +2,6 @@ from datetime import timedelta
 
 from temporalio import activity, workflow
 
-from core.models import TaskMeta
 from core.workflows import WorkSysFlow
 from tasks.onboarding_input import OnboardingInputTask
 
@@ -30,18 +29,13 @@ class OnboardingWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: OnboardingInputTask.Model) -> str:
-        await workflow.execute_activity(
+        human_data = await self.execute_and_wait(
             create_onboarding_ticket,
             input.employee_name,
-            start_to_close_timeout=timedelta(seconds=10),
-        )
-
-        task_meta = TaskMeta(
             task_type="onboarding",
             title=f"Onboard: {input.employee_name}",
             description=f"Complete the onboarding checklist for {input.employee_name}.",
         )
-        human_data = await self.wait_for_human_task(task_meta)
 
         team = human_data["team"]
         equipment = human_data["equipment"]

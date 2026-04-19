@@ -56,8 +56,12 @@
         </div>
         {% if request.state.user %}
         <div class="header-divider"></div>
-        <span class="text-sm opacity-60">{{ request.state.user.display_name or request.state.user.username }}</span>
-        <a href="/logout" class="nav-link text-sm">Logout</a>
+        <span class="text-xs" style="color: var(--color-text-faint);">{{ request.state.user.display_name or request.state.user.username }}</span>
+        <a href="/logout" class="theme-toggle" title="Sign out">
+          <svg class="h-[18px] w-[18px]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+          </svg>
+        </a>
         {% endif %}
         <div class="header-divider"></div>
         <button @click="$store.theme.toggle()" class="theme-toggle" :title="$store.theme.dark ? 'Switch to light mode' : 'Switch to dark mode'" x-data>

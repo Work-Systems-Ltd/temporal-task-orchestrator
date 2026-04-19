@@ -2,7 +2,6 @@ from datetime import timedelta
 
 from temporalio import activity, workflow
 
-from core.models import TaskMeta
 from core.workflows import WorkSysFlow
 from tasks.approval_input import ApprovalInputTask
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import timedelta
 from typing import Any
 
 from temporalio import workflow
@@ -45,3 +46,29 @@ class WorkSysFlow:
         data = self._human_task_data
         self._human_task_data = None
         return data
+
+    async def execute_and_wait(
+        self,
+        activity,
+        *args,
+        task_type: str,
+        title: str,
+        description: str,
+        start_to_close_timeout: timedelta = timedelta(seconds=10),
+    ) -> dict[str, Any]:
+        """Execute an activity then block until a human task is completed.
+
+        Combines ``workflow.execute_activity`` + ``wait_for_human_task``
+        into a single call.
+        """
+        await workflow.execute_activity(
+            activity,
+            args=list(args),
+            start_to_close_timeout=start_to_close_timeout,
+        )
+        task_meta = TaskMeta(
+            task_type=task_type,
+            title=title,
+            description=description,
+        )
+        return await self.wait_for_human_task(task_meta)
