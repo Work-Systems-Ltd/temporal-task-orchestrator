@@ -1,21 +1,21 @@
-{% extends "base.html" %}
-{% block title %}Tasks — Task Console{% endblock %}
+{% extends "layouts/base.html" %}
+{% block title %}Workflows — Task Console{% endblock %}
 
 {% block content %}
 <div x-data="taskList()" x-init="connect()" class="animate-slide-up" data-initial-hash="{{ data_hash }}">
 
   <div class="mb-4 flex items-center gap-2">
-    <form method="get" action="/" class="flex flex-1 items-center gap-2">
+    <form method="get" action="/workflows" class="flex flex-1 items-center gap-2">
       <input type="hidden" name="tab" value="{{ tab }}" />
       {% if wf_type %}<input type="hidden" name="type" value="{{ wf_type }}" />{% endif %}
       <div class="search-box">
-        <input type="text" name="q" value="{{ search }}" placeholder="Search by name or ID..."
+        <input type="text" name="q" value="{{ search }}" placeholder="Search workflows..."
                class="search-box-input" />
         <svg class="search-box-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
         </svg>
         {% if search %}
-        <a href="/?tab={{ tab }}{% if wf_type %}&type={{ wf_type }}{% endif %}" class="search-box-clear" title="Clear search">
+        <a href="/workflows?tab={{ tab }}{% if wf_type %}&type={{ wf_type }}{% endif %}" class="search-box-clear" title="Clear search">
           <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
           </svg>
@@ -47,58 +47,18 @@
              x-transition:leave-start="opacity-100 scale-100"
              x-transition:leave-end="opacity-0 scale-95"
              class="dropdown-menu origin-top-right">
-          <a href="/?tab={{ tab }}" class="dropdown-item {% if not wf_type %}dropdown-item-active{% endif %}">
+          <a href="/workflows?tab={{ tab }}" class="dropdown-item {% if not wf_type %}dropdown-item-active{% endif %}">
             {% if not wf_type %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
             All types
           </a>
           {% for wt in workflow_types %}
-          <a href="/?tab={{ tab }}&type={{ wt }}" class="dropdown-item {% if wf_type == wt %}dropdown-item-active{% endif %}">
+          <a href="/workflows?tab={{ tab }}&type={{ wt }}" class="dropdown-item {% if wf_type == wt %}dropdown-item-active{% endif %}">
             {% if wf_type == wt %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
             {{ wt }}
           </a>
           {% endfor %}
         </div>
       </div>
-      {% if tab == "pending" %}
-      <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
-        <button @click="open = !open" class="btn btn-secondary">
-          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-          </svg>
-          {% if assignment == "mine" %}Assigned to me{% elif assignment == "unassigned" %}Unassigned{% else %}All tasks{% endif %}
-          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
-        <div x-show="open" @click.away="open = false" x-cloak
-             x-transition:enter="transition ease-out duration-100"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-75"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="dropdown-menu origin-top-right">
-          <a href="/?tab=pending{% if wf_type %}&type={{ wf_type }}{% endif %}" class="dropdown-item {% if not assignment %}dropdown-item-active{% endif %}">
-            {% if not assignment %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
-            All tasks
-          </a>
-          <a href="/?tab=pending&assignment=mine{% if wf_type %}&type={{ wf_type }}{% endif %}" class="dropdown-item {% if assignment == 'mine' %}dropdown-item-active{% endif %}">
-            {% if assignment == "mine" %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
-            Assigned to me
-          </a>
-          <a href="/?tab=pending&assignment=unassigned{% if wf_type %}&type={{ wf_type }}{% endif %}" class="dropdown-item {% if assignment == 'unassigned' %}dropdown-item-active{% endif %}">
-            {% if assignment == "unassigned" %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
-            Unassigned
-          </a>
-        </div>
-      </div>
-      {% endif %}
-      <a href="/start" class="btn btn-primary">
-        <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        New workflow
-      </a>
       <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
         <button @click="open = !open" class="btn btn-icon" title="Columns">
           <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -131,11 +91,20 @@
   </div>
 
   <div class="tab-bar" data-tab-bar>
-    {% include "partials/tab_bar.html" %}
+    {% for t in tabs %}
+    <a href="/workflows?tab={{ t }}{% if per_page %}&per_page={{ per_page }}{% endif %}{% if wf_type %}&type={{ wf_type }}{% endif %}"
+       @click="navigateTab($event)"
+       data-tab="{{ t }}"
+       class="tab-item {% if tab == t %}tab-item-active{% endif %}">
+      {{ t | capitalize }}
+      {% if counts.get(t, 0) > 0 %}
+      <span class="count-badge {% if tab == t %}count-badge-active{% else %}count-badge-muted{% endif %}">{{ counts[t] }}</span>
+      {% endif %}
+    </a>
+    {% endfor %}
   </div>
 
   <script>
-    // Apply column visibility before first paint to prevent layout shift
     (function() {
       try {
         var all = ['id','type','started','stopped','duration','status','queue','run_id','events','parent'];
@@ -150,7 +119,6 @@
         s.id = 'col-preload';
         s.textContent = rules.join('');
         document.head.appendChild(s);
-        // Sync checkboxes after DOM ready
         document.addEventListener('DOMContentLoaded', function() {
           hidden.forEach(function(c) {
             var cb = document.querySelector('[data-col-toggle="' + c + '"]');

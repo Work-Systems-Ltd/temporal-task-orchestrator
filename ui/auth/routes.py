@@ -37,7 +37,7 @@ async def login_page(
     if user:
         return RedirectResponse(url="/", status_code=303)
     return templates.TemplateResponse(
-        "login.html",
+        "auth/login.html",
         {
             "request": request,
             "error": None,
@@ -63,7 +63,7 @@ async def login_submit(
 
     if not user or not bcrypt.checkpw(password.encode(), user.password_hash.encode()):
         return templates.TemplateResponse(
-            "login.html",
+            "auth/login.html",
             {
                 "request": request,
                 "error": "Invalid username or password",

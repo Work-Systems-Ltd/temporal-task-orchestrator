@@ -55,7 +55,7 @@ async def workflow_detail(
     pending_tasks = await service.get_all_pending_tasks(graph, workflow_id) if is_running else []
 
     return templates.TemplateResponse(
-        "workflow_detail.html",
+        "workflows/detail.html",
         {
             "request": request,
             "detail": detail.model_dump(),
@@ -97,7 +97,7 @@ async def rerun_form(
         form = wf_def.input_task.Form()
 
     return templates.TemplateResponse(
-        "rerun_workflow.html",
+        "workflows/rerun.html",
         {
             "request": request,
             "wf": wf_def,
@@ -133,7 +133,7 @@ async def rerun_submit(
         model, errors = validate_task_form(task, form)
         if errors:
             return templates.TemplateResponse(
-                "rerun_workflow.html",
+                "workflows/rerun.html",
                 {
                     "request": request,
                     "wf": wf_def,

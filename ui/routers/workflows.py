@@ -32,7 +32,7 @@ async def start_picker(
         for w in get_all_workflows()
     ]
     return templates.TemplateResponse(
-        "start_picker.html",
+        "workflows/start_picker.html",
         {"request": request, "workflows": wf_list},
     )
 
@@ -53,7 +53,7 @@ async def start_form(
         form = wf_def.input_task.Form()
 
     return templates.TemplateResponse(
-        "start_workflow.html",
+        "workflows/start_form.html",
         {"request": request, "wf": wf_def, "form": form, "errors": {}},
     )
 
@@ -79,7 +79,7 @@ async def start_submit(
         model, errors = validate_task_form(task, form)
         if errors:
             return templates.TemplateResponse(
-                "start_workflow.html",
+                "workflows/start_form.html",
                 {"request": request, "wf": wf_def, "form": form, "errors": errors},
             )
 
@@ -88,7 +88,7 @@ async def start_submit(
         input_value = form_data.get("input_value", "").strip()
         if not input_value:
             return templates.TemplateResponse(
-                "start_workflow.html",
+                "workflows/start_form.html",
                 {
                     "request": request,
                     "wf": wf_def,

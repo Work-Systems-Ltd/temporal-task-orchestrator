@@ -56,7 +56,7 @@ async def tasks_page(
     data_hash = hashlib.md5(json.dumps({"items": stable, "has_next": result.has_next}, sort_keys=True).encode()).hexdigest()
 
     return templates.TemplateResponse(
-        "tasks_page.html",
+        "tasks/list.html",
         {
             "request": request,
             "items": items,

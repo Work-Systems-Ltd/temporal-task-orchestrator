@@ -46,7 +46,7 @@ async def admin_page(
         group_count = (await db.execute(select(func.count(Group.id)))).scalar()
 
     return templates.TemplateResponse(
-        "admin.html",
+        "auth/admin.html",
         {
             "request": request,
             "users": users,

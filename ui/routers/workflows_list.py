@@ -49,7 +49,7 @@ async def workflows_page(
     data_hash = hashlib.md5(json.dumps({"counts": counts, "items": stable, "has_next": result.has_next}, sort_keys=True).encode()).hexdigest()
 
     return templates.TemplateResponse(
-        "workflows_page.html",
+        "workflows/list.html",
         {
             "request": request,
             "items": items,

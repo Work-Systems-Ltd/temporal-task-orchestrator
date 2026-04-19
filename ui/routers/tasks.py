@@ -35,7 +35,7 @@ async def task_form(
     wf_type = detail.workflow_type if detail else ""
 
     return templates.TemplateResponse(
-        "task_form.html",
+        "tasks/form.html",
         {
             "request": request,
             "form": form,
@@ -72,7 +72,7 @@ async def task_submit(
 
     def _render_errors(errors: dict[str, list[str]]) -> HTMLResponse:
         return templates.TemplateResponse(
-            "task_form.html",
+            "tasks/form.html",
             {
                 "request": request,
                 "form": form,
