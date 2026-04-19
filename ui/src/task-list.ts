@@ -120,6 +120,14 @@ function applyColumnState(): void {
 (window as Record<string, unknown>).applyColumnState = applyColumnState;
 (window as Record<string, unknown>).toggleExpand = toggleExpand;
 
+// Delegated click handler for [data-toggle-col] labels
+document.addEventListener("click", (e) => {
+  const label = (e.target as HTMLElement).closest("[data-toggle-col]") as HTMLElement | null;
+  if (!label) return;
+  e.preventDefault();
+  toggleColumn(label.dataset.toggleCol!);
+});
+
 function getViewParams(seq: number): ViewParams {
   const params = new URLSearchParams(window.location.search);
   return {
