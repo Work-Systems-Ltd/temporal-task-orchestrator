@@ -41,8 +41,14 @@ class Task(ABC):
         ...
 
 class SystemTask(Task):
-    """Task type for automated system actions. No human interaction required."""
-    pass
+    """Task type for automated system actions. No human interaction required.
+
+    Subclasses must define:
+        task_type: A unique string identifier for this task type.
+        activity: The @activity.defn function to execute.
+        Model: A Pydantic BaseModel subclass for the activity input.
+    """
+    activity: ClassVar[Any] = None
 
 class HumanTask(Task):
     """Abstract base class for human tasks.
