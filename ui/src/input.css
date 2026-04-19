@@ -1061,6 +1061,48 @@
     height: 0 !important;
   }
 
+  /* Activity nodes — blue/zinc styling */
+  .wf-graph-node-activity {
+    border-style: dashed;
+    border-color: var(--color-pill-blue-text);
+    background: var(--color-pill-blue-bg);
+    cursor: default;
+  }
+  .wf-graph-node-activity:hover {
+    border-color: var(--color-pill-blue-text);
+    background: var(--color-pill-blue-bg);
+    box-shadow: none;
+  }
+  .wf-graph-node-activity .wf-graph-node-type-icon {
+    color: var(--color-pill-blue-text);
+  }
+  .wf-graph-node-activity-done {
+    border-color: var(--color-pill-zinc-text);
+    background: var(--color-surface-subtle);
+  }
+  .wf-graph-node-activity-done:hover {
+    border-color: var(--color-pill-zinc-text);
+    background: var(--color-surface-subtle);
+  }
+  .wf-graph-node-activity-done .wf-graph-node-type-icon {
+    color: var(--color-pill-zinc-text);
+  }
+  .wf-graph-node-activity-failed {
+    border-color: var(--color-pill-red-text);
+    background: var(--color-pill-red-bg);
+  }
+  .wf-graph-node-activity-failed:hover {
+    border-color: var(--color-pill-red-text);
+    background: var(--color-pill-red-bg);
+  }
+  .wf-graph-node-activity-failed .wf-graph-node-type-icon {
+    color: var(--color-pill-red-text);
+  }
+  .wf-graph-node-tag-activity {
+    color: var(--color-pill-blue-text);
+    background: color-mix(in srgb, var(--color-pill-blue-text) 12%, transparent);
+  }
+
   /* Type icon above label */
   .wf-graph-node-type-icon {
     @apply flex items-center justify-center mb-1.5;

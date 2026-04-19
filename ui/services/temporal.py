@@ -539,46 +539,96 @@ class TemporalService:
                     for ctype, cid, cstatus in child_infos
                 ])
 
-        # Attach human tasks as child "task" nodes so they show separately.
+        # Attach activity and human task nodes from history
         node.node_type = "workflow"
-        if node.status == "running":
-            # Running workflow — check for a live pending task via query
-            try:
-                meta = await self.get_pending_task(wf_id)
-                if meta:
-                    node.children.append(GraphNode(
-                        workflow_id=wf_id,
-                        workflow_type=wf_type,
-                        status="running",
-                        label=meta.title or meta.task_type,
-                        node_type="task",
-                        is_current=False,
-                        started=started_str,
-                    ))
-            except Exception:
-                pass
-        else:
-            # Completed/failed — scan history for complete_human_task signals
-            try:
-                handle = self._client.get_workflow_handle(wf_id)
-                history = await handle.fetch_history()
-                for event in history.events:
-                    if event.event_type == 26:  # WORKFLOW_EXECUTION_SIGNALED
-                        attrs = event.workflow_execution_signaled_event_attributes
-                        if attrs and attrs.signal_name == "complete_human_task":
-                            task_status = "completed" if node.status == "completed" else node.status
-                            node.children.append(GraphNode(
-                                workflow_id=wf_id,
-                                workflow_type=wf_type,
-                                status=task_status,
-                                label="Task completed",
-                                node_type="task",
-                                is_current=False,
-                                duration=duration_str,
-                            ))
-                            break  # one task node per workflow is enough
-            except Exception:
-                pass
+        try:
+            handle = self._client.get_workflow_handle(wf_id)
+            history = await handle.fetch_history()
+
+            # Track scheduled activities to resolve names and compute durations
+            scheduled: dict[int, tuple[str, datetime]] = {}  # event_id -> (name, time)
+            has_human_task = False
+
+            for event in history.events:
+                etype = event.event_type
+
+                # Activity scheduled
+                if etype == 5:
+                    attrs = event.activity_task_scheduled_event_attributes
+                    if attrs:
+                        scheduled[event.event_id] = (
+                            attrs.activity_type.name if attrs.activity_type else "Activity",
+                            event.event_time.ToDatetime() if event.event_time else None,
+                        )
+
+                # Activity completed
+                elif etype == 9:
+                    attrs = event.activity_task_completed_event_attributes
+                    sched_id = attrs.scheduled_event_id if attrs else 0
+                    if sched_id in scheduled:
+                        name, sched_time = scheduled[sched_id]
+                        dur = ""
+                        if sched_time and event.event_time:
+                            dur = self._ms_duration(sched_time, event.event_time.ToDatetime())
+                        node.children.append(GraphNode(
+                            workflow_id=wf_id,
+                            workflow_type=wf_type,
+                            status="completed",
+                            label=name,
+                            node_type="activity",
+                            is_current=False,
+                            duration=dur,
+                        ))
+
+                # Activity failed
+                elif etype == 10:
+                    attrs = event.activity_task_failed_event_attributes
+                    sched_id = attrs.scheduled_event_id if attrs else 0
+                    if sched_id in scheduled:
+                        name, _ = scheduled[sched_id]
+                        node.children.append(GraphNode(
+                            workflow_id=wf_id,
+                            workflow_type=wf_type,
+                            status="failed",
+                            label=name,
+                            node_type="activity",
+                            is_current=False,
+                        ))
+
+                # Human task signal
+                elif etype == 26:  # WORKFLOW_EXECUTION_SIGNALED
+                    attrs = event.workflow_execution_signaled_event_attributes
+                    if attrs and attrs.signal_name == "complete_human_task":
+                        has_human_task = True
+                        task_status = "completed" if node.status == "completed" else node.status
+                        node.children.append(GraphNode(
+                            workflow_id=wf_id,
+                            workflow_type=wf_type,
+                            status=task_status,
+                            label="Human Task",
+                            node_type="task",
+                            is_current=False,
+                        ))
+
+            # If running and has a pending human task, add it
+            if node.status == "running" and not has_human_task:
+                try:
+                    meta = await self.get_pending_task(wf_id)
+                    if meta:
+                        node.children.append(GraphNode(
+                            workflow_id=wf_id,
+                            workflow_type=wf_type,
+                            status="running",
+                            label=meta.title or meta.task_type,
+                            node_type="task",
+                            is_current=False,
+                            started=started_str,
+                        ))
+                except Exception:
+                    pass
+
+        except Exception:
+            pass
         return node
 
     async def get_workflow_graph(self, workflow_id: str, detail: WorkflowDetail) -> GraphNode | None:

@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from temporalio import activity, workflow
 
 from core.workflows import WorkSysFlow
@@ -42,17 +40,8 @@ class OnboardingWorkflow(WorkSysFlow):
         equipment = human_data["equipment"]
         notes = human_data.get("notes", "")
 
-        await workflow.execute_activity(
-            provision_equipment,
-            args=[input.employee_name, equipment],
-            start_to_close_timeout=timedelta(seconds=10),
-        )
-
-        await workflow.execute_activity(
-            setup_accounts,
-            args=[input.employee_name, team],
-            start_to_close_timeout=timedelta(seconds=10),
-        )
+        await self.create_system_task(provision_equipment, input.employee_name, equipment)
+        await self.create_system_task(setup_accounts, input.employee_name, team)
 
         result = f"Onboarding complete for {input.employee_name}: team={team}, equipment={equipment}"
         if notes:

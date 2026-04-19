@@ -106,7 +106,7 @@
           {% if child.can_access is not defined or child.can_access %}
           onclick="window.location='/task/{{ child.workflow_id }}'"
           onkeydown="if(event.key==='Enter')window.location='/task/{{ child.workflow_id }}'"
-          {% endif %}
+          {% endif %}>
         <td class="td td-indent">
           <div>
             <span class="tree-branch">└</span>
