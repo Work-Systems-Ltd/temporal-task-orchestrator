@@ -58,49 +58,67 @@
   </div>
 
   {# ══════════════════════════════════════════
-     PENDING TASKS — the action area
-     Only shown when there are tasks to act on
+     TASK LIST — all tasks for this workflow
      ══════════════════════════════════════════ #}
   <div data-ws-section="pending">
-  {% if pending_tasks %}
+  {% if timeline or pending_tasks %}
   <div class="card mb-5">
     <div class="card-header">
-      <h2 class="text-xs font-medium uppercase tracking-wider text-faint">
-        Action Required
-        {% if pending_tasks | length > 1 %}
-        <span class="count-badge count-badge-active ml-1">{{ pending_tasks | length }}</span>
+      <div class="flex items-center justify-between">
+        <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Tasks</h2>
+        {% if stats.total_time != "—" %}
+        <span class="text-xs font-mono tabular-nums text-ghost">{{ stats.total_time }}</span>
         {% endif %}
-      </h2>
+      </div>
     </div>
     <div class="divide-y divide-border">
+
+      {# ── System tasks & child workflows (from timeline) ── #}
+      {% for event in timeline %}
+      <div {% if event.detail and event.status == 'failed' %}x-data="{ open: false }"{% endif %}>
+        <div class="flex items-center gap-3 px-5 py-3 {% if event.detail and event.status == 'failed' %}cursor-pointer{% endif %}"
+             {% if event.detail and event.status == 'failed' %}@click="open = !open"{% endif %}>
+          {{ status_badge(event.status) }}
+          <span class="text-[10px] font-medium uppercase tracking-wider text-ghost shrink-0">{% if event.link %}Workflow{% else %}System{% endif %}</span>
+          <span class="text-sm text-secondary flex-1 min-w-0 truncate">{{ event.label | replace("Workflow", "") | trim }}</span>
+          {% if event.duration %}
+          <span class="timeline-duration hidden sm:inline">{{ event.duration }}</span>
+          {% endif %}
+          <span class="text-[11px] text-ghost tabular-nums hidden md:inline">{{ event.event_time }}</span>
+          {% if event.link %}
+          <a href="{{ event.link }}" class="timeline-link shrink-0" onclick="event.stopPropagation()">view</a>
+          {% endif %}
+        </div>
+        {% if event.detail and event.status == 'failed' %}
+        <div x-show="open" x-cloak x-collapse>
+          <div class="timeline-error mx-5 mb-3">{{ event.detail }}</div>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      {# ── Pending human tasks (expandable with forms) ── #}
       {% for pt in pending_tasks %}
       <div x-data="{ expanded: {{ 'true' if pending_tasks | length == 1 else 'false' }}, submitting: false }">
         <button class="accordion-trigger" :class="expanded && 'accordion-trigger-open'" @click="expanded = !expanded" type="button">
-          <div class="flex items-center gap-3 min-w-0 flex-1">
-            {{ task_type_badge(pt.task_type) }}
-            <div class="min-w-0">
-              <div class="text-sm font-medium text-primary text-left">{{ pt.title }}</div>
-              {% if pt.description %}
-              <div class="text-xs text-muted text-left truncate">{{ pt.description }}</div>
-              {% endif %}
-            </div>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            {% if pt.assigned_user %}
-            <span class="pill pill-blue hidden sm:inline-flex">{{ pt.assigned_user }}</span>
+          {{ status_badge("pending") }}
+          <span class="text-[10px] font-medium uppercase tracking-wider text-ghost shrink-0">Human</span>
+          <div class="min-w-0 flex-1 text-left">
+            <div class="text-sm font-medium text-primary">{{ pt.title }}</div>
+            {% if pt.description %}
+            <div class="text-xs text-muted truncate">{{ pt.description }}</div>
             {% endif %}
-            {% if pt.assigned_group %}
-            <span class="pill pill-emerald hidden sm:inline-flex">{{ pt.assigned_group }}</span>
-            {% endif %}
-            <a href="/task/{{ pt.workflow_id }}" class="btn btn-icon" title="Open full page" onclick="event.stopPropagation()">
-              <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-              </svg>
-            </a>
-            <svg class="accordion-chevron" :class="expanded && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
           </div>
+          {% if pt.assigned_user %}
+          <span class="pill pill-blue hidden sm:inline-flex">{{ pt.assigned_user }}</span>
+          {% endif %}
+          {% if pt.assigned_group %}
+          <span class="pill pill-emerald hidden sm:inline-flex">{{ pt.assigned_group }}</span>
+          {% endif %}
+          <span class="text-[11px] text-ghost hidden md:inline">{{ pt.started }}</span>
+          <svg class="accordion-chevron" :class="expanded && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
         </button>
         {% if pt.form %}
         <div x-show="expanded" x-cloak x-collapse>
@@ -111,61 +129,26 @@
         {% endif %}
       </div>
       {% endfor %}
+
+      {# ── Waiting indicator ── #}
+      {% if detail.status == "running" and not pending_tasks %}
+      <div class="flex items-center gap-3 px-5 py-3">
+        {{ status_badge("pending") }}
+        <span class="text-sm text-faint">Waiting…</span>
+      </div>
+      {% endif %}
+
     </div>
   </div>
   {% endif %}
   </div>
 
   {# ══════════════════════════════════════════
-     ACTIVITY LOG — flat chronological list
+     DETAILS SIDEBAR
      ══════════════════════════════════════════ #}
   <div class="grid items-start gap-5 lg:grid-cols-5">
 
-    <div class="lg:col-span-3">
-      <div data-ws-section="timeline">
-      {% if timeline %}
-      <div class="card">
-        <div class="card-header">
-          <div class="flex items-center justify-between">
-            <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Activity Log</h2>
-            {% if stats.total_time != "—" %}
-            <span class="text-xs font-mono tabular-nums text-ghost">{{ stats.total_time }}</span>
-            {% endif %}
-          </div>
-        </div>
-        <div class="divide-y divide-border">
-          {% for event in timeline %}
-          <div {% if event.detail and event.status == 'failed' %}x-data="{ open: false }"{% endif %}>
-            <div class="flex items-center gap-3 px-5 py-2.5 {% if event.detail and event.status == 'failed' %}cursor-pointer{% endif %}"
-                 {% if event.detail and event.status == 'failed' %}@click="open = !open"{% endif %}>
-              {{ status_badge(event.status) }}
-              <span class="text-sm text-secondary flex-1 min-w-0 truncate">{{ event.label | replace("Workflow", "") | trim }}</span>
-              {% if event.link %}
-              <a href="{{ event.link }}" class="timeline-link shrink-0" onclick="event.stopPropagation()">view</a>
-              {% endif %}
-              {% if event.duration %}
-              <span class="timeline-duration">{{ event.duration }}</span>
-              {% endif %}
-              <span class="text-[11px] text-ghost tabular-nums hidden sm:inline">{{ event.event_time }}</span>
-            </div>
-            {% if event.detail and event.status == 'failed' %}
-            <div x-show="open" x-cloak x-collapse>
-              <div class="timeline-error mx-5 mb-3">{{ event.detail }}</div>
-            </div>
-            {% endif %}
-          </div>
-          {% endfor %}
-          {% if detail.status == "running" %}
-          <div class="flex items-center gap-3 px-5 py-2.5">
-            {{ status_badge("pending") }}
-            <span class="text-sm text-faint">Waiting for input…</span>
-          </div>
-          {% endif %}
-        </div>
-      </div>
-      {% endif %}
-      </div>
-    </div>
+    <div class="lg:col-span-3"></div>
 
     {# ══════════════════════════════════════════
        SIDEBAR — details, run history, I/O
