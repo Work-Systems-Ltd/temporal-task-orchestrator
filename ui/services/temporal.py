@@ -5,9 +5,10 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from temporalio.client import Client
+from temporalio.common import WorkflowIDReusePolicy
 
 from core.models import TaskMeta
-from core.workflows import WorkSysFlow, WorkflowDef
+from core.workflows import WorkSysFlow, WorkflowDef, get_all_workflows
 from ui.config import STATUS_QUERIES, TAB_ORDER, AppSettings
 from ui.helpers import duration, relative_time, status_name
 from ui.models import GraphNode, PaginatedResult, PendingTaskItem, TimelineEvent, TimelineStats, WorkflowDetail, WorkflowItem
@@ -494,5 +495,47 @@ class TemporalService:
             input_value,
             id=workflow_id,
             task_queue=self.task_queue,
+        )
+        return workflow_id
+
+    async def rerun_workflow(self, workflow_id: str) -> str:
+        """Re-execute a failed/terminated workflow with the same ID and original input."""
+        handle = self._client.get_workflow_handle(workflow_id)
+        desc = await handle.describe()
+
+        rerunnable = {"FAILED", "TERMINATED", "TIMED_OUT", "CANCELED"}
+        status = desc.status.name
+        if status not in rerunnable:
+            raise ValueError(f"Cannot rerun workflow with status {status}")
+
+        # Find the workflow definition by matching the class name
+        wf_type = desc.workflow_type
+        wf_def = None
+        for wd in get_all_workflows():
+            if wd.workflow_cls.__name__ == wf_type:
+                wf_def = wd
+                break
+        if not wf_def:
+            raise ValueError(f"Unknown workflow type: {wf_type}")
+
+        # Extract the original input from the first history event
+        input_value = None
+        async for event in handle.fetch_history_events():
+            attrs = event.workflow_execution_started_event_attributes
+            if attrs and attrs.input and attrs.input.payloads:
+                payload = attrs.input.payloads[0]
+                import json
+                input_value = json.loads(payload.data)
+                # Reconstruct the input model
+                if wf_def.input_task:
+                    input_value = wf_def.input_task.Model(**input_value)
+                break
+
+        await self._client.start_workflow(
+            wf_def.workflow_cls.run,
+            input_value,
+            id=workflow_id,
+            task_queue=self.task_queue,
+            id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE,
         )
         return workflow_id

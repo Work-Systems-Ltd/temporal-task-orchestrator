@@ -38,35 +38,38 @@
     <table class="w-full text-left">
       <thead class="table-head">
         <tr>
-          <th class="th">Username</th>
-          <th class="th">Display Name</th>
-          <th class="th">Groups</th>
-          <th class="th">Active</th>
+          <th class="th">User</th>
+          <th class="hidden th sm:table-cell">Groups</th>
+          <th class="hidden th md:table-cell">Status</th>
           <th class="th">Created</th>
-          <th class="th w-0"></th>
+          <th class="th" style="width:1%"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-border">
         {% for user in users %}
-        <tr class="group table-row">
-          <td class="td font-medium">{{ user.username }}</td>
-          <td class="td text-muted">{{ user.display_name or "—" }}</td>
+        <tr class="group table-row animate-slide-up" style="animation-delay: {{ loop.index0 * 30 }}ms">
           <td class="td">
+            <div class="td-title">{{ user.username }}</div>
+            <div class="td-subtitle">{{ user.display_name if user.display_name != user.username else "" }}</div>
+          </td>
+          <td class="hidden td sm:table-cell">
             {% for g in user.groups %}
             <span class="tag">{{ g.name }}</span>
             {% endfor %}
             {% if not user.groups %}
-            <span class="text-faint">—</span>
+            <span class="text-ghost">—</span>
+            {% endif %}
+          </td>
+          <td class="hidden td md:table-cell">
+            {% if user.is_active %}
+            <span class="pill pill-emerald">Active</span>
+            {% else %}
+            <span class="pill pill-red">Inactive</span>
             {% endif %}
           </td>
           <td class="td">
-            {% if user.is_active %}
-            <span class="status-dot status-dot--running"></span>
-            {% else %}
-            <span class="status-dot status-dot--failed"></span>
-            {% endif %}
+            <span class="td-time">{{ user.created_at.strftime("%Y-%m-%d %H:%M") if user.created_at else "—" }}</span>
           </td>
-          <td class="td text-muted text-xs">{{ user.created_at.strftime("%Y-%m-%d %H:%M") if user.created_at else "—" }}</td>
           <td class="td">
             <div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
               <button
@@ -86,7 +89,7 @@
               {% if user.id != request.state.user.id %}
               <button
                 @click="deleteUserId = '{{ user.id }}'; deleteUsername = '{{ user.username }}'; deleteOpen = true"
-                class="btn btn-icon" title="Delete user" style="color: var(--color-pill-red-text);">
+                class="btn btn-icon btn-icon-danger" title="Delete user">
                 <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                 </svg>
@@ -98,7 +101,7 @@
         {% endfor %}
         {% if not users %}
         <tr>
-          <td colspan="6" class="td text-center text-muted py-8">No users found</td>
+          <td colspan="5" class="td text-center text-ghost py-8">No users found</td>
         </tr>
         {% endif %}
       </tbody>
@@ -108,7 +111,7 @@
   <!-- Add User Modal -->
   <template x-teleport="body">
     <div x-show="addOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="addOpen = false">
-      <div class="fixed inset-0" style="background: rgba(0,0,0,0.4); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);" @click="addOpen = false"></div>
+      <div class="modal-backdrop" @click="addOpen = false"></div>
       <div class="modal-panel"
            x-show="addOpen"
            x-transition:enter="transition ease-out duration-150"
@@ -158,7 +161,7 @@
   <!-- Reset Password Modal -->
   <template x-teleport="body">
     <div x-show="resetOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="resetOpen = false">
-      <div class="fixed inset-0" style="background: rgba(0,0,0,0.4); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);" @click="resetOpen = false"></div>
+      <div class="modal-backdrop" @click="resetOpen = false"></div>
       <div class="modal-panel"
            x-show="resetOpen"
            x-transition:enter="transition ease-out duration-150"
@@ -187,7 +190,7 @@
   <!-- Delete User Modal -->
   <template x-teleport="body">
     <div x-show="deleteOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="deleteOpen = false">
-      <div class="fixed inset-0" style="background: rgba(0,0,0,0.4); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);" @click="deleteOpen = false"></div>
+      <div class="modal-backdrop" @click="deleteOpen = false"></div>
       <div class="modal-panel"
            x-show="deleteOpen"
            x-transition:enter="transition ease-out duration-150"
@@ -212,7 +215,7 @@
   <!-- Manage Groups Modal -->
   <template x-teleport="body">
     <div x-show="groupsOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="groupsOpen = false">
-      <div class="fixed inset-0" style="background: rgba(0,0,0,0.4); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);" @click="groupsOpen = false"></div>
+      <div class="modal-backdrop" @click="groupsOpen = false"></div>
       <div class="modal-panel"
            x-show="groupsOpen"
            x-transition:enter="transition ease-out duration-150"

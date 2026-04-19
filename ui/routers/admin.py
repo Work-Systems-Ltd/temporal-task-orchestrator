@@ -137,3 +137,32 @@ async def group_list(
         "admin_groups.html",
         {"request": request, "groups": groups},
     )
+
+
+@router.post("/groups/add")
+async def group_add(
+    request: Request,
+    name: str = Form(...),
+) -> RedirectResponse:
+    factory = get_session_factory()
+    async with factory() as db:
+        result = await db.execute(select(Group).where(Group.name == name))
+        if result.scalar_one_or_none():
+            return RedirectResponse(url="/admin/groups?error=exists", status_code=303)
+        db.add(Group(name=name))
+        await db.commit()
+    return RedirectResponse(url="/admin/groups", status_code=303)
+
+
+@router.post("/groups/{group_id}/delete")
+async def group_delete(
+    group_id: str,
+) -> RedirectResponse:
+    factory = get_session_factory()
+    async with factory() as db:
+        result = await db.execute(select(Group).where(Group.id == group_id))
+        group = result.scalar_one_or_none()
+        if group:
+            await db.delete(group)
+            await db.commit()
+    return RedirectResponse(url="/admin/groups", status_code=303)

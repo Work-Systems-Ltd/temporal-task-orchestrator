@@ -19,6 +19,12 @@ from workflows.onboarding import (
     provision_equipment,
     setup_accounts,
 )
+from workflows.testing import (
+    TestingWorkflow,
+    validate_input,
+    process_data,
+    finalize,
+)
 
 import tasks  # noqa: F401 — trigger task registration
 from core.workflows import validate_registrations
@@ -35,7 +41,7 @@ def run() -> None:
         w = Worker(
             client,
             task_queue=settings.task_queue,
-            workflows=[ApprovalWorkflow, HiringWorkflow, OnboardingWorkflow],
+            workflows=[ApprovalWorkflow, HiringWorkflow, OnboardingWorkflow, TestingWorkflow],
             activities=[
                 log_request,
                 process_approval,
@@ -43,6 +49,9 @@ def run() -> None:
                 create_onboarding_ticket,
                 provision_equipment,
                 setup_accounts,
+                validate_input,
+                process_data,
+                finalize,
             ],
         )
         print(f"Worker started, listening on '{settings.task_queue}'...")

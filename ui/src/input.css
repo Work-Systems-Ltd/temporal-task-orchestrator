@@ -1313,12 +1313,19 @@
   }
 
   /* ── Modal ── */
+  .modal-backdrop {
+    @apply fixed inset-0;
+    background: rgba(0, 0, 0, 0.4);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
   .modal-panel {
-    @apply relative w-full max-w-md rounded-xl p-6 shadow-xl;
+    @apply relative w-full max-w-md rounded-xl p-6;
     background: var(--color-dropdown-bg);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border: 1px solid var(--color-border);
+    box-shadow: 0 8px 32px var(--color-glass-shadow);
   }
   .modal-check-label {
     @apply flex items-center gap-1.5 text-sm cursor-pointer;
@@ -1342,6 +1349,13 @@
   }
   .btn-danger:hover {
     opacity: 0.88;
+  }
+  .btn-icon-danger {
+    color: var(--color-pill-red-text);
+  }
+  .btn-icon-danger:hover {
+    color: var(--color-pill-red-text);
+    border-color: var(--color-pill-red-text);
   }
 
   /* ── Login page ── */

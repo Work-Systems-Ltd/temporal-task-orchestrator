@@ -12,6 +12,8 @@ from ui.services.temporal import TemporalService
 
 router = APIRouter(tags=["workflow_detail"], dependencies=[Depends(require_auth)])
 
+RERUNNABLE_STATUSES = {"failed", "terminated", "timed_out", "cancelled"}
+
 
 async def _noop() -> None:
     return None
@@ -52,5 +54,18 @@ async def workflow_detail(
             "graph": graph.model_dump() if graph else None,
             "is_child": is_child,
             "workflow_id": workflow_id,
+            "can_rerun": detail.status in RERUNNABLE_STATUSES,
         },
     )
+
+
+@router.post("/workflow/{workflow_id}/rerun")
+async def rerun_workflow(
+    workflow_id: str,
+    service: TemporalService = Depends(get_temporal_service),
+) -> RedirectResponse:
+    try:
+        await service.rerun_workflow(workflow_id)
+    except ValueError:
+        pass  # Redirect back regardless — UI will show updated status
+    return RedirectResponse(url=f"/workflow/{workflow_id}", status_code=303)

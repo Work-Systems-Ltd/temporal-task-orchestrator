@@ -31,6 +31,17 @@ register_workflow(
 )
 
 register_workflow(
+    key="testing",
+    label="Testing",
+    description="Configurable test workflow — can succeed or fail at a chosen step",
+    workflow_cls=TestingWorkflow,
+    input_label="Test message",
+    input_placeholder="e.g. Test run #1",
+    input_task=TestingInputTask,
+    task_types=[],
+)
+
+register_workflow(
     key="hiring",
     label="Hiring Pipeline",
     description="Full hiring flow: approval then onboarding",
