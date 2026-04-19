@@ -157,7 +157,25 @@ class DetailMixin:
                     wait = (_ts(event) - last_activity_end).total_seconds()
                     total_wait_secs += wait
                     dur_str = ms_duration(last_activity_end, _ts(event))
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"Signal: {sig_name}", status="info", duration=dur_str))
+
+                # Extract signal payload for human task completions
+                input_data = ""
+                is_human = sig_name == "complete_human_task"
+                if is_human and attrs and attrs.input and attrs.input.payloads:
+                    try:
+                        input_data = attrs.input.payloads[0].data.decode("utf-8")
+                    except Exception:
+                        pass
+
+                events.append(TimelineEvent(
+                    event_id=eid,
+                    event_time=etime,
+                    label="Task completed" if is_human else f"Signal: {sig_name}",
+                    status="completed" if is_human else "info",
+                    duration=dur_str,
+                    kind="human" if is_human else "signal",
+                    input_data=input_data,
+                ))
 
             # Child workflows
             elif etype == START_CHILD_WORKFLOW_EXECUTION_INITIATED:  # START_CHILD_WORKFLOW_EXECUTION_INITIATED
@@ -173,14 +191,14 @@ class DetailMixin:
                 if not child_wf_id and attrs and attrs.workflow_execution:
                     child_wf_id = attrs.workflow_execution.workflow_id
                 link = f"/workflow/{child_wf_id}" if child_wf_id else ""
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="info", detail="Child workflow", link=link))
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="info", detail="Child workflow", link=link, kind="workflow"))
 
             elif etype == CHILD_WORKFLOW_EXECUTION_COMPLETED:  # CHILD_WORKFLOW_EXECUTION_COMPLETED
                 attrs = event.child_workflow_execution_completed_event_attributes
                 init_id = attrs.initiated_event_id if attrs else 0
                 wf_type, child_wf_id = child_workflows.get(init_id, ("child", ""))
                 link = f"/workflow/{child_wf_id}" if child_wf_id else ""
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="completed", detail="Child completed", link=link))
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="completed", detail="Child completed", link=link, kind="workflow"))
 
             elif etype == CHILD_WORKFLOW_EXECUTION_FAILED:  # CHILD_WORKFLOW_EXECUTION_FAILED
                 attrs = event.child_workflow_execution_failed_event_attributes
