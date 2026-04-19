@@ -2,34 +2,53 @@ from __future__ import annotations
 
 from typing import Type
 
-from core.tasks.base import HumanTask
+from core.tasks.base import HumanTask, SystemTask, Task
 
-_TASK_REGISTRY: dict[str, HumanTask] = {}
+_TASK_REGISTRY: dict[str, Task] = {}
 
 
-def register_task(cls: Type[HumanTask]) -> Type[HumanTask]:
-    """Class decorator that registers a HumanTask subclass."""
+def register_task(cls: Type[Task]) -> Type[Task]:
+    """Class decorator that registers a Task subclass (HumanTask or SystemTask)."""
     if not hasattr(cls, "task_type"):
         raise ValueError(f"{cls.__name__} must define a 'task_type' class attribute")
-    if not hasattr(cls, "Form"):
-        raise ValueError(f"{cls.__name__} must define an inner 'Form' class")
     if not hasattr(cls, "Model"):
         raise ValueError(f"{cls.__name__} must define an inner 'Model' class")
+
+    # HumanTask requires a Form
+    if issubclass(cls, HumanTask) and not hasattr(cls, "Form"):
+        raise ValueError(f"{cls.__name__} must define an inner 'Form' class")
 
     instance = cls()
     _TASK_REGISTRY[cls.task_type] = instance
     return cls
 
 
-def get_task(task_type: str) -> HumanTask:
-    """Retrieve a registered HumanTask instance by type."""
+def get_task(task_type: str) -> Task:
+    """Retrieve a registered Task instance by type."""
     if task_type not in _TASK_REGISTRY:
         raise KeyError(f"Unknown task type: {task_type!r}")
     return _TASK_REGISTRY[task_type]
 
 
+def get_human_task(task_type: str) -> HumanTask:
+    """Retrieve a registered HumanTask instance by type."""
+    task = get_task(task_type)
+    if not isinstance(task, HumanTask):
+        raise KeyError(f"Task {task_type!r} is not a HumanTask")
+    return task
+
+
 def get_all_task_types() -> list[str]:
     return list(_TASK_REGISTRY.keys())
+
+
+def get_all_activities() -> list:
+    """Return all activity functions from registered SystemTasks."""
+    activities = []
+    for task in _TASK_REGISTRY.values():
+        if isinstance(task, SystemTask) and hasattr(task, "activity"):
+            activities.append(task.activity)
+    return activities
 
 
 def get_task_color(task_type: str) -> str:

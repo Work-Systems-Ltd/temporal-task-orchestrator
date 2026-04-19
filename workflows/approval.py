@@ -1,34 +1,9 @@
-from datetime import timedelta
-
-from temporalio import activity, workflow
+from temporalio import workflow
 
 from core.workflows import WorkSysFlow
-from tasks.approval import ApprovalTask
-from tasks.approval_input import ApprovalInputTask
-
-
-@activity.defn
-async def log_request(request: str) -> str:
-    print(f"[ApprovalWorkflow] New request logged: {request}")
-    return f"Request logged: {request}"
-
-
-@activity.defn
-async def process_approval(request: str, comment: str) -> str:
-    msg = f"[ApprovalWorkflow] APPROVED: {request}"
-    if comment:
-        msg += f" (comment: {comment})"
-    print(msg)
-    return msg
-
-
-@activity.defn
-async def process_rejection(request: str, comment: str) -> str:
-    msg = f"[ApprovalWorkflow] REJECTED: {request}"
-    if comment:
-        msg += f" (reason: {comment})"
-    print(msg)
-    return msg
+from tasks.human.approval import ApprovalTask
+from tasks.human.approval_input import ApprovalInputTask
+from tasks.system.approval import log_request, process_approval, process_rejection
 
 
 @workflow.defn
@@ -36,10 +11,10 @@ class ApprovalWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: ApprovalInputTask.Model) -> str:
-        human_data = await self.create_human_task(
-            log_request,
-            input.description,
-            task=ApprovalTask,
+        await self.create_system_task(log_request, input.description)
+
+        human_data = await self.wait_for_task(
+            ApprovalTask,
             title=f"Approve: {input.description}",
             description=f"Please review this {input.urgency}-priority request and approve or reject it.",
             assigned_group="admin",
@@ -49,16 +24,8 @@ class ApprovalWorkflow(WorkSysFlow):
         comment = human_data.get("comment", "")
 
         if decision == "approve":
-            result = await workflow.execute_activity(
-                process_approval,
-                args=[input.description, comment],
-                start_to_close_timeout=timedelta(seconds=10),
-            )
+            result = await self.create_system_task(process_approval, input.description, comment)
         else:
-            result = await workflow.execute_activity(
-                process_rejection,
-                args=[input.description, comment],
-                start_to_close_timeout=timedelta(seconds=10),
-            )
+            result = await self.create_system_task(process_rejection, input.description, comment)
 
         return result

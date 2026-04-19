@@ -22,8 +22,29 @@ class TaskForm(Form):
         """
         return model_cls(**{field.name: field.data for field in self})
 
+class Task(ABC):
 
-class HumanTask(ABC):
+    task_type: ClassVar[str]
+    color: ClassVar[str] = "zinc"
+    label: ClassVar[str] = ""
+
+    def run(self, **kwargs: Any) -> None:
+        """Execute the task logic.
+
+        Args:
+            kwargs: Arbitrary keyword arguments passed from the workflow.
+        """
+        pass
+
+    @abstractmethod
+    class Model(BaseModel):
+        ...
+
+class SystemTask(Task):
+    """Task type for automated system actions. No human interaction required."""
+    pass
+
+class HumanTask(Task):
     """Abstract base class for human tasks.
 
     Subclasses must define:
@@ -35,20 +56,11 @@ class HumanTask(ABC):
         pre_submit: Custom validation logic run after Pydantic validation
                     but before the task is signalled as complete.
     """
-
-    task_type: ClassVar[str]
-    color: ClassVar[str] = "zinc"
-    label: ClassVar[str] = ""
-
     @abstractmethod
     class Form(TaskForm):
         ...
 
-    @abstractmethod
-    class Model(BaseModel):
-        ...
-
-    def pre_submit(self, model: BaseModel) -> dict[str, list[str]] | None:
+    async def pre_submit(self, model: BaseModel) -> dict[str, list[str]] | None:
         """Optional validation hook called after Pydantic model construction.
 
         Args:

@@ -3,9 +3,9 @@ import asyncio
 from temporalio import workflow
 
 from core.workflows import WorkSysFlow
-from tasks.approval_input import ApprovalInputTask
-from tasks.hiring_input import HiringInputTask
-from tasks.onboarding_input import OnboardingInputTask
+from tasks.human.approval_input import ApprovalInputTask
+from tasks.human.hiring_input import HiringInputTask
+from tasks.human.onboarding_input import OnboardingInputTask
 from workflows.approval import ApprovalWorkflow
 from workflows.onboarding import OnboardingWorkflow
 

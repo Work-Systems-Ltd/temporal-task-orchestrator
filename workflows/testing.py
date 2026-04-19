@@ -1,34 +1,9 @@
-from datetime import timedelta
-
-from temporalio import activity, workflow
+from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 from core.workflows import WorkSysFlow
-from tasks.testing_input import TestingInputTask
-
-
-@activity.defn
-async def validate_input(message: str, should_fail: bool) -> str:
-    if should_fail:
-        raise RuntimeError(f"Validation failed for: {message}")
-    print(f"[TestingWorkflow] Input validated: {message}")
-    return f"Validated: {message}"
-
-
-@activity.defn
-async def process_data(message: str, should_fail: bool) -> str:
-    if should_fail:
-        raise RuntimeError(f"Processing failed for: {message}")
-    print(f"[TestingWorkflow] Data processed: {message}")
-    return f"Processed: {message}"
-
-
-@activity.defn
-async def finalize(message: str, should_fail: bool) -> str:
-    if should_fail:
-        raise RuntimeError(f"Finalization failed for: {message}")
-    print(f"[TestingWorkflow] Finalized: {message}")
-    return f"Finalized: {message}"
+from tasks.human.testing_input import TestingInputTask
+from tasks.system.testing import validate_input, process_data, finalize
 
 
 STEPS = {
@@ -49,10 +24,9 @@ class TestingWorkflow(WorkSysFlow):
         for step_key in STEP_ORDER:
             step_activity = STEPS[step_key]
             should_fail = input.should_fail and input.fail_at_step == step_key
-            result = await workflow.execute_activity(
+            result = await self.create_system_task(
                 step_activity,
-                args=[input.message, should_fail],
-                start_to_close_timeout=timedelta(seconds=10),
+                input.message, should_fail,
                 retry_policy=RetryPolicy(maximum_attempts=1),
             )
             results.append(result)

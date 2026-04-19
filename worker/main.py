@@ -6,27 +6,13 @@ import asyncio
 from temporalio.client import Client
 from temporalio.worker import Worker
 
-from workflows.approval import (
-    ApprovalWorkflow,
-    log_request,
-    process_approval,
-    process_rejection,
-)
+from workflows.approval import ApprovalWorkflow
 from workflows.hiring import HiringWorkflow
-from workflows.onboarding import (
-    OnboardingWorkflow,
-    create_onboarding_ticket,
-    provision_equipment,
-    setup_accounts,
-)
-from workflows.testing import (
-    TestingWorkflow,
-    validate_input,
-    process_data,
-    finalize,
-)
+from workflows.onboarding import OnboardingWorkflow
+from workflows.testing import TestingWorkflow
 
 import tasks  # noqa: F401 — trigger task registration
+from core.tasks.registry import get_all_activities
 from core.workflows import validate_registrations
 from ui.config import AppSettings
 
@@ -42,17 +28,7 @@ def run() -> None:
             client,
             task_queue=settings.task_queue,
             workflows=[ApprovalWorkflow, HiringWorkflow, OnboardingWorkflow, TestingWorkflow],
-            activities=[
-                log_request,
-                process_approval,
-                process_rejection,
-                create_onboarding_ticket,
-                provision_equipment,
-                setup_accounts,
-                validate_input,
-                process_data,
-                finalize,
-            ],
+            activities=get_all_activities(),
         )
         print(f"Worker started, listening on '{settings.task_queue}'...")
         await w.run()

@@ -116,13 +116,16 @@ class WorkSysFlow:
         activity,
         *args,
         start_to_close_timeout: timedelta = timedelta(seconds=10),
+        retry_policy: Any | None = None,
     ) -> Any:
         """Execute an activity as a system task (no human input required).
 
         Returns the activity result directly without waiting for a signal.
         """
-        return await workflow.execute_activity(
-            activity,
-            args=list(args),
-            start_to_close_timeout=start_to_close_timeout,
-        )
+        kwargs: dict[str, Any] = {
+            "args": list(args),
+            "start_to_close_timeout": start_to_close_timeout,
+        }
+        if retry_policy is not None:
+            kwargs["retry_policy"] = retry_policy
+        return await workflow.execute_activity(activity, **kwargs)
