@@ -11,7 +11,7 @@ from temporalio.client import Client
 
 import tasks  # noqa: F401 — trigger task registration
 import workflows  # noqa: F401 — trigger workflow registration
-from core.workflows import validate_registrations
+from core.workflows import validate_assignments, validate_registrations
 from ui.auth.csrf import get_csrf_token, set_csrf_cookie, validate_csrf
 from ui.auth.database import dispose_engine, init_engine
 from ui.auth.dependencies import LoginRequiredError
@@ -54,6 +54,9 @@ async def lifespan(app: FastAPI):
 
     # Purge expired sessions
     await delete_expired_sessions()
+
+    # Validate workflow user/group assignments exist in the database
+    await validate_assignments()
 
     # Temporal
     client = await Client.connect(settings.temporal_address)

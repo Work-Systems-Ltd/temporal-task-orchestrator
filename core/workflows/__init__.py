@@ -4,6 +4,7 @@ from core.workflows.registry import (
     get_all_workflows,
     get_workflow,
     register_workflow,
+    validate_assignments,
     validate_registrations,
 )
 
@@ -14,4 +15,5 @@ __all__ = [
     "get_workflow",
     "get_all_workflows",
     "validate_registrations",
+    "validate_assignments",
 ]
