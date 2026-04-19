@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from core.tasks import get_task
 from ui.auth.dependencies import require_auth
 from ui.dependencies import get_templates, get_temporal_service
 from ui.helpers import validate_task_form
@@ -53,6 +54,19 @@ async def workflow_detail(
 
     # Collect pending tasks from this workflow + all descendants
     pending_tasks = await service.get_all_pending_tasks(graph, workflow_id) if is_running else []
+
+    # Attach form instances for inline completion
+    for pt in pending_tasks:
+        try:
+            task = get_task(pt["task_type"])
+            prefix = pt["workflow_id"][:8]
+            pt["form"] = task.Form(prefix=prefix)
+            pt["form_prefix"] = prefix
+            pt["errors"] = {}
+        except KeyError:
+            pt["form"] = None
+            pt["form_prefix"] = ""
+            pt["errors"] = {}
 
     return templates.TemplateResponse(
         "workflows/detail.html",

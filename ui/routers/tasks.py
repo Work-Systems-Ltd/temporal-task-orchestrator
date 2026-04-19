@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from core.tasks import get_task
@@ -90,3 +90,34 @@ async def task_submit(
     await service.signal_complete(workflow_id, model.model_dump_json())
 
     return RedirectResponse(url="/tasks?completed=1", status_code=303)
+
+
+@router.post("/task/{workflow_id}/submit")
+async def task_submit_inline(
+    request: Request,
+    workflow_id: str,
+    service: TemporalService = Depends(get_temporal_service),
+) -> JSONResponse:
+    """AJAX endpoint for inline task submission from the workflow detail page."""
+    meta = await service.get_pending_task(workflow_id)
+    if not meta:
+        return JSONResponse({"ok": False, "gone": True})
+
+    user = getattr(request.state, "user", None)
+    if not user or not user.can_access_task(meta.assigned_user, meta.assigned_group):
+        return JSONResponse({"ok": False, "gone": True}, status_code=403)
+
+    task = get_task(meta.task_type)
+
+    form_data = await request.form()
+    # Detect prefix: inline forms use workflow_id[:8] as prefix
+    prefix = form_data.get("_prefix", "")
+    form = task.Form(form_data, prefix=prefix) if prefix else task.Form(form_data)
+
+    model, errors = validate_task_form(task, form)
+    if errors:
+        return JSONResponse({"ok": False, "errors": errors})
+
+    await service.signal_complete(workflow_id, model.model_dump_json())
+
+    return JSONResponse({"ok": True})

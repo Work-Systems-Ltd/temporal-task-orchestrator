@@ -1,4 +1,5 @@
 {% from "partials/macros.html" import status_badge, task_type_badge, timeline_icon %}
+{% from "partials/task_form_inline.html" import inline_task_form %}
 {% extends "layouts/base.html" %}
 {% block title %}{{ detail.workflow_type }} — Task Console{% endblock %}
 
@@ -136,7 +137,7 @@
       </h2>
     </div>
     {% for pt in pending_tasks %}
-    <div class="pending-task-row">
+    <div class="pending-task-row" x-data="{ expanded: false, submitting: false }">
       <div class="flex items-center justify-between gap-4">
         <div class="flex items-center gap-3 min-w-0 flex-1">
           {{ task_type_badge(pt.task_type) }}
@@ -176,13 +177,34 @@
             </div>
           </div>
         </div>
-        <a href="{{ request.url_for('task_form', workflow_id=pt.workflow_id) }}" class="btn-action shrink-0">
-          Open Task
-          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-          </svg>
-        </a>
+        <div class="flex items-center gap-2 shrink-0">
+          <a href="/task/{{ pt.workflow_id }}" class="btn btn-icon" title="Open in full page">
+            <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+          </a>
+          {% if pt.form %}
+          <button @click="expanded = !expanded" class="btn-action">
+            <span x-text="expanded ? 'Close' : 'Complete Task'"></span>
+            <svg class="h-3.5 w-3.5 transition-transform duration-150" :class="expanded && 'rotate-90'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+          {% else %}
+          <a href="/task/{{ pt.workflow_id }}" class="btn-action">
+            Open Task
+            <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          </a>
+          {% endif %}
+        </div>
       </div>
+      {% if pt.form %}
+      <div x-show="expanded" x-cloak x-collapse class="mt-3">
+        {{ inline_task_form(pt.form, pt.errors, pt.workflow_id, request.state.csrf_token, inline=true) }}
+      </div>
+      {% endif %}
     </div>
     {% endfor %}
   </div>
@@ -392,5 +414,8 @@
 {% block scripts %}
 {% if stats.workflow_input or stats.workflow_output %}
 <script src="{{ request.url_for('static', path='js/json-viewer.js') }}"></script>
+{% endif %}
+{% if pending_tasks %}
+<script src="{{ request.url_for('static', path='js/inline-task.js') }}"></script>
 {% endif %}
 {% endblock %}

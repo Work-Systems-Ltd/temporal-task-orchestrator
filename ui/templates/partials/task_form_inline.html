@@ -1,0 +1,40 @@
+{% from "partials/form_fields.html" import render_field %}
+
+{% macro inline_task_form(form, errors, workflow_id, csrf_token, inline=false, prefix="") %}
+<div class="card {% if inline %}border-t-0 rounded-t-none{% endif %}">
+  <form method="post"
+        action="/task/{{ workflow_id }}"
+        {% if inline %}
+        @submit.prevent="submitInlineTask($event, '{{ workflow_id }}')"
+        {% else %}
+        @submit="submitting = true"
+        {% endif %}
+        class="space-y-4 p-5">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+    {% if inline and prefix %}
+    <input type="hidden" name="_prefix" value="{{ prefix }}" />
+    {% endif %}
+    {% for field in form %}
+      {{ render_field(field, errors.get(field.name)) }}
+    {% endfor %}
+
+    <div class="flex items-center justify-between pt-2">
+      {% if inline %}
+      <span></span>
+      {% else %}
+      <a href="/workflow/{{ workflow_id }}" class="text-xs text-ghost transition-colors hover:text-secondary">Cancel</a>
+      {% endif %}
+      <button type="submit" :disabled="submitting"
+              class="btn btn-primary btn-lg relative">
+        <span :class="submitting ? 'invisible' : ''">Submit</span>
+        <span x-show="submitting" x-cloak class="absolute inset-0 flex items-center justify-center">
+          <svg class="h-3.5 w-3.5 animate-spin spinner-on-inverted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </form>
+</div>
+{% endmacro %}
