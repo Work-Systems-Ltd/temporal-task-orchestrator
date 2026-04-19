@@ -1,6 +1,8 @@
 """Unified CLI for the Temporal Task Orchestrator."""
 from __future__ import annotations
 
+import sys
+
 import typer
 
 app = typer.Typer(help="Temporal Task Orchestrator CLI")
@@ -32,9 +34,16 @@ def ui(
     reload: bool = typer.Option(False, help="Enable auto-reload"),
 ) -> None:
     """Start the FastAPI web UI."""
-    import uvicorn
+    import subprocess
 
-    uvicorn.run("ui.main:app", host=host, port=port, reload=reload)
+    cmd = [
+        sys.executable, "-m", "uvicorn", "ui.main:app",
+        "--host", host,
+        "--port", str(port),
+    ]
+    if reload:
+        cmd.append("--reload")
+    raise SystemExit(subprocess.call(cmd))
 
 
 @app.command()

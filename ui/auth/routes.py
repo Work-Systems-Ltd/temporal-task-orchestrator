@@ -46,7 +46,7 @@ async def login_page(
     )
 
 
-@router.post("/login", response_class=HTMLResponse)
+@router.post("/login", response_class=HTMLResponse, response_model=None)
 async def login_submit(
     request: Request,
     username: str = Form(...),
