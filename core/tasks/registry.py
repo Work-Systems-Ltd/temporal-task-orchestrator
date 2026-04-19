@@ -63,4 +63,6 @@ def get_task_color(task_type: str) -> str:
 def get_task_label(task_type: str) -> str:
     """Return the display label for a task type, defaulting to the task_type string."""
     task = _TASK_REGISTRY.get(task_type)
-    return task.label if task and task.label else task_type
+    if task is None:
+        return task_type
+    return task.label or task_type

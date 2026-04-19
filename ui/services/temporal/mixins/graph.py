@@ -75,7 +75,8 @@ class GraphMixin:
         try:
             handle = self._client.get_workflow_handle(parent_wf_id)
             history = await handle.fetch_history()
-        except Exception:
+        except Exception as exc:
+            logger.debug("Graph build error: %s", exc)
             return []
 
         initiated: dict[int, tuple[str, str]] = {}
@@ -133,8 +134,8 @@ class GraphMixin:
             desc = await handle.describe()
             started_str = relative_time(desc.start_time)
             duration_str = duration(desc.start_time, desc.close_time)
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Graph build error: %s", exc)
 
         node = GraphNode(
             workflow_id=wf_id,
@@ -221,10 +222,10 @@ class GraphMixin:
                             status="running", label=meta.title or meta.task_type,
                             node_type="task", is_current=False, started=started_str,
                         ))
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.debug("Graph node error: %s", exc)
 
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("Graph build error: %s", exc)
 
         return node
