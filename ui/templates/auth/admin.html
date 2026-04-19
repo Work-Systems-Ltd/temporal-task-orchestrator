@@ -14,7 +14,7 @@
 
   <!-- Toolbar -->
   <div class="mb-4 flex items-center gap-2">
-    <form method="get" action="/admin" class="flex flex-1 items-center gap-2">
+    <form method="get" action="{{ request.url_for('admin_page') }}" class="flex flex-1 items-center gap-2">
       <input type="hidden" name="tab" :value="tab" />
       <div class="search-box">
         <input type="text" name="q" value="{{ search }}"
@@ -259,7 +259,7 @@
            x-transition:leave-start="opacity-100 scale-100"
            x-transition:leave-end="opacity-0 scale-95">
         <h2 class="mb-4 text-base font-semibold">Add User</h2>
-        <form method="post" action="/admin/users/add" class="space-y-3">
+        <form method="post" action="{{ request.url_for('user_add') }}" class="space-y-3">
           <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
           <div>
             <label class="detail-label mb-1.5 block">Username</label>
@@ -309,7 +309,7 @@
            x-transition:leave-start="opacity-100 scale-100"
            x-transition:leave-end="opacity-0 scale-95">
         <h2 class="mb-4 text-base font-semibold">Add Group</h2>
-        <form method="post" action="/admin/groups/add" class="space-y-3">
+        <form method="post" action="{{ request.url_for('group_add') }}" class="space-y-3">
           <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
           <div>
             <label class="detail-label mb-1.5 block">Group Name</label>

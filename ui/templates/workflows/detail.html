@@ -58,7 +58,7 @@
 
   {% macro render_subtree(node, is_root) %}
   <div class="wf-graph-subtree">
-    <a href="{% if node.node_type == 'task' and node.status == 'running' %}/task/{{ node.workflow_id }}{% elif node.node_type == 'activity' %}#{% else %}/workflow/{{ node.workflow_id }}{% endif %}"
+    <a href="{% if node.node_type == 'task' and node.status == 'running' %}{{ request.url_for('task_form', workflow_id=node.workflow_id) }}{% elif node.node_type == 'activity' %}#{% else %}{{ request.url_for('workflow_detail', workflow_id=node.workflow_id) }}{% endif %}"
        {% if node.node_type == 'activity' %}onclick="event.preventDefault()"{% endif %}
        class="wf-graph-node {% if is_root %}wf-graph-node-root{% endif %} {% if node.is_current %}wf-graph-node-current{% endif %} {% if node.node_type == 'task' %}wf-graph-node-task{% if node.status != 'running' %} wf-graph-node-task-done{% endif %}{% endif %} {% if node.node_type == 'activity' %}wf-graph-node-activity{% if node.status == 'completed' %} wf-graph-node-activity-done{% elif node.status == 'failed' %} wf-graph-node-activity-failed{% endif %}{% endif %}">
       {% if node.node_type == 'task' %}
@@ -337,7 +337,7 @@
             <span class="text-[10px] font-medium uppercase tracking-wider text-faint">current</span>
           </div>
           {% else %}
-          <a href="/workflow/{{ workflow_id }}?run_id={{ run.run_id }}" class="flex items-center gap-3 px-5 py-3 transition-colors" style="color: inherit; text-decoration: none;" onmouseover="this.style.background='var(--color-surface-hover)'" onmouseout="this.style.background=''">
+          <a href="{{ request.url_for('workflow_detail', workflow_id=workflow_id) }}?run_id={{ run.run_id }}" class="flex items-center gap-3 px-5 py-3 transition-colors" style="color: inherit; text-decoration: none;" onmouseover="this.style.background='var(--color-surface-hover)'" onmouseout="this.style.background=''">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
                 {{ status_badge(run.status) }}
