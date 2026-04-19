@@ -498,38 +498,46 @@ class TemporalService:
         )
         return workflow_id
 
-    async def rerun_workflow(self, workflow_id: str) -> str:
-        """Re-execute a failed/terminated workflow with the same ID and original input."""
+    async def get_workflow_input(self, workflow_id: str) -> dict | None:
+        """Extract the original input dict from a workflow's history."""
+        handle = self._client.get_workflow_handle(workflow_id)
+        async for event in handle.fetch_history_events():
+            attrs = event.workflow_execution_started_event_attributes
+            if attrs and attrs.input and attrs.input.payloads:
+                import json
+                return json.loads(attrs.input.payloads[0].data)
+        return None
+
+    def get_workflow_def_by_type(self, workflow_type: str) -> WorkflowDef | None:
+        """Look up a WorkflowDef by its Temporal workflow type name."""
+        for wd in get_all_workflows():
+            if wd.workflow_cls.__name__ == workflow_type:
+                return wd
+        return None
+
+    async def rerun_workflow(self, workflow_id: str, input_value: Any = None) -> str:
+        """Re-execute a failed/terminated workflow with the same ID.
+
+        If *input_value* is provided it is used; otherwise the original input
+        is extracted from the workflow history.
+        """
         handle = self._client.get_workflow_handle(workflow_id)
         desc = await handle.describe()
 
         rerunnable = {"FAILED", "TERMINATED", "TIMED_OUT", "CANCELED"}
-        status = desc.status.name
-        if status not in rerunnable:
-            raise ValueError(f"Cannot rerun workflow with status {status}")
+        if desc.status.name not in rerunnable:
+            raise ValueError(f"Cannot rerun workflow with status {desc.status.name}")
 
-        # Find the workflow definition by matching the class name
-        wf_type = desc.workflow_type
-        wf_def = None
-        for wd in get_all_workflows():
-            if wd.workflow_cls.__name__ == wf_type:
-                wf_def = wd
-                break
+        wf_def = self.get_workflow_def_by_type(desc.workflow_type)
         if not wf_def:
-            raise ValueError(f"Unknown workflow type: {wf_type}")
+            raise ValueError(f"Unknown workflow type: {desc.workflow_type}")
 
-        # Extract the original input from the first history event
-        input_value = None
-        async for event in handle.fetch_history_events():
-            attrs = event.workflow_execution_started_event_attributes
-            if attrs and attrs.input and attrs.input.payloads:
-                payload = attrs.input.payloads[0]
-                import json
-                input_value = json.loads(payload.data)
-                # Reconstruct the input model
-                if wf_def.input_task:
-                    input_value = wf_def.input_task.Model(**input_value)
-                break
+        if input_value is None:
+            raw = await self.get_workflow_input(workflow_id)
+            if raw and wf_def.input_task:
+                input_value = wf_def.input_task.Model(**raw)
+            else:
+                input_value = raw
 
         await self._client.start_workflow(
             wf_def.workflow_cls.run,
