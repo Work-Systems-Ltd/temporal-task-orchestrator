@@ -9,13 +9,30 @@
   groupsOpen: false, groupsUserId: '', groupsUsername: '', groupsCurrent: [],
 }">
 
-  <div class="mb-4 flex items-center justify-between">
-    <h1 class="text-lg font-semibold">Users</h1>
-    <div class="flex items-center gap-3">
-      <div class="flex gap-1.5">
-        <a href="/admin/users" class="nav-link nav-link--active">Users</a>
-        <a href="/admin/groups" class="nav-link">Groups</a>
+  <!-- Toolbar -->
+  <div class="mb-4 flex items-center gap-2">
+    <form method="get" action="/admin/users" class="flex flex-1 items-center gap-2">
+      <div class="search-box">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search users..."
+               class="search-box-input" />
+        <svg class="search-box-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        {% if search %}
+        <a href="/admin/users" class="search-box-clear" title="Clear search">
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </a>
+        {% else %}
+        <div class="search-box-kbd">
+          <kbd>/</kbd>
+        </div>
+        {% endif %}
       </div>
+    </form>
+
+    <div class="flex shrink-0 items-center gap-2">
       <button @click="addOpen = true" class="btn btn-primary">
         <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -23,6 +40,19 @@
         Add user
       </button>
     </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    {% for t in tabs %}
+    <a href="/admin/{{ t }}"
+       class="tab-item {% if tab == t %}tab-item-active{% endif %}">
+      {{ t | capitalize }}
+      {% if counts.get(t, 0) > 0 %}
+      <span class="count-badge {% if tab == t %}count-badge-active{% else %}count-badge-muted{% endif %}">{{ counts[t] }}</span>
+      {% endif %}
+    </a>
+    {% endfor %}
   </div>
 
   {% if request.query_params.get("error") == "exists" %}
@@ -34,6 +64,8 @@
   </div>
   {% endif %}
 
+  <!-- Table -->
+  {% if users %}
   <div class="table-container">
     <table class="w-full text-left">
       <thead class="table-head">
@@ -103,14 +135,27 @@
           </td>
         </tr>
         {% endfor %}
-        {% if not users %}
-        <tr>
-          <td colspan="6" class="td text-center text-ghost py-8">No users found</td>
-        </tr>
-        {% endif %}
       </tbody>
     </table>
   </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">
+      <svg class="h-6 w-6 text-faint" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+      </svg>
+    </div>
+    <p class="mt-4 text-sm text-muted">{% if search %}No users matching "{{ search }}"{% else %}No users yet{% endif %}</p>
+    {% if not search %}
+    <button @click="addOpen = true" class="btn btn-secondary mt-5 text-xs">
+      <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Add a user
+    </button>
+    {% endif %}
+  </div>
+  {% endif %}
 
   <!-- Add User Modal -->
   <template x-teleport="body">

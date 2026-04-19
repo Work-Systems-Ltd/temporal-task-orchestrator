@@ -7,13 +7,30 @@
   deleteOpen: false, deleteGroupId: '', deleteGroupName: '',
 }">
 
-  <div class="mb-4 flex items-center justify-between">
-    <h1 class="text-lg font-semibold">Groups</h1>
-    <div class="flex items-center gap-3">
-      <div class="flex gap-1.5">
-        <a href="/admin/users" class="nav-link">Users</a>
-        <a href="/admin/groups" class="nav-link nav-link--active">Groups</a>
+  <!-- Toolbar -->
+  <div class="mb-4 flex items-center gap-2">
+    <form method="get" action="/admin/groups" class="flex flex-1 items-center gap-2">
+      <div class="search-box">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search groups..."
+               class="search-box-input" />
+        <svg class="search-box-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        {% if search %}
+        <a href="/admin/groups" class="search-box-clear" title="Clear search">
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </a>
+        {% else %}
+        <div class="search-box-kbd">
+          <kbd>/</kbd>
+        </div>
+        {% endif %}
       </div>
+    </form>
+
+    <div class="flex shrink-0 items-center gap-2">
       <button @click="addOpen = true" class="btn btn-primary">
         <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -21,6 +38,19 @@
         Add group
       </button>
     </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    {% for t in tabs %}
+    <a href="/admin/{{ t }}"
+       class="tab-item {% if tab == t %}tab-item-active{% endif %}">
+      {{ t | capitalize }}
+      {% if counts.get(t, 0) > 0 %}
+      <span class="count-badge {% if tab == t %}count-badge-active{% else %}count-badge-muted{% endif %}">{{ counts[t] }}</span>
+      {% endif %}
+    </a>
+    {% endfor %}
   </div>
 
   {% if request.query_params.get("error") == "exists" %}
@@ -32,6 +62,8 @@
   </div>
   {% endif %}
 
+  <!-- Table -->
+  {% if groups %}
   <div class="table-container">
     <table class="w-full text-left">
       <thead class="table-head">
@@ -76,14 +108,27 @@
           </td>
         </tr>
         {% endfor %}
-        {% if not groups %}
-        <tr>
-          <td colspan="5" class="td text-center text-ghost py-8">No groups found</td>
-        </tr>
-        {% endif %}
       </tbody>
     </table>
   </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">
+      <svg class="h-6 w-6 text-faint" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+      </svg>
+    </div>
+    <p class="mt-4 text-sm text-muted">{% if search %}No groups matching "{{ search }}"{% else %}No groups yet{% endif %}</p>
+    {% if not search %}
+    <button @click="addOpen = true" class="btn btn-secondary mt-5 text-xs">
+      <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Add a group
+    </button>
+    {% endif %}
+  </div>
+  {% endif %}
 
   <!-- Add Group Modal -->
   <template x-teleport="body">
