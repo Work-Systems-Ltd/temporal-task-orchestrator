@@ -172,7 +172,9 @@ class TemporalService:
                 handle = self._client.get_workflow_handle(wf.id)
                 raw = await handle.query(WorkSysFlow.get_pending_task)
                 if raw:
-                    meta = TaskMeta.model_validate_json(raw)
+                    meta = await self._sanitize_assignment(
+                        TaskMeta.model_validate_json(raw)
+                    )
                     if search:
                         haystack = (
                             f"{wf.id} {meta.title} "
@@ -567,12 +569,51 @@ class TemporalService:
         results = await asyncio.gather(*[_fetch(wid) for wid in wf_ids])
         return [r for r in results if r is not None]
 
+    @staticmethod
+    async def _sanitize_assignment(meta: TaskMeta) -> TaskMeta:
+        """Null out assigned_user/assigned_group if they don't exist in the DB."""
+        if not meta.assigned_user and not meta.assigned_group:
+            return meta
+
+        import logging
+
+        from sqlalchemy import select
+
+        from ui.auth.database import get_session_factory
+        from ui.auth.models import User, Group, _slugify
+
+        logger = logging.getLogger(__name__)
+        factory = get_session_factory()
+        async with factory() as db:
+            if meta.assigned_user:
+                result = await db.execute(select(User.username))
+                existing = {_slugify(row[0]) for row in result}
+                if meta.assigned_user not in existing:
+                    logger.warning(
+                        "Task %r assigned to unknown user %r — clearing assignment",
+                        meta.task_type, meta.assigned_user,
+                    )
+                    meta = meta.model_copy(update={"assigned_user": ""})
+
+            if meta.assigned_group:
+                result = await db.execute(select(Group.name))
+                existing = {_slugify(row[0]) for row in result}
+                if meta.assigned_group not in existing:
+                    logger.warning(
+                        "Task %r assigned to unknown group %r — clearing assignment",
+                        meta.task_type, meta.assigned_group,
+                    )
+                    meta = meta.model_copy(update={"assigned_group": ""})
+
+        return meta
+
     async def get_pending_task(self, workflow_id: str) -> TaskMeta | None:
         handle = self._client.get_workflow_handle(workflow_id)
         raw = await handle.query(WorkSysFlow.get_pending_task)
         if not raw:
             return None
-        return TaskMeta.model_validate_json(raw)
+        meta = TaskMeta.model_validate_json(raw)
+        return await self._sanitize_assignment(meta)
 
     async def signal_complete(self, workflow_id: str, data: str) -> None:
         handle = self._client.get_workflow_handle(workflow_id)

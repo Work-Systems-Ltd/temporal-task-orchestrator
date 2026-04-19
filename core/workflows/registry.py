@@ -63,14 +63,18 @@ def get_all_workflows() -> list[WorkflowDef]:
 
 
 async def validate_assignments() -> None:
-    """Validate that all required_users and required_groups exist in the database.
+    """Warn if any required_users or required_groups don't exist in the database.
 
     Must be called after the database engine is initialized.
     """
+    import logging
+
     from sqlalchemy import select
 
     from ui.auth.database import get_session_factory
-    from ui.auth.models import Group, User
+    from ui.auth.models import Group, User, _slugify
+
+    logger = logging.getLogger(__name__)
 
     all_users: set[str] = set()
     all_groups: set[str] = set()
@@ -86,36 +90,31 @@ async def validate_assignments() -> None:
     async with factory() as db:
         if all_users:
             result = await db.execute(select(User.username))
-            existing_users = {row[0] for row in result}
-            # Check slugified versions
-            from ui.auth.models import _slugify
-            existing_slugs = {_slugify(u) for u in existing_users}
+            existing_slugs = {_slugify(row[0]) for row in result}
             missing = all_users - existing_slugs
             if missing:
-                sources = [
-                    f"  - {wf.key!r} requires users: {wf.required_users}"
-                    for wf in _WORKFLOW_REGISTRY.values()
-                    if set(wf.required_users) & missing
-                ]
-                raise ValueError(
-                    f"Unknown user slug(s): {missing}\n" + "\n".join(sources)
-                )
+                for wf in _WORKFLOW_REGISTRY.values():
+                    bad = set(wf.required_users) & missing
+                    if bad:
+                        logger.warning(
+                            "Workflow %r references unknown user slug(s): %s "
+                            "— assignments to these users will be ignored at runtime",
+                            wf.key, bad,
+                        )
 
         if all_groups:
             result = await db.execute(select(Group.name))
-            existing_groups = {row[0] for row in result}
-            from ui.auth.models import _slugify
-            existing_slugs = {_slugify(g) for g in existing_groups}
+            existing_slugs = {_slugify(row[0]) for row in result}
             missing = all_groups - existing_slugs
             if missing:
-                sources = [
-                    f"  - {wf.key!r} requires groups: {wf.required_groups}"
-                    for wf in _WORKFLOW_REGISTRY.values()
-                    if set(wf.required_groups) & missing
-                ]
-                raise ValueError(
-                    f"Unknown group slug(s): {missing}\n" + "\n".join(sources)
-                )
+                for wf in _WORKFLOW_REGISTRY.values():
+                    bad = set(wf.required_groups) & missing
+                    if bad:
+                        logger.warning(
+                            "Workflow %r references unknown group slug(s): %s "
+                            "— assignments to these groups will be ignored at runtime",
+                            wf.key, bad,
+                        )
 
 
 def validate_registrations() -> None:
