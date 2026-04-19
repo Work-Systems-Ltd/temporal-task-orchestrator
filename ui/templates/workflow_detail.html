@@ -59,18 +59,24 @@
   {% macro render_subtree(node, is_root) %}
   <div class="wf-graph-subtree">
     <a href="{% if node.node_type == 'task' and node.status == 'running' %}/task/{{ node.workflow_id }}{% else %}/workflow/{{ node.workflow_id }}{% endif %}"
-       class="wf-graph-node {% if is_root %}wf-graph-node-root{% endif %} {% if node.is_current %}wf-graph-node-current{% endif %} {% if node.node_type == 'task' %}wf-graph-node-task{% endif %}">
+       class="wf-graph-node {% if is_root %}wf-graph-node-root{% endif %} {% if node.is_current %}wf-graph-node-current{% endif %} {% if node.node_type == 'task' %}wf-graph-node-task{% if node.status != 'running' %} wf-graph-node-task-done{% endif %}{% endif %}">
       {% if node.node_type == 'task' %}
-      <span class="wf-graph-node-tag">
+      <span class="wf-graph-node-tag {% if node.status != 'running' %}wf-graph-node-tag-done{% endif %}">
         {% if node.status == 'running' %}<span class="pending-dot" style="width:5px;height:5px;"></span>{% endif %}
-        Human Task
+        {% if node.status == 'running' %}Human Task{% else %}Task Done{% endif %}
       </span>
       {% endif %}
       <span class="wf-graph-node-type-icon">
         {% if node.node_type == 'task' %}
+        {% if node.status == 'running' %}
         <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0" />
         </svg>
+        {% else %}
+        <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+        </svg>
+        {% endif %}
         {% else %}
         <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25a2.25 2.25 0 0 1-2.25-2.25v-2.25Z" />

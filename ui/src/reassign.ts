@@ -8,7 +8,6 @@ interface AssigneesResponse {
   groups: AssigneeOption[];
 }
 
-// Cache assignees so we only fetch once
 let assigneesCache: AssigneesResponse | null = null;
 
 async function fetchAssignees(): Promise<AssigneesResponse> {
@@ -18,67 +17,61 @@ async function fetchAssignees(): Promise<AssigneesResponse> {
   return assigneesCache!;
 }
 
-interface ReassignPickerData {
-  open: boolean;
-  value: string;
-  search: string;
-  options: AssigneeOption[];
-  filtered: AssigneeOption[];
-  toggle(): void;
-  assign(slug: string): void;
-  close(): void;
-  // internal
-  _field: string;
-  _otherValue: string;
-  _workflowId: string;
-  $refs: Record<string, HTMLElement>;
-  $nextTick(fn: () => void): void;
-  $dispatch(event: string): void;
-}
+// Track which picker is currently open so only one shows at a time
+let activePickerId: string | null = null;
 
 function reassignPicker(
   workflowId: string,
   field: "user" | "group",
   currentValue: string,
   otherValue: string,
-): ReassignPickerData {
+) {
+  const pickerId = `${workflowId}-${field}`;
+
   return {
     open: false,
     value: currentValue,
     search: "",
-    options: [],
-    _field: field,
-    _otherValue: otherValue,
-    _workflowId: workflowId,
+    options: [] as AssigneeOption[],
 
     get filtered(): AssigneeOption[] {
       if (!this.search) return this.options;
       const q = this.search.toLowerCase();
-      return this.options.filter((o) => o.label.toLowerCase().includes(q));
+      return this.options.filter((o: AssigneeOption) => o.label.toLowerCase().includes(q));
     },
 
     toggle() {
-      this.open = !this.open;
       if (this.open) {
-        fetchAssignees().then((d) => {
-          this.options = field === "user" ? d.users : d.groups;
-        });
-        this.$nextTick(() => {
-          const input = this.$refs.searchInput as HTMLInputElement | undefined;
-          if (input) input.focus();
-        });
-      } else {
+        this.open = false;
         this.search = "";
+        activePickerId = null;
+        return;
       }
+
+      // Close any other open picker
+      if (activePickerId && activePickerId !== pickerId) {
+        window.dispatchEvent(new CustomEvent("reassign-close"));
+      }
+
+      this.open = true;
+      activePickerId = pickerId;
+
+      fetchAssignees().then((d: AssigneesResponse) => {
+        this.options = field === "user" ? d.users : d.groups;
+      });
+
+      (this as any).$nextTick(() => {
+        const input = (this as any).$refs.searchInput as HTMLInputElement | undefined;
+        if (input) input.focus();
+      });
     },
 
     assign(slug: string) {
       const body: Record<string, string> = {};
-      body[`assigned_${this._field}`] = slug;
-      body[this._field === "user" ? "assigned_group" : "assigned_user"] =
-        this._otherValue;
+      body[`assigned_${field}`] = slug;
+      body[field === "user" ? "assigned_group" : "assigned_user"] = otherValue;
 
-      fetch(`/tasks/${this._workflowId}/reassign`, {
+      fetch(`/tasks/${workflowId}/reassign`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -86,15 +79,23 @@ function reassignPicker(
         this.value = slug;
         this.open = false;
         this.search = "";
+        activePickerId = null;
       });
     },
 
     close() {
+      if (activePickerId !== pickerId) {
+        this.open = false;
+        this.search = "";
+      }
+    },
+
+    handleClose() {
+      // Only close if this isn't the one being opened
       this.open = false;
       this.search = "";
     },
-  } as ReassignPickerData;
+  };
 }
 
-// Expose to window for Alpine x-data
 (window as Record<string, unknown>).reassignPicker = reassignPicker;

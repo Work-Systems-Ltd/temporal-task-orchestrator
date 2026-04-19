@@ -4,8 +4,8 @@
 <td class="hidden td sm:table-cell" style="position:relative;overflow:visible" onclick="event.stopPropagation()"
     x-data="reassignPicker('{{ workflow_id }}', '{{ field }}', '{{ current_value }}', '{{ other_value }}')"
     @click.away="close()"
-    @reassign-close.window="close()">
-  <button @click="$dispatch('reassign-close'); $nextTick(() => toggle())"
+    @reassign-close.window="handleClose()">
+  <button @click="toggle()"
           class="pill cursor-pointer transition-opacity hover:opacity-80"
           :class="value ? 'pill-{{ color }}' : 'pill-zinc'"
           x-text="value || '—'"></button>
