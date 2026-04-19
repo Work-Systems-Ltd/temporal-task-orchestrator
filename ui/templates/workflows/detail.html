@@ -4,7 +4,7 @@
 {% block title %}{{ detail.workflow_type }} — Task Console{% endblock %}
 
 {% block content %}
-<div x-data="{ copied: false }" class="animate-slide-up stagger-in">
+<div x-data="{ copied: false }" class="animate-slide-up stagger-in" data-workflow-ws="{{ workflow_id }}">
 
   <a href="{{ request.url_for('workflows_page') }}" class="back-link">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -13,6 +13,7 @@
     Back to workflows
   </a>
 
+  <div data-ws-section="hero">
   <div class="detail-hero">
     <div class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-2 flex-wrap">
@@ -55,6 +56,7 @@
       </span>
       {% endif %}
     </div>
+  </div>
   </div>
 
   {% macro render_subtree(node, is_root) %}
@@ -116,6 +118,7 @@
   </div>
   {% endmacro %}
 
+  <div data-ws-section="graph">
   {% if graph %}
   <div class="card mb-5">
     <div class="card-header">
@@ -128,7 +131,9 @@
     </div>
   </div>
   {% endif %}
+  </div>
 
+  <div data-ws-section="pending">
   {% if pending_tasks %}
   <div class="pending-section mb-5">
     <div class="pending-section-header">
@@ -209,10 +214,12 @@
     {% endfor %}
   </div>
   {% endif %}
+  </div>
 
   <div class="grid items-start gap-5 lg:grid-cols-5">
 
     <div class="lg:col-span-3">
+      <div data-ws-section="timeline">
       {% if timeline %}
       <div class="card">
         <div class="card-header">
@@ -301,9 +308,11 @@
         </div>
       </div>
       {% endif %}
+      </div>
     </div>
 
     <div class="lg:col-span-2 flex flex-col gap-5">
+      <div data-ws-section="details">
       <div class="card">
         <div class="card-header">
           <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Details</h2>
@@ -359,7 +368,7 @@
             <span class="text-[10px] font-medium uppercase tracking-wider text-faint">current</span>
           </div>
           {% else %}
-          <a href="{{ request.url_for('workflow_detail', workflow_id=workflow_id) }}?run_id={{ run.run_id }}" class="flex items-center gap-3 px-5 py-3 transition-colors" style="color: inherit; text-decoration: none;" onmouseover="this.style.background='var(--color-surface-hover)'" onmouseout="this.style.background=''">
+          <a href="{{ request.url_for('workflow_detail', workflow_id=workflow_id) }}?run_id={{ run.run_id }}" class="table-row-clickable flex items-center gap-3 px-5 py-3 transition-colors" style="color: inherit; text-decoration: none;">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
                 {{ status_badge(run.status) }}
@@ -379,7 +388,9 @@
         </div>
       </div>
       {% endif %}
+      </div>
 
+      <div data-ws-section="io">
       {% if stats.workflow_input or stats.workflow_output %}
       {% if stats.workflow_input %}
       <div class="json-viewer" x-data="{ copied: false, content: {{ stats.workflow_input | tojson | e }} }">
@@ -404,6 +415,7 @@
       </div>
       {% endif %}
       {% endif %}
+      </div>
     </div>
 
   </div>
@@ -414,5 +426,4 @@
 {% block scripts %}
 <script src="{{ request.url_for('static', path='js/json-viewer.js') }}"></script>
 <script src="{{ request.url_for('static', path='js/inline-task.js') }}"></script>
-<script>connectWorkflowWs('{{ workflow_id }}');</script>
 {% endblock %}

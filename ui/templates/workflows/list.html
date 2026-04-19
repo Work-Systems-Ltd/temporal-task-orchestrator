@@ -104,30 +104,7 @@
     {% endfor %}
   </div>
 
-  <script>
-    (function() {
-      try {
-        var all = ['id','type','started','stopped','duration','status','queue','run_id','events','parent'];
-        var defaults = ['id','type','started','duration','status'];
-        var raw = localStorage.getItem('wf-visible-cols');
-        var cols = raw ? JSON.parse(raw) : null;
-        if (!Array.isArray(cols) || !cols.length) cols = defaults;
-        var hidden = all.filter(function(c) { return cols.indexOf(c) === -1; });
-        if (!hidden.length) return;
-        var rules = hidden.map(function(c) { return '[data-col="' + c + '"]{display:none!important}'; });
-        var s = document.createElement('style');
-        s.id = 'col-preload';
-        s.textContent = rules.join('');
-        document.head.appendChild(s);
-        document.addEventListener('DOMContentLoaded', function() {
-          hidden.forEach(function(c) {
-            var cb = document.querySelector('[data-col-toggle="' + c + '"]');
-            if (cb) cb.checked = false;
-          });
-        });
-      } catch(e) {}
-    })();
-  </script>
+  <script src="{{ request.url_for('static', path='js/col-preload.js') }}"></script>
   <div data-tab-content>
     {% include "partials/tab_content.html" %}
   </div>

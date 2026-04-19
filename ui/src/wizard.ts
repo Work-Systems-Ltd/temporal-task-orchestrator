@@ -7,12 +7,6 @@ interface WorkflowOption {
   has_input_task: boolean;
 }
 
-declare global {
-  interface Window {
-    __workflows?: WorkflowOption[];
-  }
-}
-
 function wizardData() {
   return {
     step: 1,
@@ -36,7 +30,9 @@ function wizardData() {
     },
 
     init() {
-      this.workflows = window.__workflows || [];
+      const el = (this as any).$el as HTMLElement;
+      const raw = el.dataset.workflows;
+      this.workflows = raw ? JSON.parse(raw) : [];
     },
 
     selectWorkflow(wf: WorkflowOption) {

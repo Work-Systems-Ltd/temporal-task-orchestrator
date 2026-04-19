@@ -153,3 +153,11 @@ function submitInlineTask(event: Event, workflowId: string): void {
 
 (window as any).submitInlineTask = submitInlineTask;
 (window as any).connectWorkflowWs = connectWorkflowWs;
+
+// Auto-initialize from data attribute on any element
+document.addEventListener("DOMContentLoaded", () => {
+  const el = document.querySelector("[data-workflow-ws]") as HTMLElement | null;
+  if (el?.dataset.workflowWs) {
+    connectWorkflowWs(el.dataset.workflowWs);
+  }
+});

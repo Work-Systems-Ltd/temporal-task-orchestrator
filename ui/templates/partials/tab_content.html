@@ -58,8 +58,7 @@
       <tr class="group table-row table-row-clickable animate-slide-up"
           tabindex="0" role="link"
           style="animation-delay: {{ loop.index0 * 30 }}ms"
-          onclick="window.location='{{ request.url_for("task_form", workflow_id=item.workflow_id) }}'"
-          onkeydown="if(event.key==='Enter')window.location='{{ request.url_for("task_form", workflow_id=item.workflow_id) }}'">
+          data-href="{{ request.url_for('task_form', workflow_id=item.workflow_id) }}">
         <td class="td">
           <div class="td-title">{{ item.title }}</div>
           <div class="td-subtitle">{{ item.description }}</div>
@@ -110,12 +109,11 @@
           tabindex="0" role="link"
           {% if item.children %}data-parent-id="{{ item.workflow_id }}"{% endif %}
           style="animation-delay: {{ loop.index0 * 30 }}ms"
-          onclick="window.location='{{ request.url_for("workflow_detail", workflow_id=item.workflow_id) }}'"
-          onkeydown="if(event.key==='Enter')window.location='{{ request.url_for("workflow_detail", workflow_id=item.workflow_id) }}'">
+          data-href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}">
         <td class="td" data-col="id">
           <div class="flex items-center">
             {% if item.children %}
-            <span class="expand-toggle" onclick="event.stopPropagation();toggleExpand('{{ item.workflow_id }}')">
+            <span class="expand-toggle" data-expand="{{ item.workflow_id }}">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd" />
               </svg>
@@ -166,8 +164,7 @@
       <tr class="group table-row table-row-child table-row-clickable hidden"
           tabindex="0" role="link"
           data-child-of="{{ item.workflow_id }}"
-          onclick="window.location='{{ request.url_for("workflow_detail", workflow_id=child.workflow_id) }}'"
-          onkeydown="if(event.key==='Enter')window.location='{{ request.url_for("workflow_detail", workflow_id=child.workflow_id) }}'">
+          data-href="{{ request.url_for('workflow_detail', workflow_id=child.workflow_id) }}">
         <td class="td td-indent" data-col="id">
           <span class="tree-branch">└</span>
           <span class="inline-block max-w-[180px] truncate font-mono text-xs text-muted group-hover:text-secondary" title="{{ child.workflow_id }}">{{ child.workflow_id }}</span>

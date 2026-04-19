@@ -2,12 +2,9 @@
 {% block title %}New Workflow — Task Console{% endblock %}
 
 {% block content %}
-<script>
-  window.__workflows = {{ workflows | tojson }};
-</script>
-
 <div class="mx-auto max-w-[520px] animate-slide-up stagger-in"
-     x-data="wizardData()" x-init="init()">
+     x-data="wizardData()" x-init="init()"
+     data-workflows="{{ workflows | tojson | e }}">
 
   <a href="{{ request.url_for('tasks_page') }}" class="back-link">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
