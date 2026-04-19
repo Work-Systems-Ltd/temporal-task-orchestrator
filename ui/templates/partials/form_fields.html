@@ -1,5 +1,5 @@
 {% macro render_field(field, extra_errors=None) %}
-{% set all_errors = (field.errors or []) + (extra_errors or []) %}
+{% set all_errors = (extra_errors or []) | reject('in', field.errors or []) | list + (field.errors or []) %}
 {% set has_error = all_errors | length > 0 %}
 <div class="space-y-1.5">
   <label for="{{ field.id }}" class="block text-sm font-medium text-secondary">
