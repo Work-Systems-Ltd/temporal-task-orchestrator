@@ -81,8 +81,11 @@ async def _login_required_handler(request, exc: LoginRequiredError):
 async def csrf_middleware(request: Request, call_next):
     """Enforce double-submit cookie CSRF on POST requests."""
     if request.method == "POST":
-        if not await validate_csrf(request):
-            return JSONResponse({"detail": "CSRF validation failed"}, status_code=403)
+        # Skip CSRF for JSON API requests — protected by same-origin policy
+        content_type = request.headers.get("content-type", "")
+        if "application/json" not in content_type:
+            if not await validate_csrf(request):
+                return JSONResponse({"detail": "CSRF validation failed"}, status_code=403)
 
     response = await call_next(request)
 
