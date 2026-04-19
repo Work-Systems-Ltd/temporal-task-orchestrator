@@ -13,17 +13,16 @@
   </a>
 
   <div class="detail-hero">
-    <div class="flex items-center gap-2 flex-wrap">
-      {{ status_badge(detail.status) }}
-      <span class="text-xs text-faint">{{ detail.workflow_type }}</span>
-      {% if is_child %}
-      <span class="tag">Subtask</span>
-      {% endif %}
-    </div>
-    <div class="flex items-center gap-3">
-      <h1 class="detail-hero-title">{{ detail.workflow_type | replace("Workflow", "") | trim }}</h1>
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 flex-wrap">
+        {{ status_badge(detail.status) }}
+        <span class="text-xs text-faint">{{ detail.workflow_type }}</span>
+        {% if is_child %}
+        <span class="tag">Subtask</span>
+        {% endif %}
+      </div>
       {% if can_rerun %}
-      <form method="post" action="/workflow/{{ workflow_id }}/rerun" class="inline">
+      <form method="post" action="/workflow/{{ workflow_id }}/rerun">
         <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
         <button type="submit" class="btn btn-secondary" title="Rerun this workflow with the same input">
           <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -34,6 +33,7 @@
       </form>
       {% endif %}
     </div>
+    <h1 class="detail-hero-title">{{ detail.workflow_type | replace("Workflow", "") | trim }}</h1>
     {% if pending_tasks and pending_tasks | length == 1 %}
     <p class="mt-1 text-sm text-muted">{{ pending_tasks[0].description }}</p>
     {% elif pending_tasks and pending_tasks | length > 1 %}
