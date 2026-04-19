@@ -83,7 +83,7 @@ async def task_submit(
             },
         )
 
-    model, errors = validate_task_form(task, form)
+    model, errors = await validate_task_form(task, form)
     if errors:
         return _render_errors(errors)
 
@@ -112,7 +112,7 @@ async def task_submit_inline(
     form_data = await request.form()
     form = task.Form(form_data)
 
-    model, errors = validate_task_form(task, form)
+    model, errors = await validate_task_form(task, form)
     if errors:
         return JSONResponse({"ok": False, "errors": errors})
 

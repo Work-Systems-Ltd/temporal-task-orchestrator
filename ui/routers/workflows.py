@@ -76,7 +76,7 @@ async def start_submit(
         task = wf_def.input_task()
         form = wf_def.input_task.Form(form_data)
 
-        model, errors = validate_task_form(task, form)
+        model, errors = await validate_task_form(task, form)
         if errors:
             return templates.TemplateResponse(
                 "workflows/start_form.html",
