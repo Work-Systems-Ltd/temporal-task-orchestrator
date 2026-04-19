@@ -30,40 +30,25 @@ class HiringWorkflow(WorkSysFlow):
         if "REJECTED" in approval_result:
             return f"Hiring rejected: {approval_result}"
 
-        # Step 2: Collect onboarding details
-        onboarding_meta = TaskMeta(
-            task_type="onboarding_input",
-            title="Provide onboarding details",
-            description="The hire has been approved. Please provide the new employee's details.",
+        self.create_human_task(
+            lambda: None,  # No activity, just a signal wait
+            task_type="hiring",
+            title="Hiring approved",
+            description="The new hire request has been approved. Please proceed with onboarding.",
         )
-        onboarding_data = await self.wait_for_human_task(onboarding_meta)
-        onboarding_input = OnboardingInputTask.Model(**onboarding_data)
-
-        # # Step 3: Run onboarding
-        # onboarding_result = await workflow.execute_child_workflow(
-        #     OnboardingWorkflow.run,
-        #     onboarding_input,
-        #     id=f"{workflow.info().workflow_id}-onboarding",
-        # )
-
-        # onboarding_result = await workflow.execute_child_workflow(
-        #     OnboardingWorkflow.run,
-        #     onboarding_input,
-        #     id=f"{workflow.info().workflow_id}-onboarding-test",
-        # )
 
         # Step 3: Run onboarding
         import asyncio
         # Start both child workflows concurrently
         onboarding1 = await workflow.start_child_workflow(
             OnboardingWorkflow.run,
-            onboarding_input,
+            lambda: None,  # No input needed, just a signal wait
             id=f"{workflow.info().workflow_id}-onboarding",
         )
 
         onboarding2 = await workflow.start_child_workflow(
             OnboardingWorkflow.run,
-            onboarding_input,
+            lambda: None,   # No input needed, just a signal wait
             id=f"{workflow.info().workflow_id}-onboarding-test",
         )
 
