@@ -9,7 +9,6 @@ The token is generated once per session (on first GET) and rotated on login.
 """
 from __future__ import annotations
 
-import hashlib
 import hmac
 import secrets
 
@@ -45,12 +44,19 @@ def set_csrf_cookie(response: Response, token: str) -> None:
 
 
 async def validate_csrf(request: Request) -> bool:
-    """Return True if the CSRF token is valid for this request."""
+    """Return True if the CSRF token is valid for this request.
+
+    Caches the raw body so downstream handlers (FastAPI form parsing)
+    can still read it.
+    """
     cookie_token = request.cookies.get(COOKIE_NAME)
     if not cookie_token:
         return False
 
-    # Read from form data
+    # Cache the body so it can be re-read by FastAPI
+    body = await request.body()
+    request._body = body  # noqa: SLF001 — Starlette uses this cache
+
     form = await request.form()
     form_token = form.get(FORM_FIELD)
     if not form_token or not isinstance(form_token, str):
