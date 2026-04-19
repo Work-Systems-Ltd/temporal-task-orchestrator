@@ -16,6 +16,9 @@
     <div class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-2 flex-wrap">
         {{ status_badge(detail.status) }}
+        {% if total_runs > 1 %}
+        <span class="tag">run {{ run_number }} of {{ total_runs }}</span>
+        {% endif %}
         <span class="text-xs text-faint">{{ detail.workflow_type }}</span>
         {% if is_child %}
         <span class="tag">Subtask</span>
@@ -248,6 +251,50 @@
           </div>
         </div>
       </div>
+
+      {% if total_runs > 1 %}
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Run History</h2>
+        </div>
+        <div class="divide-y divide-border">
+          {% for run in run_history %}
+          {% set is_current = run.run_id == detail.run_id %}
+          {% if is_current %}
+          <div class="flex items-center gap-3 px-5 py-3" style="background: var(--color-surface-subtle);">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                {{ status_badge(run.status) }}
+                <span class="text-xs text-muted">{{ run.started }}</span>
+                {% if run.duration != "—" %}
+                <span class="timeline-duration">{{ run.duration }}</span>
+                {% endif %}
+              </div>
+              <div class="mt-1 text-[10px] font-mono text-ghost truncate">{{ run.run_id }}</div>
+            </div>
+            <span class="text-[10px] font-medium uppercase tracking-wider text-faint">current</span>
+          </div>
+          {% else %}
+          <a href="/workflow/{{ workflow_id }}?run_id={{ run.run_id }}" class="flex items-center gap-3 px-5 py-3 transition-colors" style="color: inherit; text-decoration: none;" onmouseover="this.style.background='var(--color-surface-hover)'" onmouseout="this.style.background=''">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                {{ status_badge(run.status) }}
+                <span class="text-xs text-muted">{{ run.started }}</span>
+                {% if run.duration != "—" %}
+                <span class="timeline-duration">{{ run.duration }}</span>
+                {% endif %}
+              </div>
+              <div class="mt-1 text-[10px] font-mono text-ghost truncate">{{ run.run_id }}</div>
+            </div>
+            <svg class="h-3 w-3 shrink-0 text-ghost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+          </a>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
 
       {% if stats.workflow_input or stats.workflow_output %}
       {% if stats.workflow_input %}

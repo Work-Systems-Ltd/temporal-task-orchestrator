@@ -67,6 +67,28 @@ class TemporalService:
         results = await asyncio.gather(*[_count_tab(t) for t in TAB_ORDER])
         return dict(results)
 
+    async def _deduplicate_runs(self, items: list[WorkflowItem]) -> list[WorkflowItem]:
+        """Remove items that have been superseded by a newer run.
+
+        For each item, checks if the latest run of that workflow_id matches
+        the item's run_id. If not, the item is an old run and is filtered out.
+        """
+        if not items:
+            return items
+
+        async def _is_latest(item: WorkflowItem) -> bool:
+            if not item.run_id:
+                return True
+            try:
+                handle = self._client.get_workflow_handle(item.workflow_id)
+                desc = await handle.describe()
+                return desc.run_id == item.run_id
+            except Exception:
+                return True
+
+        checks = await asyncio.gather(*[_is_latest(item) for item in items])
+        return [item for item, is_latest in zip(items, checks) if is_latest]
+
     @staticmethod
     def _group_by_parent(items: list) -> list:
         """Group child workflows under their parents.
@@ -189,15 +211,20 @@ class TemporalService:
             collected += 1
 
         has_next = len(items) > size
-        grouped = self._group_by_parent(items[:size])
+        deduped = await self._deduplicate_runs(items[:size])
+        grouped = self._group_by_parent(deduped)
         return PaginatedResult(
             items=grouped,
             has_next=has_next,
         )
 
-    async def get_workflow_detail(self, workflow_id: str) -> WorkflowDetail | None:
+    async def get_workflow_detail(
+        self, workflow_id: str, run_id: str | None = None,
+    ) -> WorkflowDetail | None:
         try:
-            handle = self._client.get_workflow_handle(workflow_id)
+            handle = self._client.get_workflow_handle(
+                workflow_id, run_id=run_id,
+            )
             desc = await handle.describe()
             return WorkflowDetail(
                 workflow_id=desc.id,
@@ -213,6 +240,19 @@ class TemporalService:
             )
         except Exception:
             return None
+
+    async def get_run_history(self, workflow_id: str) -> list[dict]:
+        """Return all runs for a workflow ID, newest first."""
+        runs: list[dict] = []
+        query = f'WorkflowId="{workflow_id}"'
+        async for wf in self._client.list_workflows(query):
+            runs.append({
+                "run_id": wf.run_id or "",
+                "status": status_name(wf.status),
+                "started": relative_time(wf.start_time),
+                "duration": duration(wf.start_time, wf.close_time),
+            })
+        return runs
 
     @staticmethod
     def _ms_duration(start: datetime, end: datetime) -> str:
@@ -231,8 +271,10 @@ class TemporalService:
         hours = minutes // 60
         return f"{hours}h {minutes % 60}m"
 
-    async def get_workflow_timeline(self, workflow_id: str) -> tuple[list[TimelineEvent], TimelineStats]:
-        handle = self._client.get_workflow_handle(workflow_id)
+    async def get_workflow_timeline(
+        self, workflow_id: str, run_id: str | None = None,
+    ) -> tuple[list[TimelineEvent], TimelineStats]:
+        handle = self._client.get_workflow_handle(workflow_id, run_id=run_id)
         history = await handle.fetch_history()
 
         # Track scheduled activities/children so we can collapse into single events

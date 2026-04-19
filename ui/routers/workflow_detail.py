@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -24,22 +24,32 @@ async def _noop() -> None:
 async def workflow_detail(
     request: Request,
     workflow_id: str,
+    run_id: str | None = Query(None),
     service: TemporalService = Depends(get_temporal_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
-    detail = await service.get_workflow_detail(workflow_id)
+    detail = await service.get_workflow_detail(workflow_id, run_id=run_id)
     if not detail:
         return RedirectResponse(url="/", status_code=303)
 
     is_running = detail.status == "running"
     is_child = detail.parent_id is not None
 
-    timeline_result, graph = await asyncio.gather(
-        service.get_workflow_timeline(workflow_id),
+    timeline_result, graph, run_history = await asyncio.gather(
+        service.get_workflow_timeline(workflow_id, run_id=run_id),
         service.get_workflow_graph(workflow_id, detail),
+        service.get_run_history(workflow_id),
     )
 
     timeline, stats = timeline_result
+
+    # Determine which run number this is (newest = 1)
+    total_runs = len(run_history)
+    current_run_id = detail.run_id
+    run_number = next(
+        (i + 1 for i, r in enumerate(run_history) if r["run_id"] == current_run_id),
+        1,
+    )
 
     # Collect pending tasks from this workflow + all descendants
     pending_tasks = await service.get_all_pending_tasks(graph, workflow_id) if is_running else []
@@ -56,6 +66,9 @@ async def workflow_detail(
             "is_child": is_child,
             "workflow_id": workflow_id,
             "can_rerun": detail.status in RERUNNABLE_STATUSES,
+            "run_history": run_history,
+            "run_number": run_number,
+            "total_runs": total_runs,
         },
     )
 
