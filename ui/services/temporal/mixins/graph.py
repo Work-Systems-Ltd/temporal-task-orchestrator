@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from datetime import datetime
 
 from core.workflows import WorkSysFlow
 from ui.helpers import duration, relative_time
 from ui.models import GraphNode, WorkflowDetail
 from ui.services.temporal.helpers import ms_duration
+
+logger = logging.getLogger(__name__)
 
 
 class GraphMixin:

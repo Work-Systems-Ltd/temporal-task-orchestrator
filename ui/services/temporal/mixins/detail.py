@@ -86,7 +86,7 @@ class DetailMixin:
                     try:
                         workflow_input = attrs.input.payloads[0].data.decode("utf-8")
                     except Exception as exc:
-                        pass
+                        logger.debug("Failed to decode workflow payload: %s", exc)
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow started", status="completed"))
 
             elif etype == 2:  # WORKFLOW_EXECUTION_COMPLETED
@@ -96,7 +96,7 @@ class DetailMixin:
                     try:
                         workflow_output = attrs.result.payloads[0].data.decode("utf-8")
                     except Exception as exc:
-                        pass
+                        logger.debug("Failed to decode workflow payload: %s", exc)
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow completed", status="completed"))
 
             elif etype == 3:  # WORKFLOW_EXECUTION_FAILED
