@@ -382,10 +382,10 @@
 
       {% if stats.workflow_input or stats.workflow_output %}
       {% if stats.workflow_input %}
-      <div class="json-viewer" x-data="{ copied: false }">
+      <div class="json-viewer" x-data="{ copied: false, content: {{ stats.workflow_input | tojson | e }} }">
         <div class="json-viewer-label flex items-center justify-between">
           <span>Input</span>
-          <button @click="navigator.clipboard.writeText({{ stats.workflow_input | tojson }}); copied = true; setTimeout(() => copied = false, 1500)"
+          <button @click="navigator.clipboard.writeText(content); copied = true; setTimeout(() => copied = false, 1500)"
                   class="text-[10px] font-normal normal-case tracking-normal transition-colors" :style="copied ? 'color: var(--color-pill-emerald-text)' : 'color: var(--color-text-ghost)'"
                   x-text="copied ? 'Copied' : 'Copy'"></button>
         </div>
@@ -393,10 +393,10 @@
       </div>
       {% endif %}
       {% if stats.workflow_output %}
-      <div class="json-viewer" x-data="{ copied: false }">
+      <div class="json-viewer" x-data="{ copied: false, content: {{ stats.workflow_output | tojson | e }} }">
         <div class="json-viewer-label flex items-center justify-between">
           <span>Output</span>
-          <button @click="navigator.clipboard.writeText({{ stats.workflow_output | tojson }}); copied = true; setTimeout(() => copied = false, 1500)"
+          <button @click="navigator.clipboard.writeText(content); copied = true; setTimeout(() => copied = false, 1500)"
                   class="text-[10px] font-normal normal-case tracking-normal transition-colors" :style="copied ? 'color: var(--color-pill-emerald-text)' : 'color: var(--color-text-ghost)'"
                   x-text="copied ? 'Copied' : 'Copy'"></button>
         </div>
