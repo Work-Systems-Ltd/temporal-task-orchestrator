@@ -102,4 +102,4 @@ async def task_submit(
 
     await service.signal_complete(workflow_id, model.model_dump_json())
 
-    return RedirectResponse(url="/?completed=1", status_code=303)
+    return RedirectResponse(url="/tasks?completed=1", status_code=303)

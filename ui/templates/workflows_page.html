@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Workflows — Task Console{% endblock %}
+
+{% block content %}
+<div x-data="taskList()" x-init="connect()" class="animate-slide-up" data-initial-hash="{{ data_hash }}">
+
+  <div class="mb-4 flex items-center gap-2">
+    <form method="get" action="/workflows" class="flex flex-1 items-center gap-2">
+      <input type="hidden" name="tab" value="{{ tab }}" />
+      {% if wf_type %}<input type="hidden" name="type" value="{{ wf_type }}" />{% endif %}
+      <div class="search-box">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search workflows..."
+               class="search-box-input" />
+        <svg class="search-box-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        {% if search %}
+        <a href="/workflows?tab={{ tab }}{% if wf_type %}&type={{ wf_type }}{% endif %}" class="search-box-clear" title="Clear search">
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </a>
+        {% else %}
+        <div class="search-box-kbd">
+          <kbd>/</kbd>
+        </div>
+        {% endif %}
+      </div>
+    </form>
+
+    <div class="flex shrink-0 items-center gap-2">
+      <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+        <button @click="open = !open" class="btn btn-secondary">
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+          </svg>
+          {% if wf_type %}{{ wf_type }}{% else %}All types{% endif %}
+          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+        <div x-show="open" @click.away="open = false" x-cloak
+             x-transition:enter="transition ease-out duration-100"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-75"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="dropdown-menu origin-top-right">
+          <a href="/workflows?tab={{ tab }}" class="dropdown-item {% if not wf_type %}dropdown-item-active{% endif %}">
+            {% if not wf_type %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
+            All types
+          </a>
+          {% for wt in workflow_types %}
+          <a href="/workflows?tab={{ tab }}&type={{ wt }}" class="dropdown-item {% if wf_type == wt %}dropdown-item-active{% endif %}">
+            {% if wf_type == wt %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
+            {{ wt }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+        <button @click="open = !open" class="btn btn-icon" title="Columns">
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z" />
+          </svg>
+        </button>
+        <div x-show="open" @click.away="open = false" x-cloak
+             x-transition:enter="transition ease-out duration-100"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-75"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="dropdown-menu origin-top-right" style="min-width:160px">
+          <div class="px-3 py-2 text-[11px] font-medium uppercase tracking-wider text-ghost">Columns</div>
+          {% for col_id, col_label in [("id", "Workflow ID"), ("type", "Type"), ("started", "Started"), ("stopped", "Stopped"), ("duration", "Duration"), ("status", "Status"), ("queue", "Task Queue"), ("run_id", "Run ID"), ("events", "Events"), ("parent", "Parent")] %}
+          <label class="dropdown-item cursor-pointer" onclick="event.preventDefault();toggleColumn('{{ col_id }}')">
+            <input type="checkbox" data-col-toggle="{{ col_id }}" class="accent-current rounded" checked />
+            <span>{{ col_label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      <button @click="refresh()" class="btn btn-icon">
+        <svg :class="{ 'animate-spin': loading }" class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="tab-bar" data-tab-bar>
+    {% for t in tabs %}
+    <a href="/workflows?tab={{ t }}{% if per_page %}&per_page={{ per_page }}{% endif %}{% if wf_type %}&type={{ wf_type }}{% endif %}"
+       @click="navigateTab($event)"
+       data-tab="{{ t }}"
+       class="tab-item {% if tab == t %}tab-item-active{% endif %}">
+      {{ t | capitalize }}
+      {% if counts.get(t, 0) > 0 %}
+      <span class="count-badge {% if tab == t %}count-badge-active{% else %}count-badge-muted{% endif %}">{{ counts[t] }}</span>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+
+  <script>
+    (function() {
+      try {
+        var all = ['id','type','started','stopped','duration','status','queue','run_id','events','parent'];
+        var defaults = ['id','type','started','duration','status'];
+        var raw = localStorage.getItem('wf-visible-cols');
+        var cols = raw ? JSON.parse(raw) : null;
+        if (!Array.isArray(cols) || !cols.length) cols = defaults;
+        var hidden = all.filter(function(c) { return cols.indexOf(c) === -1; });
+        if (!hidden.length) return;
+        var rules = hidden.map(function(c) { return '[data-col="' + c + '"]{display:none!important}'; });
+        var s = document.createElement('style');
+        s.id = 'col-preload';
+        s.textContent = rules.join('');
+        document.head.appendChild(s);
+        document.addEventListener('DOMContentLoaded', function() {
+          hidden.forEach(function(c) {
+            var cb = document.querySelector('[data-col-toggle="' + c + '"]');
+            if (cb) cb.checked = false;
+          });
+        });
+      } catch(e) {}
+    })();
+  </script>
+  <div data-tab-content>
+    {% include "partials/tab_content.html" %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/task-list.js"></script>
+{% endblock %}

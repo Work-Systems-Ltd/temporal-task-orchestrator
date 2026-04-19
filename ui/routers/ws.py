@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 
 from ui.auth.dependencies import require_ws_auth
 from ui.auth.models import User
-from ui.config import TAB_ORDER
+from ui.config import TAB_ORDER, WORKFLOW_TAB_ORDER
 from ui.dependencies import get_templates, get_temporal_service
 from ui.services.temporal import TemporalService
 from core.workflows import get_all_workflows
@@ -47,16 +47,13 @@ async def _build_update(
     per_page: int | None = None,
 ) -> dict:
     """Build a full update payload with rendered fragments and data hash."""
-    if tab not in TAB_ORDER:
-        tab = "pending"
+    if tab not in WORKFLOW_TAB_ORDER:
+        tab = "running"
 
-    if tab == "pending":
-        list_coro = service.list_pending(page, wf_type, search, per_page=per_page)
-    else:
-        list_coro = service.list_workflows(tab, page, wf_type, search, per_page=per_page)
+    list_coro = service.list_workflows(tab, page, wf_type, search, per_page=per_page)
 
     counts, result = await asyncio.gather(
-        service.get_tab_counts(wf_type),
+        service.get_tab_counts(wf_type, tabs=WORKFLOW_TAB_ORDER),
         list_coro,
     )
 
@@ -66,7 +63,7 @@ async def _build_update(
         "request": ws,
         "items": items,
         "tab": tab,
-        "tabs": TAB_ORDER,
+        "tabs": WORKFLOW_TAB_ORDER,
         "counts": counts,
         "page": page,
         "has_next": result.has_next,
@@ -76,11 +73,24 @@ async def _build_update(
         "workflow_types": _get_workflow_types(),
     }
 
-    tab_bar = templates.get_template("partials/tab_bar.html").render(ctx)
+    tab_bar_html = ""
+    for t in WORKFLOW_TAB_ORDER:
+        active = "tab-item-active" if tab == t else ""
+        count = counts.get(t, 0)
+        badge = ""
+        if count > 0:
+            badge_cls = "count-badge-active" if tab == t else "count-badge-muted"
+            badge = f'<span class="count-badge {badge_cls}">{count}</span>'
+        tab_bar_html += (
+            f'<a href="/workflows?tab={t}" @click="navigateTab($event)" '
+            f'data-tab="{t}" class="tab-item {active}">'
+            f'{t.capitalize()} {badge}</a>'
+        )
+
     tab_content = templates.get_template("partials/tab_content.html").render(ctx)
 
     return {
-        "tab_bar": tab_bar,
+        "tab_bar": tab_bar_html,
         "tab_content": tab_content,
         "hash": _data_hash(counts, items, result.has_next),
     }
@@ -97,7 +107,7 @@ async def tasks_ws(
 
     # Shared state — only modified by the receive loop, read by push_loop
     state = {
-        "tab": "pending",
+        "tab": "running",
         "page": 1,
         "per_page": None,
         "wf_type": None,

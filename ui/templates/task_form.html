@@ -6,7 +6,7 @@
 {% block content %}
 <div x-data="{ submitting: false, copied: false }" class="mx-auto max-w-[520px] animate-slide-up">
 
-  <a href="/" class="back-link">
+  <a href="/tasks" class="back-link">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
@@ -37,7 +37,7 @@
       {% endfor %}
 
       <div class="flex items-center justify-end gap-3 pt-2">
-        <a href="/" class="btn btn-ghost">Back</a>
+        <a href="/tasks" class="btn btn-ghost">Back</a>
         <button type="submit" :disabled="submitting"
                 class="btn btn-primary btn-lg relative">
           <span :class="submitting ? 'invisible' : ''">Submit</span>

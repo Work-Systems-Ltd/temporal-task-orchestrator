@@ -100,4 +100,4 @@ async def start_submit(
     workflow_id = f"{workflow_key}-{uuid.uuid4().hex[:8]}"
     await service.start_workflow(wf_def, input_value, workflow_id)
 
-    return RedirectResponse(url="/?started=1", status_code=303)
+    return RedirectResponse(url="/workflows?started=1", status_code=303)

@@ -77,14 +77,18 @@ class TemporalService:
                 continue
         return count
 
-    async def get_tab_counts(self, wf_type: str | None = None) -> dict[str, int]:
+    async def get_tab_counts(
+        self, wf_type: str | None = None, tabs: list[str] | None = None,
+    ) -> dict[str, int]:
+        tab_list = tabs or TAB_ORDER
+
         async def _count_tab(tab: str) -> tuple[str, int]:
             if tab == "pending":
                 return tab, await self.count_pending(wf_type)
             q = self._build_query(STATUS_QUERIES[tab], wf_type)
             return tab, await self.count_workflows(q)
 
-        results = await asyncio.gather(*[_count_tab(t) for t in TAB_ORDER])
+        results = await asyncio.gather(*[_count_tab(t) for t in tab_list])
         return dict(results)
 
     async def _deduplicate_runs(self, items: list[WorkflowItem]) -> list[WorkflowItem]:

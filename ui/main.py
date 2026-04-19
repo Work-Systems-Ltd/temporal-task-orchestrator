@@ -19,7 +19,7 @@ from ui.auth.routes import router as auth_router
 from ui.auth.seed import ensure_default_groups, seed as seed_user
 from ui.auth.session import delete_expired_sessions, load_user_from_session
 from ui.config import AppSettings
-from ui.routers import admin, task_list, tasks, workflow_detail, workflows as workflows_router, ws
+from ui.routers import admin, task_list, tasks, tasks_page, workflow_detail, workflows as workflows_router, workflows_list, ws
 from ui.services.temporal import TemporalService
 
 logger = logging.getLogger(__name__)
@@ -117,6 +117,8 @@ async def attach_user_to_request(request: Request, call_next):
 
 
 app.include_router(auth_router)
+app.include_router(tasks_page.router)
+app.include_router(workflows_list.router)
 app.include_router(task_list.router)
 app.include_router(tasks.router)
 app.include_router(workflows_router.router)

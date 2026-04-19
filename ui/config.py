@@ -26,3 +26,4 @@ STATUS_QUERIES: dict[str, str | None] = {
 }
 
 TAB_ORDER: list[str] = ["pending", "running", "completed", "failed", "all"]
+WORKFLOW_TAB_ORDER: list[str] = ["running", "completed", "failed", "all"]

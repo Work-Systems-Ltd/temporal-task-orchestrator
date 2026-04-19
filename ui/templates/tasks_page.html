@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Tasks — Task Console{% endblock %}
+
+{% block content %}
+<div class="animate-slide-up">
+
+  <div class="mb-4 flex items-center gap-2">
+    <form method="get" action="/tasks" class="flex flex-1 items-center gap-2">
+      {% if assignment %}<input type="hidden" name="assignment" value="{{ assignment }}" />{% endif %}
+      {% if wf_type %}<input type="hidden" name="type" value="{{ wf_type }}" />{% endif %}
+      <div class="search-box">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search tasks..."
+               class="search-box-input" />
+        <svg class="search-box-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        {% if search %}
+        <a href="/tasks{% if assignment %}?assignment={{ assignment }}{% endif %}{% if wf_type %}&type={{ wf_type }}{% endif %}" class="search-box-clear" title="Clear search">
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </a>
+        {% else %}
+        <div class="search-box-kbd">
+          <kbd>/</kbd>
+        </div>
+        {% endif %}
+      </div>
+    </form>
+
+    <div class="flex shrink-0 items-center gap-2">
+      <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+        <button @click="open = !open" class="btn btn-secondary">
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+          </svg>
+          {% if wf_type %}{{ wf_type }}{% else %}All types{% endif %}
+          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+        <div x-show="open" @click.away="open = false" x-cloak
+             x-transition:enter="transition ease-out duration-100"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-75"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="dropdown-menu origin-top-right">
+          <a href="/tasks{% if assignment %}?assignment={{ assignment }}{% endif %}" class="dropdown-item {% if not wf_type %}dropdown-item-active{% endif %}">
+            {% if not wf_type %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
+            All types
+          </a>
+          {% for wt in workflow_types %}
+          <a href="/tasks?type={{ wt }}{% if assignment %}&assignment={{ assignment }}{% endif %}" class="dropdown-item {% if wf_type == wt %}dropdown-item-active{% endif %}">
+            {% if wf_type == wt %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
+            {{ wt }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
+        <button @click="open = !open" class="btn btn-secondary">
+          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+          </svg>
+          {% if assignment == "mine" %}Assigned to me{% elif assignment == "unassigned" %}Unassigned{% else %}All tasks{% endif %}
+          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+        <div x-show="open" @click.away="open = false" x-cloak
+             x-transition:enter="transition ease-out duration-100"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-75"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             class="dropdown-menu origin-top-right">
+          <a href="/tasks{% if wf_type %}?type={{ wf_type }}{% endif %}" class="dropdown-item {% if not assignment %}dropdown-item-active{% endif %}">
+            {% if not assignment %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
+            All tasks
+          </a>
+          <a href="/tasks?assignment=mine{% if wf_type %}&type={{ wf_type }}{% endif %}" class="dropdown-item {% if assignment == 'mine' %}dropdown-item-active{% endif %}">
+            {% if assignment == "mine" %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
+            Assigned to me
+          </a>
+          <a href="/tasks?assignment=unassigned{% if wf_type %}&type={{ wf_type }}{% endif %}" class="dropdown-item {% if assignment == 'unassigned' %}dropdown-item-active{% endif %}">
+            {% if assignment == "unassigned" %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
+            Unassigned
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% set tab = "pending" %}
+  <div>
+    {% include "partials/tab_content.html" %}
+  </div>
+
+  {% if has_prev or has_next %}
+  <div class="mt-4 flex items-center justify-between">
+    <div>
+      {% if has_prev %}
+      <a href="/tasks?page={{ page - 1 }}{% if wf_type %}&type={{ wf_type }}{% endif %}{% if assignment %}&assignment={{ assignment }}{% endif %}" class="btn btn-page">&larr; Previous</a>
+      {% endif %}
+    </div>
+    <span class="text-xs text-faint">Page {{ page }}</span>
+    <div>
+      {% if has_next %}
+      <a href="/tasks?page={{ page + 1 }}{% if wf_type %}&type={{ wf_type }}{% endif %}{% if assignment %}&assignment={{ assignment }}{% endif %}" class="btn btn-page">Next &rarr;</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
