@@ -132,7 +132,7 @@ class DetailMixin:
                 total_activity_secs += act_duration
                 last_activity_end = _ts(event)
                 dur_str = ms_duration(sched_time, _ts(event))
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="completed", duration=dur_str))
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="completed", duration=dur_str, kind="system"))
 
             elif etype == ACTIVITY_TASK_FAILED:  # ACTIVITY_TASK_FAILED
                 attrs = event.activity_task_failed_event_attributes
@@ -146,7 +146,7 @@ class DetailMixin:
                     fail_detail = attrs.failure.message or ""
                     if attrs.failure.cause and attrs.failure.cause.message:
                         fail_detail = attrs.failure.cause.message
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="failed", detail=fail_detail, duration=dur_str))
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="failed", detail=fail_detail, duration=dur_str, kind="system"))
 
             # Signals
             elif etype == WORKFLOW_EXECUTION_SIGNALED:  # WORKFLOW_EXECUTION_SIGNALED

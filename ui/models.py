@@ -66,6 +66,10 @@ class TimelineEvent(BaseModel):
     detail: str = ""
     link: str = ""  # URL for clickable events (e.g. child workflows)
     duration: str = ""  # e.g. "120ms", "2.3s" — shown as badge
+    kind: str = ""  # "system", "human", "workflow", "signal"
+    input_data: str = ""  # JSON string of submitted data
+    assigned_user: str = ""
+    assigned_group: str = ""
 
 
 class TimelineStats(BaseModel):
