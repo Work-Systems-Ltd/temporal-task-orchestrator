@@ -57,30 +57,12 @@
       {% for item in items %}
       <tr class="group table-row table-row-clickable animate-slide-up"
           tabindex="0" role="link"
-          {% if item.children %}data-parent-id="{{ item.workflow_id }}"{% endif %}
           style="animation-delay: {{ loop.index0 * 30 }}ms"
-          {% if item.children %}
-          onclick="toggleExpand('{{ item.workflow_id }}')"
-          onkeydown="if(event.key==='Enter')toggleExpand('{{ item.workflow_id }}')"
-          {% else %}
           onclick="window.location='/task/{{ item.workflow_id }}'"
-          onkeydown="if(event.key==='Enter')window.location='/task/{{ item.workflow_id }}'"
-          {% endif %}>
+          onkeydown="if(event.key==='Enter')window.location='/task/{{ item.workflow_id }}'">
         <td class="td">
-          <div class="flex items-center">
-            {% if item.children %}
-            <span class="expand-toggle" onclick="event.stopPropagation();toggleExpand('{{ item.workflow_id }}')">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd" />
-              </svg>
-            </span>
-            {% endif %}
-            <div>
-              <div class="td-title">{{ item.title }}</div>
-              <div class="td-subtitle">{{ item.description }}</div>
-            </div>
-          </div>
-          {% if item.children %}<span class="child-count">{{ item.children | length }}</span>{% endif %}
+          <div class="td-title">{{ item.title }}</div>
+          <div class="td-subtitle">{{ item.description }}</div>
         </td>
         <td class="hidden td sm:table-cell">
           <span class="tag">{{ item.task_type }}</span>
@@ -99,40 +81,6 @@
           </svg>
         </td>
       </tr>
-      {% for child in item.children %}
-      <tr class="group table-row table-row-child table-row-clickable hidden"
-          tabindex="0" role="link"
-          data-child-of="{{ item.workflow_id }}"
-          onclick="window.location='/task/{{ child.workflow_id }}'"
-          onkeydown="if(event.key==='Enter')window.location='/task/{{ child.workflow_id }}'">
-        <td class="td td-indent">
-          <div>
-            <span class="tree-branch">└</span>
-            <span class="td-title" style="display:inline">{{ child.title }}</span>
-          </div>
-          <div class="td-subtitle" style="margin-left:1.25rem">{{ child.description }}</div>
-        </td>
-        <td class="hidden td sm:table-cell">
-          <span class="subtask-tag">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>
-            {{ child.task_type }}
-          </span>
-        </td>
-        {{ reassign_picker(child.workflow_id, 'user', child.assigned_user, child.assigned_group, 'blue') }}
-        {{ reassign_picker(child.workflow_id, 'group', child.assigned_group, child.assigned_user, 'emerald') }}
-        <td class="hidden td md:table-cell">
-          <a href="/workflow/{{ child.workflow_id }}" class="td-mono timeline-link" title="{{ child.workflow_id }}" onclick="event.stopPropagation()">{{ child.workflow_id }}</a>
-        </td>
-        <td class="td">
-          <span class="td-time">{{ child.started }}</span>
-        </td>
-        <td class="td">
-          <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-          </svg>
-        </td>
-      </tr>
-      {% endfor %}
       {% endfor %}
     </tbody>
   </table>

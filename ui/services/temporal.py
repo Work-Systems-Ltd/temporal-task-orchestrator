@@ -223,13 +223,12 @@ class TemporalService:
             except Exception:
                 continue
 
-        grouped = self._group_by_parent(all_pending)
         size = per_page or self.page_size
         start = (page - 1) * size
         end = start + size
         return PaginatedResult(
-            items=grouped[start:end],
-            has_next=end < len(grouped),
+            items=all_pending[start:end],
+            has_next=end < len(all_pending),
         )
 
     async def list_workflows(
