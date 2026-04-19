@@ -9,7 +9,7 @@ from temporalio.worker import Worker
 from workflows.approval import ApprovalWorkflow
 from workflows.hiring import HiringWorkflow
 from workflows.onboarding import OnboardingWorkflow
-from workflows.ping import PingWorkflow
+from workflows.ping import PingWorkflow, ping_activity
 from workflows.testing import TestingWorkflow
 
 import tasks  # noqa: F401 — trigger task registration
@@ -29,7 +29,7 @@ def run() -> None:
             client,
             task_queue=settings.task_queue,
             workflows=[ApprovalWorkflow, HiringWorkflow, OnboardingWorkflow, PingWorkflow, TestingWorkflow],
-            activities=get_all_activities(),
+            activities=get_all_activities() + [ping_activity],
         )
         print(f"Worker started, listening on '{settings.task_queue}'...")
         await w.run()
