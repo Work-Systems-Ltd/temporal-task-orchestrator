@@ -37,10 +37,30 @@ class TemporalService:
         return " AND ".join(parts) if parts else None
 
     async def count_workflows(self, query: str | None) -> int:
-        count = 0
-        async for _ in self._client.list_workflows(query, page_size=100):
-            count += 1
-        return count
+        """Count workflows matching *query*, deduplicating by workflow ID.
+
+        Only counts a workflow ID if its latest run matches the query status.
+        """
+        seen: dict[str, str] = {}  # workflow_id -> run_id (first seen = latest)
+        async for wf in self._client.list_workflows(query, page_size=100):
+            if wf.id not in seen:
+                seen[wf.id] = wf.run_id or ""
+
+        # For each unique workflow_id, verify this is actually the latest run
+        async def _is_latest(wf_id: str, run_id: str) -> bool:
+            if not run_id:
+                return True
+            try:
+                handle = self._client.get_workflow_handle(wf_id)
+                desc = await handle.describe()
+                return desc.run_id == run_id
+            except Exception:
+                return True
+
+        checks = await asyncio.gather(
+            *[_is_latest(wf_id, rid) for wf_id, rid in seen.items()]
+        )
+        return sum(1 for is_latest in checks if is_latest)
 
     async def count_pending(self, wf_type: str | None = None) -> int:
         count = 0
