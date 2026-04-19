@@ -29,7 +29,7 @@ class OnboardingWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: OnboardingInputTask.Model) -> str:
-        human_data = await self.execute_and_wait(
+        human_data = await self.create_human_task(
             create_onboarding_ticket,
             input.employee_name,
             task_type="onboarding",

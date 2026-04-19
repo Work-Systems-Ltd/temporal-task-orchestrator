@@ -54,7 +54,7 @@ class WorkSysFlow:
         self._human_task_data = None
         return data
 
-    async def execute_and_wait(
+    async def create_human_task(
         self,
         activity,
         *args,

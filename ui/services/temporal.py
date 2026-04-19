@@ -200,6 +200,14 @@ class TemporalService:
                         if meta.assigned_user or meta.assigned_group:
                             continue
 
+                    # Determine if the current user can act on this task
+                    can_access = True
+                    if meta.assigned_user or meta.assigned_group:
+                        can_access = (
+                            (meta.assigned_user and meta.assigned_user == user_slug)
+                            or (meta.assigned_group and meta.assigned_group in (user_group_slugs or []))
+                        )
+
                     all_pending.append(
                         PendingTaskItem(
                             workflow_id=wf.id,
@@ -210,6 +218,7 @@ class TemporalService:
                             started=relative_time(wf.start_time),
                             assigned_user=meta.assigned_user,
                             assigned_group=meta.assigned_group,
+                            can_access=can_access,
                         )
                     )
             except Exception:

@@ -35,7 +35,7 @@ class ApprovalWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: ApprovalInputTask.Model) -> str:
-        human_data = await self.execute_and_wait(
+        human_data = await self.create_human_task(
             log_request,
             input.description,
             task_type="approval",
