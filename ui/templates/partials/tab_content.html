@@ -1,7 +1,7 @@
 {% from "partials/macros.html" import status_badge %}
 
 {% macro reassign_picker(workflow_id, field, current_value, other_value, color) %}
-<td class="hidden td sm:table-cell" onclick="event.stopPropagation()"
+<td class="hidden td sm:table-cell"
     x-data="reassignPicker('{{ workflow_id }}', '{{ field }}', '{{ current_value }}', '{{ other_value }}')"
     @click.away="close()"
     @reassign-close.window="handleClose()"
@@ -69,7 +69,7 @@
         {{ reassign_picker(item.workflow_id, 'user', item.assigned_user, item.assigned_group, 'blue') }}
         {{ reassign_picker(item.workflow_id, 'group', item.assigned_group, item.assigned_user, 'emerald') }}
         <td class="hidden td md:table-cell">
-          <a href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}" class="td-mono timeline-link" title="{{ item.workflow_id }}" onclick="event.stopPropagation()">{{ item.workflow_id }}</a>
+          <a href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}" class="td-mono timeline-link" title="{{ item.workflow_id }}">{{ item.workflow_id }}</a>
         </td>
         <td class="td">
           <span class="td-time">{{ item.started }}</span>
@@ -149,7 +149,7 @@
         </td>
         <td class="td" data-col="parent">
           {% if item.parent_id %}
-          <a href="{{ request.url_for('workflow_detail', workflow_id=item.parent_id) }}" class="timeline-link" onclick="event.stopPropagation()">{{ item.parent_id }}</a>
+          <a href="{{ request.url_for('workflow_detail', workflow_id=item.parent_id) }}" class="timeline-link">{{ item.parent_id }}</a>
           {% else %}
           <span class="text-ghost">—</span>
           {% endif %}
@@ -197,7 +197,7 @@
           <span class="td-time">{{ child.history_length }}</span>
         </td>
         <td class="td" data-col="parent">
-          <a href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}" class="timeline-link" onclick="event.stopPropagation()">{{ item.workflow_id }}</a>
+          <a href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}" class="timeline-link">{{ item.workflow_id }}</a>
         </td>
         <td class="td">
           <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">

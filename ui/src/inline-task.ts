@@ -2,7 +2,9 @@
  * Inline task submission + WebSocket-driven live updates for the workflow detail page.
  *
  * The WebSocket at /ws/workflow/{id} sends {"type": "refresh"} when the workflow
- * state changes. The client responds by fetching the page and swapping <main> content.
+ * state changes. The client fetches the page and does targeted section replacement
+ * using data-ws-section markers — only sections whose content actually changed get
+ * swapped, preserving Alpine state and avoiding visual jumpiness.
  */
 
 declare const Alpine: any;
@@ -11,34 +13,44 @@ let _ws: WebSocket | null = null;
 let _refreshing = false;
 
 /**
- * Fetch the current page and swap the <main> content without a full reload.
+ * Fetch the current page and update only the sections that changed.
+ * Sections are identified by data-ws-section attributes.
+ * Sections containing the active element (e.g. a form being filled) are skipped.
  */
 function refreshContent(): void {
   if (_refreshing) return;
   _refreshing = true;
 
-  const scrollY = window.scrollY;
-
   fetch(window.location.href, { headers: { Accept: "text/html" } })
     .then((r) => r.text())
     .then((html) => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-      const newMain = doc.querySelector("main");
-      const currentMain = document.querySelector("main");
+      const doc = new DOMParser().parseFromString(html, "text/html");
 
-      if (newMain && currentMain) {
-        Alpine.destroyTree(currentMain);
-        currentMain.innerHTML = newMain.innerHTML;
-        Alpine.initTree(currentMain);
+      doc.querySelectorAll("[data-ws-section]").forEach((newSection) => {
+        const id = newSection.getAttribute("data-ws-section");
+        if (!id) return;
 
-        // Re-initialize JSON viewers on the new DOM
-        if (typeof (window as any).mountJsonViewers === "function") {
-          (window as any).mountJsonViewers();
-        }
+        const current = document.querySelector(
+          '[data-ws-section="' + id + '"]'
+        );
+        if (!current) return;
+
+        // Skip sections where the user is actively interacting
+        if (current.contains(document.activeElement)) return;
+
+        // Skip if content hasn't changed
+        if (current.innerHTML === newSection.innerHTML) return;
+
+        // Swap the section content
+        Alpine.destroyTree(current);
+        current.innerHTML = newSection.innerHTML;
+        Alpine.initTree(current);
+      });
+
+      // Re-initialize JSON viewers on any new data-json-viewer elements
+      if (typeof (window as any).mountJsonViewers === "function") {
+        (window as any).mountJsonViewers();
       }
-
-      window.scrollTo(0, scrollY);
     })
     .catch(() => {})
     .finally(() => {
