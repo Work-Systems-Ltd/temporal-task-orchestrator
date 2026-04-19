@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from temporalio import workflow
 
 from core.workflows import WorkSysFlow
@@ -13,11 +11,7 @@ class ApprovalWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: ApprovalInputTask.Model) -> str:
-        await workflow.execute_activity(
-            log_request,
-            input.description,
-            start_to_close_timeout=timedelta(seconds=10),
-        )
+        await self.create_system_task(log_request, input.description)
 
         human_data = await self.wait_for_task(
             ApprovalTask,
@@ -30,16 +24,8 @@ class ApprovalWorkflow(WorkSysFlow):
         comment = human_data.get("comment", "")
 
         if decision == "approve":
-            result = await workflow.execute_activity(
-                process_approval,
-                args=[input.description, comment],
-                start_to_close_timeout=timedelta(seconds=10),
-            )
+            result = await self.create_system_task(process_approval, input.description, comment)
         else:
-            result = await workflow.execute_activity(
-                process_rejection,
-                args=[input.description, comment],
-                start_to_close_timeout=timedelta(seconds=10),
-            )
+            result = await self.create_system_task(process_rejection, input.description, comment)
 
         return result

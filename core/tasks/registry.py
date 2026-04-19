@@ -48,9 +48,9 @@ def get_all_task_types() -> list[str]:
 def get_all_activities() -> list:
     """Return all activity functions from registered SystemTasks."""
     return [
-        task._activity_fn
+        type(task).__dict__["_activity_fn"]
         for task in _TASK_REGISTRY.values()
-        if isinstance(task, SystemTask) and hasattr(task, "_activity_fn")
+        if isinstance(task, SystemTask) and "_activity_fn" in type(task).__dict__
     ]
 
 
