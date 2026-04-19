@@ -54,7 +54,8 @@ class SystemTask(Task):
                 return f"Logged: {request}"
     """
 
-    async def run(self, *args: Any, **kwargs: Any) -> Any:
+    @staticmethod
+    async def run(*args: Any, **kwargs: Any) -> Any:
         """Override this method with the task logic."""
         raise NotImplementedError
 

@@ -12,7 +12,8 @@ class ValidateInputTask(SystemTask):
         message: str
         should_fail: bool = False
 
-    async def run(self, message: str, should_fail: bool) -> str:
+    @staticmethod
+    async def run( message: str, should_fail: bool) -> str:
         if should_fail:
             raise RuntimeError(f"Validation failed for: {message}")
         print(f"[TestingWorkflow] Input validated: {message}")
@@ -28,7 +29,8 @@ class ProcessDataTask(SystemTask):
         message: str
         should_fail: bool = False
 
-    async def run(self, message: str, should_fail: bool) -> str:
+    @staticmethod
+    async def run( message: str, should_fail: bool) -> str:
         if should_fail:
             raise RuntimeError(f"Processing failed for: {message}")
         print(f"[TestingWorkflow] Data processed: {message}")
@@ -44,7 +46,8 @@ class FinalizeTask(SystemTask):
         message: str
         should_fail: bool = False
 
-    async def run(self, message: str, should_fail: bool) -> str:
+    @staticmethod
+    async def run( message: str, should_fail: bool) -> str:
         if should_fail:
             raise RuntimeError(f"Finalization failed for: {message}")
         print(f"[TestingWorkflow] Finalized: {message}")

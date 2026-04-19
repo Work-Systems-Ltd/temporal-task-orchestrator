@@ -11,7 +11,8 @@ class LogRequestTask(SystemTask):
     class Model(BaseModel):
         request: str
 
-    async def run(self, request: str) -> str:
+    @staticmethod
+    async def run( request: str) -> str:
         print(f"[ApprovalWorkflow] New request logged: {request}")
         return f"Request logged: {request}"
 
@@ -25,7 +26,8 @@ class ProcessApprovalTask(SystemTask):
         request: str
         comment: str = ""
 
-    async def run(self, request: str, comment: str) -> str:
+    @staticmethod
+    async def run( request: str, comment: str) -> str:
         msg = f"[ApprovalWorkflow] APPROVED: {request}"
         if comment:
             msg += f" (comment: {comment})"
@@ -42,7 +44,8 @@ class ProcessRejectionTask(SystemTask):
         request: str
         comment: str = ""
 
-    async def run(self, request: str, comment: str) -> str:
+    @staticmethod
+    async def run( request: str, comment: str) -> str:
         msg = f"[ApprovalWorkflow] REJECTED: {request}"
         if comment:
             msg += f" (reason: {comment})"

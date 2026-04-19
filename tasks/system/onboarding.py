@@ -11,7 +11,8 @@ class CreateOnboardingTicketTask(SystemTask):
     class Model(BaseModel):
         employee: str
 
-    async def run(self, employee: str) -> str:
+    @staticmethod
+    async def run( employee: str) -> str:
         print(f"[OnboardingWorkflow] Ticket created for: {employee}")
         return f"Onboarding ticket created for {employee}"
 
@@ -25,7 +26,8 @@ class ProvisionEquipmentTask(SystemTask):
         employee: str
         equipment: str
 
-    async def run(self, employee: str, equipment: str) -> str:
+    @staticmethod
+    async def run( employee: str, equipment: str) -> str:
         print(f"[OnboardingWorkflow] Provisioning {equipment} for {employee}")
         return f"Equipment provisioned: {equipment}"
 
@@ -39,6 +41,7 @@ class SetupAccountsTask(SystemTask):
         employee: str
         team: str
 
-    async def run(self, employee: str, team: str) -> str:
+    @staticmethod
+    async def run( employee: str, team: str) -> str:
         print(f"[OnboardingWorkflow] Setting up accounts for {employee} in {team}")
         return f"Accounts created for {employee} in {team}"

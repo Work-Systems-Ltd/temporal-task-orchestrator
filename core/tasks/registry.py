@@ -24,17 +24,14 @@ def register_task(cls: Type[Task]) -> Type[Task]:
         raise ValueError(f"{cls.__name__} must define an inner 'Form' class")
 
     if issubclass(cls, SystemTask):
-        # Auto-generate a Temporal activity from the run method
-        instance = cls()
+        # run() is a staticmethod — get the underlying function and
+        # register it directly as a Temporal activity.
+        run_fn = cls.__dict__["run"]
+        if isinstance(run_fn, staticmethod):
+            run_fn = run_fn.__func__
+        cls._activity = activity.defn(name=cls.task_type)(run_fn)
 
-        @activity.defn(name=cls.task_type)
-        async def _activity(*args) -> object:
-            return await instance.run(*args)
-
-        cls._activity = _activity
-    else:
-        instance = cls()
-
+    instance = cls()
     _TASK_REGISTRY[cls.task_type] = instance
     return cls
 

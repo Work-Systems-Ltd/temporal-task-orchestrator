@@ -100,10 +100,21 @@ class WorkSysFlow:
         Returns the activity result directly without waiting for a signal.
         """
         activity_fn = task_cls._activity
-        kwargs: dict[str, Any] = {
-            "args": list(args),
+        ea_kwargs: dict[str, Any] = {
             "start_to_close_timeout": start_to_close_timeout,
         }
         if retry_policy is not None:
-            kwargs["retry_policy"] = retry_policy
-        return await workflow.execute_activity(activity_fn, **kwargs)
+            ea_kwargs["retry_policy"] = retry_policy
+        # Use single positional `arg` for 1 arg, `args` list for multiple
+        if len(args) == 1:
+            return await workflow.execute_activity(
+                activity_fn, args[0], **ea_kwargs,
+            )
+        elif args:
+            return await workflow.execute_activity(
+                activity_fn, args=list(args), **ea_kwargs,
+            )
+        else:
+            return await workflow.execute_activity(
+                activity_fn, **ea_kwargs,
+            )
