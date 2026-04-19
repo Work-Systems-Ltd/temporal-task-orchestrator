@@ -8,13 +8,23 @@ interface AssigneesResponse {
   groups: AssigneeOption[];
 }
 
-let assigneesCache: AssigneesResponse | null = null;
+// Cache groups globally (they don't change with context)
+let groupsCache: AssigneeOption[] | null = null;
 
-async function fetchAssignees(): Promise<AssigneesResponse> {
-  if (assigneesCache) return assigneesCache;
-  const res = await fetch("/api/assignees");
-  assigneesCache = await res.json();
-  return assigneesCache!;
+async function fetchAssignees(group?: string): Promise<AssigneesResponse> {
+  const url = group
+    ? `/api/assignees?group=${encodeURIComponent(group)}`
+    : "/api/assignees";
+  const res = await fetch(url);
+  return await res.json();
+}
+
+async function fetchGroups(): Promise<AssigneeOption[]> {
+  if (!groupsCache) {
+    const data = await fetchAssignees();
+    groupsCache = data.groups;
+  }
+  return groupsCache;
 }
 
 // Track which picker is currently open so only one shows at a time
@@ -33,7 +43,6 @@ function reassignPicker(
     value: currentValue,
     search: "",
     options: [] as AssigneeOption[],
-    dropStyle: "" as string,
 
     get filtered(): AssigneeOption[] {
       if (!this.search) return this.options;
@@ -54,23 +63,19 @@ function reassignPicker(
         window.dispatchEvent(new CustomEvent("reassign-close"));
       }
 
-      // Position dropdown below the trigger button
-      const el = (this as any).$el as HTMLElement;
-      const btn = el.querySelector("button") as HTMLElement;
-      if (btn) {
-        const rect = btn.getBoundingClientRect();
-        const dropW = 192;
-        let left = rect.left;
-        if (left + dropW > window.innerWidth - 8) left = window.innerWidth - dropW - 8;
-        this.dropStyle = `top:${rect.bottom + 4}px;left:${left}px`;
-      }
-
       this.open = true;
       activePickerId = pickerId;
 
-      fetchAssignees().then((d: AssigneesResponse) => {
-        this.options = field === "user" ? d.users : d.groups;
-      });
+      if (field === "user") {
+        // Fetch users scoped to the current group assignment
+        fetchAssignees(otherValue || undefined).then((d: AssigneesResponse) => {
+          this.options = d.users;
+        });
+      } else {
+        fetchGroups().then((groups: AssigneeOption[]) => {
+          this.options = groups;
+        });
+      }
 
       (this as any).$nextTick(() => {
         const input = (this as any).$refs.searchInput as HTMLInputElement | undefined;
@@ -92,6 +97,15 @@ function reassignPicker(
         this.open = false;
         this.search = "";
         activePickerId = null;
+
+        // When group changes, notify user pickers to refresh
+        if (field === "group") {
+          window.dispatchEvent(
+            new CustomEvent("reassign-group-changed", {
+              detail: { workflowId, group: slug },
+            }),
+          );
+        }
       });
     },
 
@@ -103,9 +117,27 @@ function reassignPicker(
     },
 
     handleClose() {
-      // Only close if this isn't the one being opened
       this.open = false;
       this.search = "";
+    },
+
+    // Listen for group changes to update the otherValue reference
+    handleGroupChanged(event: CustomEvent<{ workflowId: string; group: string }>) {
+      if (field === "user" && event.detail.workflowId === workflowId) {
+        otherValue = event.detail.group;
+        // Clear user if group changed (user may no longer be in new group)
+        if (this.value) {
+          this.value = "";
+          fetch(`/tasks/${workflowId}/reassign`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              assigned_user: "",
+              assigned_group: event.detail.group,
+            }),
+          });
+        }
+      }
     },
   };
 }

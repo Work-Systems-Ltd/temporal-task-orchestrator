@@ -5,6 +5,7 @@
     x-data="reassignPicker('{{ workflow_id }}', '{{ field }}', '{{ current_value }}', '{{ other_value }}')"
     @click.away="close()"
     @reassign-close.window="handleClose()"
+    @reassign-group-changed.window="handleGroupChanged($event)"
     x-effect="$el.closest('tr').style.zIndex = open ? '9999' : ''; $el.closest('tr').style.position = open ? 'relative' : ''"
     :style="open ? 'position:relative;overflow:visible' : ''">
   <button @click="toggle()" class="reassign-trigger" :class="value ? 'reassign-trigger-{{ color }}' : ''">
@@ -54,14 +55,14 @@
     </thead>
     <tbody class="divide-y divide-border">
       {% for item in items %}
-      <tr class="group table-row animate-slide-up {% if item.children or item.can_access %}table-row-clickable{% endif %}"
-          tabindex="0" {% if item.children or item.can_access %}role="link"{% endif %}
+      <tr class="group table-row table-row-clickable animate-slide-up"
+          tabindex="0" role="link"
           {% if item.children %}data-parent-id="{{ item.workflow_id }}"{% endif %}
-          style="animation-delay: {{ loop.index0 * 30 }}ms{% if not item.can_access and not item.children %}; opacity: 0.55{% endif %}"
+          style="animation-delay: {{ loop.index0 * 30 }}ms"
           {% if item.children %}
           onclick="toggleExpand('{{ item.workflow_id }}')"
           onkeydown="if(event.key==='Enter')toggleExpand('{{ item.workflow_id }}')"
-          {% elif item.can_access %}
+          {% else %}
           onclick="window.location='/task/{{ item.workflow_id }}'"
           onkeydown="if(event.key==='Enter')window.location='/task/{{ item.workflow_id }}'"
           {% endif %}>
@@ -99,14 +100,11 @@
         </td>
       </tr>
       {% for child in item.children %}
-      <tr class="group table-row table-row-child hidden {% if child.can_access is not defined or child.can_access %}table-row-clickable{% endif %}"
-          tabindex="0" {% if child.can_access is not defined or child.can_access %}role="link"{% endif %}
+      <tr class="group table-row table-row-child table-row-clickable hidden"
+          tabindex="0" role="link"
           data-child-of="{{ item.workflow_id }}"
-          style="{% if child.can_access is defined and not child.can_access %}opacity: 0.55{% endif %}"
-          {% if child.can_access is not defined or child.can_access %}
           onclick="window.location='/task/{{ child.workflow_id }}'"
-          onkeydown="if(event.key==='Enter')window.location='/task/{{ child.workflow_id }}'"
-          {% endif %}>
+          onkeydown="if(event.key==='Enter')window.location='/task/{{ child.workflow_id }}'">
         <td class="td td-indent">
           <div>
             <span class="tree-branch">└</span>

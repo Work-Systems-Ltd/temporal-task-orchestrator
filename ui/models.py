@@ -38,7 +38,6 @@ class PendingTaskItem(BaseModel):
     children: list[dict] = []
     assigned_user: str = ""
     assigned_group: str = ""
-    can_access: bool = True
 
 
 class PaginatedResult(BaseModel):

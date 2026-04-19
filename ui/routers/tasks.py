@@ -13,19 +13,6 @@ from ui.services.temporal import TemporalService
 router = APIRouter(tags=["tasks"], dependencies=[Depends(require_auth)])
 
 
-def _can_access_task(meta, user) -> bool:
-    """Check if the current user is allowed to access this task."""
-    if not meta.assigned_user and not meta.assigned_group:
-        return True  # unassigned → anyone
-    if not user:
-        return False
-    if meta.assigned_user and meta.assigned_user == user.slug:
-        return True
-    if meta.assigned_group and meta.assigned_group in [g.slug for g in user.groups]:
-        return True
-    return False
-
-
 @router.get("/task/{workflow_id}", response_class=HTMLResponse)
 async def task_form(
     request: Request,
@@ -38,7 +25,7 @@ async def task_form(
         return RedirectResponse(url="/", status_code=303)
 
     user = getattr(request.state, "user", None)
-    if not _can_access_task(meta, user):
+    if not user or not user.can_access_task(meta.assigned_user, meta.assigned_group):
         return RedirectResponse(url="/", status_code=303)
 
     task = get_task(meta.task_type)
@@ -72,7 +59,7 @@ async def task_submit(
         return RedirectResponse(url="/", status_code=303)
 
     user = getattr(request.state, "user", None)
-    if not _can_access_task(meta, user):
+    if not user or not user.can_access_task(meta.assigned_user, meta.assigned_group):
         return RedirectResponse(url="/", status_code=303)
 
     task = get_task(meta.task_type)

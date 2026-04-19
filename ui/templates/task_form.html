@@ -34,7 +34,8 @@
         <div class="relative"
              x-data="reassignPicker('{{ workflow_id }}', 'user', '{{ meta.assigned_user }}', '{{ meta.assigned_group }}')"
              @click.away="close()"
-             @reassign-close.window="handleClose()">
+             @reassign-close.window="handleClose()"
+             @reassign-group-changed.window="handleGroupChanged($event)">
           <button type="button" @click="toggle()" class="reassign-trigger" :class="value ? 'reassign-trigger-blue' : ''">
             <span x-text="value || 'Assign'"></span>
             <svg class="h-3 w-3 shrink-0 opacity-40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">

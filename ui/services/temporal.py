@@ -166,6 +166,7 @@ class TemporalService:
         assignment: str | None = None,
         user_slug: str = "",
         user_group_slugs: list[str] | None = None,
+        is_admin: bool = False,
     ) -> PaginatedResult:
         all_pending: list[PendingTaskItem] = []
         query = 'ExecutionStatus="Running"'
@@ -187,7 +188,14 @@ class TemporalService:
                         if search.lower() not in haystack:
                             continue
 
-                    # Assignment filter
+                    # Access filter — non-admins only see tasks they can act on
+                    if not is_admin:
+                        if not self._is_assigned_to_user(
+                            meta, user_slug, user_group_slugs or [],
+                        ):
+                            continue
+
+                    # Assignment sub-filter (tabs within visible tasks)
                     if assignment == "mine":
                         if not self._is_assigned_to_user(
                             meta, user_slug, user_group_slugs or [],
@@ -200,14 +208,6 @@ class TemporalService:
                         if meta.assigned_user or meta.assigned_group:
                             continue
 
-                    # Determine if the current user can act on this task
-                    can_access = True
-                    if meta.assigned_user or meta.assigned_group:
-                        can_access = (
-                            (meta.assigned_user and meta.assigned_user == user_slug)
-                            or (meta.assigned_group and meta.assigned_group in (user_group_slugs or []))
-                        )
-
                     all_pending.append(
                         PendingTaskItem(
                             workflow_id=wf.id,
@@ -218,7 +218,6 @@ class TemporalService:
                             started=relative_time(wf.start_time),
                             assigned_user=meta.assigned_user,
                             assigned_group=meta.assigned_group,
-                            can_access=can_access,
                         )
                     )
             except Exception:

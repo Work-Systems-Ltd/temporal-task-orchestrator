@@ -70,15 +70,28 @@ class User(Base):
     def group_slugs(self) -> list[str]:
         return [g.slug for g in self.groups]
 
+    def can_access_task(self, assigned_user: str = "", assigned_group: str = "") -> bool:
+        """Whether this user can view and act on a task with the given assignment."""
+        if self.is_admin:
+            return True
+        if not assigned_user and not assigned_group:
+            return True  # unassigned → anyone
+        if assigned_user and assigned_user == self.slug:
+            return True
+        if assigned_group and assigned_group in self.group_slugs:
+            return True
+        return False
+
     def can_reassign_to(self, user_slug: str = "", group_slug: str = "") -> bool:
         """Whether this user is allowed to reassign a task to the given user/group."""
         if self.is_admin:
             return True
-        if user_slug and user_slug == self.slug:
-            return True
-        if group_slug and group_slug in self.group_slugs:
-            return True
-        return False
+        # Non-admins can only reassign to themselves or their own groups
+        if user_slug and user_slug != self.slug:
+            return False
+        if group_slug and group_slug not in self.group_slugs:
+            return False
+        return True
 
     def __repr__(self) -> str:
         return f"<User {self.username}>"

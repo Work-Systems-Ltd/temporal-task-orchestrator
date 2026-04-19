@@ -6,7 +6,7 @@ import json
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from ui.auth.dependencies import require_auth
 from ui.auth.database import get_session_factory
@@ -40,11 +40,14 @@ async def tasks_page(
     user_slug = user.slug if user else ""
     user_group_slugs = user.group_slugs if user else []
 
+    is_admin = user.is_admin if user else False
+
     result = await service.list_pending(
         page, wf_type, search, per_page=per_page,
         assignment=assignment,
         user_slug=user_slug,
         user_group_slugs=user_group_slugs,
+        is_admin=is_admin,
     )
 
     items = [item.model_dump() for item in result.items]
@@ -71,8 +74,14 @@ async def tasks_page(
 
 
 @router.get("/api/assignees")
-async def get_assignees(request: Request) -> JSONResponse:
-    """Return users and groups the current user can reassign to."""
+async def get_assignees(
+    request: Request,
+    group: str | None = Query(None),
+) -> JSONResponse:
+    """Return users and groups the current user can reassign to.
+
+    When ``group`` is provided, the user list is filtered to members of that group.
+    """
     user = getattr(request.state, "user", None)
     if not user:
         return JSONResponse({"users": [], "groups": []})
@@ -80,15 +89,35 @@ async def get_assignees(request: Request) -> JSONResponse:
     factory = get_session_factory()
     async with factory() as db:
         if user.is_admin:
-            user_result = await db.execute(
-                select(User.username).where(User.is_active.is_(True))
-            )
-            users = [{"slug": _slugify(r[0]), "label": r[0]} for r in user_result]
+            if group:
+                # Filter users to members of the specified group
+                grp = (await db.execute(
+                    select(Group).where(Group.name == group)
+                )).scalar_one_or_none()
+                if not grp:
+                    grp = (await db.execute(
+                        select(Group).where(func.lower(Group.name) == group.lower())
+                    )).scalar_one_or_none()
+                if grp:
+                    users = [
+                        {"slug": _slugify(u.username), "label": u.username}
+                        for u in grp.users if u.is_active
+                    ]
+                else:
+                    users = []
+            else:
+                user_result = await db.execute(
+                    select(User.username).where(User.is_active.is_(True))
+                )
+                users = [{"slug": _slugify(r[0]), "label": r[0]} for r in user_result]
 
             group_result = await db.execute(select(Group.name))
             groups = [{"slug": _slugify(r[0]), "label": r[0]} for r in group_result]
         else:
-            users = [{"slug": user.slug, "label": user.username}]
+            if group and group not in user.group_slugs:
+                users = []
+            else:
+                users = [{"slug": user.slug, "label": user.username}]
             groups = [{"slug": g.slug, "label": g.name} for g in user.groups]
 
     return JSONResponse({"users": users, "groups": groups})
@@ -103,6 +132,13 @@ async def reassign_task(
     user = getattr(request.state, "user", None)
     if not user:
         return JSONResponse({"error": "Not authenticated"}, status_code=401)
+
+    # Verify user can access this task before allowing reassignment
+    meta = await service.get_pending_task(workflow_id)
+    if not meta:
+        return JSONResponse({"error": "Task not found"}, status_code=404)
+    if not user.can_access_task(meta.assigned_user, meta.assigned_group):
+        return JSONResponse({"error": "Not allowed"}, status_code=403)
 
     body = await request.json()
     assigned_user = body.get("assigned_user", "")
