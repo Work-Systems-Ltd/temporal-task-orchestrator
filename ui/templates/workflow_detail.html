@@ -58,12 +58,18 @@
 
   {% macro render_subtree(node, is_root) %}
   <div class="wf-graph-subtree">
-    <a href="/workflow/{{ node.workflow_id }}"
+    <a href="{% if node.node_type == 'task' and node.status == 'running' %}/task/{{ node.workflow_id }}{% else %}/workflow/{{ node.workflow_id }}{% endif %}"
        class="wf-graph-node {% if is_root %}wf-graph-node-root{% endif %} {% if node.is_current %}wf-graph-node-current{% endif %} {% if node.node_type == 'task' %}wf-graph-node-task{% endif %}">
+      {% if node.node_type == 'task' %}
+      <span class="wf-graph-node-tag">
+        {% if node.status == 'running' %}<span class="pending-dot" style="width:5px;height:5px;"></span>{% endif %}
+        Human Task
+      </span>
+      {% endif %}
       <span class="wf-graph-node-type-icon">
         {% if node.node_type == 'task' %}
         <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.012 1.244l.256.512a2.25 2.25 0 0 0 2.013 1.244h2.21a2.25 2.25 0 0 0 2.013-1.244l.256-.512a2.25 2.25 0 0 1 2.013-1.244h3.859M12 3v8.25m0 0-3-3m3 3 3-3M2.25 18.75h19.5" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0" />
         </svg>
         {% else %}
         <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -85,8 +91,8 @@
     <div class="wf-graph-trunk"></div>
     <div class="wf-graph-branches">
       {% for child in node.children %}
-      <div class="wf-graph-branch">
-        <div class="wf-graph-branch-line"></div>
+      <div class="wf-graph-branch {% if child.node_type == 'task' %}wf-graph-branch-task{% endif %}">
+        <div class="wf-graph-branch-line {% if child.node_type == 'task' %}wf-graph-branch-line-task{% endif %}"></div>
         {{ render_subtree(child, false) }}
       </div>
       {% endfor %}
@@ -340,14 +346,24 @@
 
       {% if stats.workflow_input or stats.workflow_output %}
       {% if stats.workflow_input %}
-      <div class="json-viewer">
-        <div class="json-viewer-label">Input</div>
+      <div class="json-viewer" x-data="{ copied: false }">
+        <div class="json-viewer-label flex items-center justify-between">
+          <span>Input</span>
+          <button @click="navigator.clipboard.writeText({{ stats.workflow_input | tojson }}); copied = true; setTimeout(() => copied = false, 1500)"
+                  class="text-[10px] font-normal normal-case tracking-normal transition-colors" :style="copied ? 'color: var(--color-pill-emerald-text)' : 'color: var(--color-text-ghost)'"
+                  x-text="copied ? 'Copied' : 'Copy'"></button>
+        </div>
         <div data-json-viewer="{{ stats.workflow_input | e }}"></div>
       </div>
       {% endif %}
       {% if stats.workflow_output %}
-      <div class="json-viewer">
-        <div class="json-viewer-label">Output</div>
+      <div class="json-viewer" x-data="{ copied: false }">
+        <div class="json-viewer-label flex items-center justify-between">
+          <span>Output</span>
+          <button @click="navigator.clipboard.writeText({{ stats.workflow_output | tojson }}); copied = true; setTimeout(() => copied = false, 1500)"
+                  class="text-[10px] font-normal normal-case tracking-normal transition-colors" :style="copied ? 'color: var(--color-pill-emerald-text)' : 'color: var(--color-text-ghost)'"
+                  x-text="copied ? 'Copied' : 'Copy'"></button>
+        </div>
         <div data-json-viewer="{{ stats.workflow_output | e }}"></div>
       </div>
       {% endif %}

@@ -62,6 +62,24 @@ class User(Base):
     def slug(self) -> str:
         return _slugify(self.username)
 
+    @property
+    def is_admin(self) -> bool:
+        return any(g.name == "admin" for g in self.groups)
+
+    @property
+    def group_slugs(self) -> list[str]:
+        return [g.slug for g in self.groups]
+
+    def can_reassign_to(self, user_slug: str = "", group_slug: str = "") -> bool:
+        """Whether this user is allowed to reassign a task to the given user/group."""
+        if self.is_admin:
+            return True
+        if user_slug and user_slug == self.slug:
+            return True
+        if group_slug and group_slug in self.group_slugs:
+            return True
+        return False
+
     def __repr__(self) -> str:
         return f"<User {self.username}>"
 

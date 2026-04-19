@@ -12,10 +12,7 @@
         <th class="hidden th sm:table-cell">User</th>
         <th class="hidden th sm:table-cell">Group</th>
         <th class="hidden th md:table-cell">Workflow</th>
-        <th class="th">
-          <span class="hidden sm:inline">Waiting since</span>
-          <span class="sm:hidden">Since</span>
-        </th>
+        <th class="th">Waiting</th>
         <th class="th" style="width:1%"></th>
       </tr>
     </thead>
@@ -31,8 +28,8 @@
           <div class="flex items-center">
             {% if item.children %}
             <span class="expand-toggle" onclick="event.stopPropagation();toggleExpand('{{ item.workflow_id }}')">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd" />
               </svg>
             </span>
             {% endif %}
@@ -46,19 +43,37 @@
         <td class="hidden td sm:table-cell">
           <span class="tag">{{ item.task_type }}</span>
         </td>
-        <td class="hidden td sm:table-cell">
-          {% if item.assigned_user %}
-          <span class="pill pill-blue">{{ item.assigned_user }}</span>
-          {% else %}
-          <span class="text-xs text-ghost">—</span>
-          {% endif %}
+        <td class="hidden td sm:table-cell relative" onclick="event.stopPropagation()"
+            x-data="{ open: false, value: '{{ item.assigned_user }}', options: [] }"
+            @click.away="open = false">
+          <button @click="if(!options.length){fetch('/api/assignees').then(r=>r.json()).then(d=>{options=d.users})}; open=!open"
+                  class="pill cursor-pointer transition-opacity hover:opacity-80"
+                  :class="value ? 'pill-blue' : 'pill-zinc'"
+                  x-text="value || '—'"></button>
+          <div x-show="open" x-cloak class="dropdown-menu left-0 origin-top-left" style="min-width:140px; z-index:20;">
+            <button @click="fetch('/tasks/{{ item.workflow_id }}/reassign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_user:'',assigned_group:'{{ item.assigned_group }}'})}).then(()=>{value='';open=false})"
+                    class="dropdown-item w-full text-left text-ghost">Unassign</button>
+            <template x-for="opt in options" :key="opt.slug">
+              <button @click="fetch('/tasks/{{ item.workflow_id }}/reassign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_user:opt.slug,assigned_group:'{{ item.assigned_group }}'})}).then(()=>{value=opt.slug;open=false})"
+                      class="dropdown-item w-full text-left" x-text="opt.label"></button>
+            </template>
+          </div>
         </td>
-        <td class="hidden td sm:table-cell">
-          {% if item.assigned_group %}
-          <span class="pill pill-emerald">{{ item.assigned_group }}</span>
-          {% else %}
-          <span class="text-xs text-ghost">—</span>
-          {% endif %}
+        <td class="hidden td sm:table-cell relative" onclick="event.stopPropagation()"
+            x-data="{ open: false, value: '{{ item.assigned_group }}', options: [] }"
+            @click.away="open = false">
+          <button @click="if(!options.length){fetch('/api/assignees').then(r=>r.json()).then(d=>{options=d.groups})}; open=!open"
+                  class="pill cursor-pointer transition-opacity hover:opacity-80"
+                  :class="value ? 'pill-emerald' : 'pill-zinc'"
+                  x-text="value || '—'"></button>
+          <div x-show="open" x-cloak class="dropdown-menu left-0 origin-top-left" style="min-width:140px; z-index:20;">
+            <button @click="fetch('/tasks/{{ item.workflow_id }}/reassign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_user:'{{ item.assigned_user }}',assigned_group:''})}).then(()=>{value='';open=false})"
+                    class="dropdown-item w-full text-left text-ghost">Unassign</button>
+            <template x-for="opt in options" :key="opt.slug">
+              <button @click="fetch('/tasks/{{ item.workflow_id }}/reassign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assigned_user:'{{ item.assigned_user }}',assigned_group:opt.slug})}).then(()=>{value=opt.slug;open=false})"
+                      class="dropdown-item w-full text-left" x-text="opt.label"></button>
+            </template>
+          </div>
         </td>
         <td class="hidden td md:table-cell">
           <a href="/workflow/{{ item.workflow_id }}" class="td-mono timeline-link" title="{{ item.workflow_id }}" onclick="event.stopPropagation()">{{ item.workflow_id }}</a>
@@ -153,8 +168,8 @@
           <div class="flex items-center">
             {% if item.children %}
             <span class="expand-toggle" onclick="event.stopPropagation();toggleExpand('{{ item.workflow_id }}')">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd" />
               </svg>
             </span>
             {% endif %}
@@ -280,19 +295,47 @@
 {% else %}
 <div class="empty-state">
   <div class="empty-state-icon">
+    {% if tab == "pending" %}
+    <svg class="h-6 w-6 text-faint" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+    {% elif tab == "failed" %}
+    <svg class="h-6 w-6 text-faint" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+    {% else %}
     <svg class="h-6 w-6 text-faint" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
     </svg>
+    {% endif %}
   </div>
-  <p class="mt-4 text-sm text-muted">No {{ tab }} workflows</p>
-  <p class="mt-1 text-xs text-ghost">{% if tab == 'pending' %}Workflows waiting for input will appear here{% elif tab == 'running' %}Active workflows will appear here{% else %}{{ tab | capitalize }} workflows will appear here{% endif %}</p>
   {% if tab == "pending" %}
+  <p class="mt-4 text-sm text-muted">All caught up</p>
+  <p class="mt-1 text-xs text-ghost">No tasks waiting for your input right now</p>
   <a href="/start" class="btn btn-secondary mt-5 text-xs">
     <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
     </svg>
     Start a workflow
   </a>
+  {% elif tab == "running" %}
+  <p class="mt-4 text-sm text-muted">No active workflows</p>
+  <p class="mt-1 text-xs text-ghost">Start a new workflow to see it here</p>
+  <a href="/start" class="btn btn-secondary mt-5 text-xs">
+    <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+    Start a workflow
+  </a>
+  {% elif tab == "failed" %}
+  <p class="mt-4 text-sm text-muted">No failed workflows</p>
+  <p class="mt-1 text-xs text-ghost">Nothing has gone wrong — nice</p>
+  {% elif tab == "completed" %}
+  <p class="mt-4 text-sm text-muted">No completed workflows yet</p>
+  <p class="mt-1 text-xs text-ghost">Completed workflows will appear here</p>
+  {% else %}
+  <p class="mt-4 text-sm text-muted">No workflows found</p>
+  <p class="mt-1 text-xs text-ghost">Try adjusting your filters or search</p>
   {% endif %}
 </div>
 {% endif %}

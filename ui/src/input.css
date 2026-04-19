@@ -245,7 +245,7 @@
 
   /* ── Pills / Badges ── */
   .pill {
-    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
     letter-spacing: 0.02em;
   }
   .pill-amber {
@@ -941,15 +941,34 @@
   /* Task node variant — dashed border + amber accent */
   .wf-graph-node-task {
     border-style: dashed;
+    border-width: 2px;
     border-color: var(--color-pill-amber-text);
     background: var(--color-pill-amber-bg);
   }
   .wf-graph-node-task:hover {
     border-color: var(--color-pill-amber-text);
     background: var(--color-pill-amber-bg);
+    box-shadow: 0 2px 8px rgba(180, 83, 9, 0.15);
   }
   .wf-graph-node-task .wf-graph-node-type-icon {
     color: var(--color-pill-amber-text);
+  }
+  .wf-graph-node-tag {
+    @apply inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider mb-1.5 px-2 py-0.5 rounded-full;
+    color: var(--color-pill-amber-text);
+    background: color-mix(in srgb, var(--color-pill-amber-text) 12%, transparent);
+  }
+
+  /* Task branch connector — dashed line */
+  .wf-graph-branch-line-task {
+    border-left: 2px dashed var(--color-pill-amber-text) !important;
+    background: none !important;
+    width: 0 !important;
+  }
+  .wf-graph-branch-task::before {
+    border-top: 2px dashed var(--color-pill-amber-text) !important;
+    background: none !important;
+    height: 0 !important;
   }
 
   /* Type icon above label */

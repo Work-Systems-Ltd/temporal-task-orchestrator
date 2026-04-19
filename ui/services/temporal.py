@@ -629,6 +629,14 @@ class TemporalService:
         handle = self._client.get_workflow_handle(workflow_id)
         await handle.signal(WorkSysFlow.complete_human_task, data)
 
+    async def reassign_task(
+        self, workflow_id: str, assigned_user: str = "", assigned_group: str = "",
+    ) -> None:
+        handle = self._client.get_workflow_handle(workflow_id)
+        import json as _json
+        payload = _json.dumps({"assigned_user": assigned_user, "assigned_group": assigned_group})
+        await handle.signal(WorkSysFlow.reassign_task, payload)
+
     async def start_workflow(
         self, wf_def: WorkflowDef, input_value: Any, workflow_id: str
     ) -> str:

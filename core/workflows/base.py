@@ -27,6 +27,13 @@ class WorkSysFlow:
         self._human_task_data = json.loads(data)
         self._human_task_complete = True
 
+    @workflow.signal
+    async def reassign_task(self, data: str) -> None:
+        """Update the assignment on the current pending task."""
+        if self._pending_task:
+            payload = json.loads(data)
+            self._pending_task = self._pending_task.model_copy(update=payload)
+
     @workflow.query
     def get_pending_task(self) -> str:
         if self._pending_task:

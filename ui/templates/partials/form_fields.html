@@ -3,7 +3,7 @@
 {% set has_error = all_errors | length > 0 %}
 <div class="space-y-1.5">
   <label for="{{ field.id }}" class="block text-sm font-medium text-secondary">
-    {{ field.label.text }}
+    {{ field.label.text }}{% if field.flags.required %} <span class="text-red-400">*</span>{% endif %}
   </label>
 
   {% if field.type == "SelectField" %}
