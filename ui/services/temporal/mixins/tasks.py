@@ -18,12 +18,15 @@ class TasksMixin:
 
     async def get_pending_task(self, workflow_id: str) -> TaskMeta | None:
         """Query a workflow for its current pending human task."""
-        handle = self._client.get_workflow_handle(workflow_id)
-        raw = await handle.query(WorkSysFlow.get_pending_task)
-        if not raw:
+        try:
+            handle = self._client.get_workflow_handle(workflow_id)
+            raw = await handle.query(WorkSysFlow.get_pending_task)
+            if not raw:
+                return None
+            meta = TaskMeta.model_validate_json(raw)
+            return await self._sanitize_assignment(meta)
+        except Exception:
             return None
-        meta = TaskMeta.model_validate_json(raw)
-        return await self._sanitize_assignment(meta)
 
     async def signal_complete(self, workflow_id: str, data: str) -> None:
         """Signal a workflow that its human task has been completed."""
