@@ -319,3 +319,36 @@
 
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  let ws = null;
+  let reconnectTimer = null;
+
+  function connect() {
+    ws = new WebSocket(proto + '//' + location.host + '/ws/task-list');
+    ws.onmessage = function(e) {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'refresh') {
+          location.reload();
+        }
+      } catch (_) {}
+    };
+    ws.onclose = function() {
+      reconnectTimer = setTimeout(connect, 3000);
+    };
+  }
+
+  connect();
+
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'nudge' }));
+    }
+  });
+})();
+</script>
+{% endblock %}

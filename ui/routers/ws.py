@@ -11,7 +11,8 @@ from fastapi.templating import Jinja2Templates
 from ui.auth.dependencies import require_ws_auth
 from ui.auth.models import User
 from ui.config import TAB_ORDER, WORKFLOW_TAB_ORDER
-from ui.dependencies import get_templates, get_temporal_service
+from ui.dependencies import get_db_service, get_templates, get_temporal_service
+from ui.services.db import DbService
 from ui.services.temporal import TemporalService
 from core.workflows import get_all_workflows
 
@@ -229,6 +230,54 @@ async def tasks_ws(
                 last_hash = ""
                 nudge.set()
 
+    except WebSocketDisconnect:
+        pass
+    finally:
+        push_task.cancel()
+        try:
+            await push_task
+        except asyncio.CancelledError:
+            pass
+
+
+@router.websocket("/ws/task-list")
+async def task_list_ws(
+    ws: WebSocket,
+    user: User = Depends(require_ws_auth),
+    db: DbService = Depends(get_db_service),
+) -> None:
+    """Lightweight WS that pings the task list page when DB task data changes."""
+    await ws.accept()
+
+    last_hash = ""
+
+    async def push_loop() -> None:
+        nonlocal last_hash
+        while True:
+            await asyncio.sleep(PUSH_INTERVAL)
+            try:
+                counts = await db.count_tasks_by_status(
+                    user_slug=user.slug,
+                    user_group_slugs=user.group_slugs,
+                    is_admin=user.is_admin,
+                )
+                blob = json.dumps(counts, sort_keys=True)
+                h = hashlib.md5(blob.encode()).hexdigest()
+                if h != last_hash:
+                    last_hash = h
+                    await ws.send_json({"type": "refresh"})
+            except WebSocketDisconnect:
+                return
+            except Exception:
+                logger.exception("task_list_ws push error")
+
+    push_task = asyncio.create_task(push_loop())
+
+    try:
+        while True:
+            msg = await ws.receive_json()
+            if msg.get("type") == "nudge":
+                last_hash = ""
     except WebSocketDisconnect:
         pass
     finally:
