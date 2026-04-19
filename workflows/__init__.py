@@ -2,9 +2,11 @@ from core.workflows import register_workflow
 from tasks.approval_input import ApprovalInputTask
 from tasks.hiring_input import HiringInputTask
 from tasks.onboarding_input import OnboardingInputTask
+from tasks.testing_input import TestingInputTask
 from workflows.approval import ApprovalWorkflow
 from workflows.hiring import HiringWorkflow
 from workflows.onboarding import OnboardingWorkflow
+from workflows.testing import TestingWorkflow
 
 register_workflow(
     key="approval",
