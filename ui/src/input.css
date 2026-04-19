@@ -1312,6 +1312,38 @@
     opacity: 0;
   }
 
+  /* ── Modal ── */
+  .modal-panel {
+    @apply relative w-full max-w-md rounded-xl p-6 shadow-xl;
+    background: var(--color-dropdown-bg);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--color-border);
+  }
+  .modal-check-label {
+    @apply flex items-center gap-1.5 text-sm cursor-pointer;
+    color: var(--color-text-secondary);
+  }
+  .modal-check-row {
+    @apply flex items-center gap-2 text-sm cursor-pointer rounded-lg px-3 py-2;
+    color: var(--color-text-secondary);
+    transition: background 0.15s ease;
+  }
+  .modal-check-row:hover {
+    background: var(--color-surface-hover);
+  }
+  .modal-check {
+    @apply h-3.5 w-3.5 shrink-0 rounded;
+    accent-color: var(--color-text-primary);
+  }
+  .btn-danger {
+    background: var(--color-pill-red-text);
+    border-color: transparent;
+  }
+  .btn-danger:hover {
+    opacity: 0.88;
+  }
+
   /* ── Login page ── */
   .login-bg-pattern {
     position: fixed;
