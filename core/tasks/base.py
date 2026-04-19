@@ -67,7 +67,13 @@ class HumanTask(Task):
     Subclasses may override:
         pre_submit: Custom validation logic run after Pydantic validation
                     but before the task is signalled as complete.
+        default_priority: Default priority level for this task type.
+        default_sla_hours: Default SLA in hours (None = no SLA).
     """
+
+    default_priority: ClassVar[str] = "medium"
+    default_sla_hours: ClassVar[int | None] = None
+
     @abstractmethod
     class Form(TaskForm):
         ...

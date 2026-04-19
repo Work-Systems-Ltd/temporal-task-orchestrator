@@ -107,6 +107,40 @@ class GraphNode(BaseModel):
     children: list[GraphNode] = []
 
 
+# ── Task list (DB-powered) ──
+
+class TaskListItem(BaseModel):
+    """A task record as shown in the DB-powered task list."""
+    task_id: str
+    workflow_id: str
+    task_type: str
+    title: str
+    description: str = ""
+    status: str = "open"
+    priority: str = "medium"
+    assigned_user: str = ""
+    assigned_group: str = ""
+    created_by: str = ""
+    completed_by: str = ""
+    created_at: str = ""
+    updated_at: str = ""
+    completed_at: str = ""
+    due_at: str = ""
+
+
+class TaskFilters(BaseModel):
+    """Query parameters for the task list page."""
+    tab: str = "open"
+    page: int = Field(default=1, ge=1)
+    per_page: int = Field(default=20, ge=10, le=100)
+    task_type: str | None = None
+    search: str | None = None
+    assignment: str | None = None
+    priority: str | None = None
+    sort: str = "created_at"
+    order: str = "desc"
+
+
 # ── Workflow picker ──
 
 class WorkflowPickerItem(BaseModel):

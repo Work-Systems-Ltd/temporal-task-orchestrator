@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from datetime import timedelta
 from typing import Any, ClassVar, Type
 
@@ -11,6 +12,16 @@ from core.models import TaskMeta
 from core.tasks.base import HumanTask
 
 from abc import ABC
+
+
+# Import activity input models — these are plain Pydantic models, safe in workflow sandbox
+with workflow.unsafe.imports_passed_through():
+    from core.activities.task_persistence import (
+        CompleteTaskInput,
+        CreateTaskInput,
+        UpdateTaskInput,
+    )
+
 
 class WorkSysFlow(ABC):
     """Base class for workflows that pause for human input.
@@ -50,8 +61,47 @@ class WorkSysFlow(ABC):
             return self._pending_task.model_dump_json()
         return ""
 
+    async def _persist_task_created(self, task_meta: TaskMeta) -> None:
+        """Persist a new task record to the database via activity."""
+        create_input = CreateTaskInput(
+            task_id=task_meta.task_id,
+            workflow_id=workflow.info().workflow_id,
+            run_id=workflow.info().run_id,
+            task_type=task_meta.task_type,
+            title=task_meta.title,
+            description=task_meta.description,
+            priority=task_meta.priority,
+            assigned_user=task_meta.assigned_user,
+            assigned_group=task_meta.assigned_group,
+        )
+        await workflow.execute_activity(
+            "create_task_record",
+            create_input.model_dump_json(),
+            start_to_close_timeout=timedelta(seconds=10),
+            retry_policy=RetryPolicy(maximum_attempts=5),
+        )
+
+    async def _persist_task_completed(
+        self, task_id: str, form_data: dict | None, completed_by: str = ""
+    ) -> None:
+        """Mark a task as completed in the database via activity."""
+        complete_input = CompleteTaskInput(
+            task_id=task_id,
+            form_data=form_data,
+            completed_by=completed_by,
+        )
+        await workflow.execute_activity(
+            "complete_task_record",
+            complete_input.model_dump_json(),
+            start_to_close_timeout=timedelta(seconds=10),
+            retry_policy=RetryPolicy(maximum_attempts=5),
+        )
+
     async def _wait_for_signal(self, task_meta: TaskMeta) -> dict[str, Any]:
         """Internal: set pending task and block until the human signal arrives."""
+        # Persist task creation to database
+        await self._persist_task_created(task_meta)
+
         self._pending_task = task_meta
         await workflow.wait_condition(lambda: self._human_task_complete)
         self._pending_task = None
@@ -60,6 +110,10 @@ class WorkSysFlow(ABC):
             raise RuntimeError("Human task signal received but no data was set")
         data = self._human_task_data
         self._human_task_data = None
+
+        # Persist task completion to database
+        await self._persist_task_completed(task_meta.task_id, data)
+
         return data
 
     async def create_human_task(
@@ -67,9 +121,10 @@ class WorkSysFlow(ABC):
         task: Type[HumanTask],
         *,
         title: str,
-        description: str,
+        description: str = "",
         assigned_user: str = "",
         assigned_group: str = "",
+        priority: str = "medium",
     ) -> dict[str, Any]:
         """Block until a human completes the given task type.
 
@@ -79,16 +134,20 @@ class WorkSysFlow(ABC):
             description: Task description shown in the UI.
             assigned_user: Optional user slug to assign the task to.
             assigned_group: Optional group slug to assign the task to.
+            priority: Task priority level (critical, high, medium, low).
 
         Returns:
             The parsed human task data dict.
         """
+        task_id = str(uuid.uuid4())
         task_meta = TaskMeta(
+            task_id=task_id,
             task_type=task.task_type,
             title=title,
             description=description,
             assigned_user=assigned_user,
             assigned_group=assigned_group,
+            priority=priority,
         )
         return await self._wait_for_signal(task_meta)
 

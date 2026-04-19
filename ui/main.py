@@ -18,7 +18,7 @@ from ui.auth.dependencies import LoginRequiredError
 from ui.auth.routes import router as auth_router
 from ui.auth.session import load_user_from_session
 from ui.config import AppSettings
-from ui.routers import admin, task_list, tasks, tasks_page, workflow_detail, workflows as workflows_router, workflows_list, ws
+from ui.routers import admin, task_detail, task_list, tasks, tasks_page, workflow_detail, workflows as workflows_router, workflows_list, ws
 from ui.services.db import DbService
 from ui.services.temporal import TemporalService
 
@@ -132,4 +132,5 @@ app.include_router(tasks.router)
 app.include_router(workflows_router.router)
 app.include_router(workflow_detail.router)
 app.include_router(ws.router)
+app.include_router(task_detail.router)
 app.include_router(admin.router)
