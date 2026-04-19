@@ -54,10 +54,7 @@ class SystemTask(Task):
                 return f"Logged: {request}"
     """
 
-    @staticmethod
-    async def run(*args: Any, **kwargs: Any) -> Any:
-        """Override this method with the task logic."""
-        raise NotImplementedError
+    pass
 
 class HumanTask(Task):
     """Abstract base class for human tasks.
