@@ -1,4 +1,4 @@
-"""Main TemporalService — thin facade delegating to focused modules."""
+"""TemporalService — composed from focused mixins."""
 
 from __future__ import annotations
 
@@ -8,21 +8,22 @@ from typing import Any
 from temporalio.client import Client
 from temporalio.common import WorkflowIDReusePolicy
 
-from core.models import TaskMeta
 from core.workflows import WorkflowDef, get_all_workflows
 from ui.config import AppSettings
-from ui.models import (
-    GraphNode,
-    PaginatedResult,
-    TimelineEvent,
-    TimelineStats,
-    WorkflowDetail,
-)
 
-from . import detail, graph, listings, tasks
+from .mixins import DetailMixin, GraphMixin, ListingsMixin, TasksMixin
 
 
-class TemporalService:
+class TemporalService(TasksMixin, ListingsMixin, DetailMixin, GraphMixin):
+    """Unified service for all Temporal interactions.
+
+    Implementation is split across mixins:
+      - TasksMixin:    pending task queries, completion/reassign signals
+      - ListingsMixin: workflow/task listing, counting, pagination
+      - DetailMixin:   workflow detail, timeline, run history
+      - GraphMixin:    workflow graph tree, child discovery
+    """
+
     def __init__(self, client: Client, settings: AppSettings) -> None:
         self._client = client
         self._settings = settings
@@ -34,94 +35,6 @@ class TemporalService:
     @property
     def task_queue(self) -> str:
         return self._settings.task_queue
-
-    # ------------------------------------------------------------------
-    # Listings
-    # ------------------------------------------------------------------
-
-    async def get_tab_counts(
-        self, wf_type: str | None = None, tabs: list[str] | None = None,
-    ) -> dict[str, int]:
-        return await listings.get_tab_counts(self._client, wf_type, tabs)
-
-    async def list_pending(
-        self,
-        page: int,
-        wf_type: str | None = None,
-        search: str | None = None,
-        per_page: int | None = None,
-        assignment: str | None = None,
-        user_slug: str = "",
-        user_group_slugs: list[str] | None = None,
-        is_admin: bool = False,
-    ) -> PaginatedResult:
-        return await listings.list_pending(
-            self._client, page, self.page_size,
-            wf_type=wf_type, search=search, per_page=per_page,
-            assignment=assignment, user_slug=user_slug,
-            user_group_slugs=user_group_slugs, is_admin=is_admin,
-        )
-
-    async def list_workflows(
-        self,
-        tab: str,
-        page: int,
-        wf_type: str | None = None,
-        search: str | None = None,
-        per_page: int | None = None,
-    ) -> PaginatedResult:
-        return await listings.list_workflows(
-            self._client, tab, page, self.page_size,
-            wf_type=wf_type, search=search, per_page=per_page,
-        )
-
-    # ------------------------------------------------------------------
-    # Detail / timeline / run history
-    # ------------------------------------------------------------------
-
-    async def get_workflow_detail(
-        self, workflow_id: str, run_id: str | None = None,
-    ) -> WorkflowDetail | None:
-        return await detail.get_workflow_detail(self._client, workflow_id, run_id)
-
-    async def get_run_history(self, workflow_id: str) -> list[dict]:
-        return await detail.get_run_history(self._client, workflow_id)
-
-    async def get_workflow_timeline(
-        self, workflow_id: str, run_id: str | None = None,
-    ) -> tuple[list[TimelineEvent], TimelineStats]:
-        return await detail.get_workflow_timeline(self._client, workflow_id, run_id)
-
-    # ------------------------------------------------------------------
-    # Graph
-    # ------------------------------------------------------------------
-
-    async def get_workflow_graph(
-        self, workflow_id: str, detail_obj: WorkflowDetail,
-    ) -> GraphNode | None:
-        return await graph.get_workflow_graph(self._client, workflow_id, detail_obj)
-
-    async def get_all_pending_tasks(
-        self, graph_obj: GraphNode | None, workflow_id: str,
-    ) -> list[dict]:
-        return await graph.get_all_pending_tasks(self._client, graph_obj, workflow_id)
-
-    # ------------------------------------------------------------------
-    # Tasks (pending, signals)
-    # ------------------------------------------------------------------
-
-    async def get_pending_task(self, workflow_id: str) -> TaskMeta | None:
-        return await tasks.get_pending_task(self._client, workflow_id)
-
-    async def signal_complete(self, workflow_id: str, data: str) -> None:
-        return await tasks.signal_complete(self._client, workflow_id, data)
-
-    async def reassign_task(
-        self, workflow_id: str, assigned_user: str = "", assigned_group: str = "",
-    ) -> None:
-        return await tasks.signal_reassign(
-            self._client, workflow_id, assigned_user, assigned_group,
-        )
 
     # ------------------------------------------------------------------
     # Workflow execution
