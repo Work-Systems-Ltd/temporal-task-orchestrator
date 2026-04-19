@@ -97,7 +97,13 @@ class DetailMixin:
 
             elif etype == 3:  # WORKFLOW_EXECUTION_FAILED
                 workflow_end = _ts(event)
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow failed", status="failed"))
+                fail_detail = ""
+                attrs = event.workflow_execution_failed_event_attributes
+                if attrs and attrs.failure:
+                    fail_detail = attrs.failure.message or ""
+                    if attrs.failure.cause and attrs.failure.cause.message:
+                        fail_detail = attrs.failure.cause.message
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow failed", status="failed", detail=fail_detail))
 
             # Activity lifecycle
             elif etype == 10:  # ACTIVITY_TASK_SCHEDULED
@@ -122,7 +128,12 @@ class DetailMixin:
                 act_duration = (_ts(event) - sched_time).total_seconds()
                 total_activity_secs += act_duration
                 dur_str = ms_duration(sched_time, _ts(event))
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="failed", duration=dur_str))
+                fail_detail = ""
+                if attrs and attrs.failure:
+                    fail_detail = attrs.failure.message or ""
+                    if attrs.failure.cause and attrs.failure.cause.message:
+                        fail_detail = attrs.failure.cause.message
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="failed", detail=fail_detail, duration=dur_str))
 
             # Signals
             elif etype == 26:  # WORKFLOW_EXECUTION_SIGNALED
@@ -163,7 +174,14 @@ class DetailMixin:
                 init_id = attrs.initiated_event_id if attrs else 0
                 wf_type, child_wf_id = child_workflows.get(init_id, ("child", ""))
                 link = f"/workflow/{child_wf_id}" if child_wf_id else ""
-                events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="failed", detail="Child failed", link=link))
+                fail_detail = "Child failed"
+                if attrs and attrs.failure:
+                    msg = attrs.failure.message or ""
+                    if attrs.failure.cause and attrs.failure.cause.message:
+                        msg = attrs.failure.cause.message
+                    if msg:
+                        fail_detail = msg
+                events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="failed", detail=fail_detail, link=link))
 
         _epoch = datetime.min.replace(tzinfo=timezone.utc)
         stats = TimelineStats(
