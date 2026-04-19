@@ -1192,12 +1192,13 @@
 
   /* ── Task form context banner ── */
   .task-form-context {
-    @apply overflow-hidden rounded-t-lg;
+    @apply rounded-t-lg;
     border: 1px solid var(--color-border);
     border-bottom: none;
+    overflow: visible;
   }
   .task-form-context-header {
-    @apply flex items-center justify-between px-5 py-2.5;
+    @apply flex items-center justify-between px-5 py-2.5 rounded-t-lg;
     background: var(--color-pill-amber-bg);
     border-bottom: 1px solid var(--color-border);
   }
