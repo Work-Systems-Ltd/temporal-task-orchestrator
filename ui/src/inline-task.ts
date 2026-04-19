@@ -1,13 +1,89 @@
 /**
- * Handles inline task form submission from the workflow detail page.
- * Posts to /task/{workflowId}/submit and handles JSON responses:
- * - {ok: true} → reload page
- * - {ok: false, gone: true} → reload page (task completed by someone else)
- * - {ok: false, errors: {...}} → show validation errors inline
+ * Inline task submission + WebSocket-driven live updates for the workflow detail page.
+ *
+ * The WebSocket at /ws/workflow/{id} sends {"type": "refresh"} when the workflow
+ * state changes. The client responds by fetching the page and swapping <main> content.
  */
 
 declare const Alpine: any;
 
+let _ws: WebSocket | null = null;
+let _refreshing = false;
+
+/**
+ * Fetch the current page and swap the <main> content without a full reload.
+ */
+function refreshContent(): void {
+  if (_refreshing) return;
+  _refreshing = true;
+
+  const scrollY = window.scrollY;
+
+  fetch(window.location.href, { headers: { Accept: "text/html" } })
+    .then((r) => r.text())
+    .then((html) => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, "text/html");
+      const newMain = doc.querySelector("main");
+      const currentMain = document.querySelector("main");
+
+      if (newMain && currentMain) {
+        Alpine.destroyTree(currentMain);
+        currentMain.innerHTML = newMain.innerHTML;
+        Alpine.initTree(currentMain);
+      }
+
+      window.scrollTo(0, scrollY);
+    })
+    .catch(() => {})
+    .finally(() => {
+      _refreshing = false;
+    });
+}
+
+/**
+ * Connect to the workflow detail WebSocket.
+ * Called from the template with the workflow ID.
+ */
+function connectWorkflowWs(workflowId: string): void {
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  const url = proto + "//" + location.host + "/ws/workflow/" + workflowId;
+
+  function connect(): void {
+    _ws = new WebSocket(url);
+
+    _ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "refresh") {
+          refreshContent();
+        }
+      } catch {}
+    };
+
+    _ws.onclose = () => {
+      // Reconnect after a delay
+      setTimeout(connect, 3000);
+    };
+
+    _ws.onerror = () => {
+      _ws?.close();
+    };
+  }
+
+  connect();
+
+  // Refresh when the tab becomes visible again
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && _ws?.readyState === WebSocket.OPEN) {
+      refreshContent();
+    }
+  });
+}
+
+/**
+ * Handle inline task form submission.
+ */
 function submitInlineTask(event: Event, workflowId: string): void {
   const form = event.target as HTMLFormElement;
   const scope = Alpine.$data(form.closest("[x-data]")!);
@@ -31,7 +107,12 @@ function submitInlineTask(event: Event, workflowId: string): void {
       scope.submitting = false;
 
       if (data.ok || data.gone) {
-        window.location.reload();
+        // Tell the WS server a task was submitted so it checks sooner
+        if (_ws?.readyState === WebSocket.OPEN) {
+          _ws.send(JSON.stringify({ type: "submitted" }));
+        }
+        // Also do an immediate refresh as a fallback
+        setTimeout(refreshContent, 600);
         return;
       }
 
@@ -44,11 +125,9 @@ function submitInlineTask(event: Event, workflowId: string): void {
           const container = input.closest(".space-y-1\\.5");
           if (!container) return;
 
-          // Add error styling to the input
           const inputEl = container.querySelector(".input-field");
           if (inputEl) inputEl.classList.add("input-field-error");
 
-          // Add error messages
           msgs.forEach((msg) => {
             const p = document.createElement("p");
             p.className =
@@ -67,5 +146,5 @@ function submitInlineTask(event: Event, workflowId: string): void {
     });
 }
 
-// Expose globally for Alpine @submit.prevent calls
 (window as any).submitInlineTask = submitInlineTask;
+(window as any).connectWorkflowWs = connectWorkflowWs;

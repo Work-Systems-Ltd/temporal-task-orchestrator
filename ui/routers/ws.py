@@ -96,6 +96,60 @@ async def _build_update(
     }
 
 
+@router.websocket("/ws/workflow/{workflow_id}")
+async def workflow_detail_ws(
+    ws: WebSocket,
+    workflow_id: str,
+    user: User = Depends(require_ws_auth),
+    service: TemporalService = Depends(get_temporal_service),
+) -> None:
+    """Lightweight WS that pings the client when the workflow state changes."""
+    await ws.accept()
+
+    last_hash = ""
+
+    async def push_loop() -> None:
+        nonlocal last_hash
+        while True:
+            await asyncio.sleep(PUSH_INTERVAL)
+            try:
+                detail = await service.get_workflow_detail(workflow_id)
+                if not detail:
+                    continue
+                # Hash key fields that indicate a meaningful change
+                blob = json.dumps({
+                    "status": detail.status,
+                    "history_length": detail.history_length,
+                    "run_id": detail.run_id,
+                }, sort_keys=True)
+                h = hashlib.md5(blob.encode()).hexdigest()
+                if h != last_hash:
+                    last_hash = h
+                    await ws.send_json({"type": "refresh"})
+            except WebSocketDisconnect:
+                return
+            except Exception:
+                logger.exception("workflow_detail_ws push error")
+
+    push_task = asyncio.create_task(push_loop())
+
+    try:
+        while True:
+            msg = await ws.receive_json()
+            if msg.get("type") == "submitted":
+                # Task was just submitted — force a check after a short delay
+                await asyncio.sleep(0.5)
+                last_hash = ""
+    except WebSocketDisconnect:
+        pass
+    finally:
+        push_task.cancel()
+        try:
+            await push_task
+        except asyncio.CancelledError:
+            pass
+
+
 @router.websocket("/ws/tasks")
 async def tasks_ws(
     ws: WebSocket,
