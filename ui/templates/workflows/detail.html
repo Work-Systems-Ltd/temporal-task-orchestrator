@@ -110,22 +110,24 @@
       {# ── System tasks & child workflows ── #}
       {% for event in timeline %}
       <div x-data="{ open: false }">
-        <div class="flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors hover:bg-surface-hover" @click="open = !open" style="transition: background 0.15s ease" onmouseover="this.style.background='var(--color-surface-hover)'" onmouseout="this.style.background=''">
-          {{ status_badge(event.status) }}
-          <span class="tag hidden sm:inline-flex" style="min-width:52px;justify-content:center">{% if event.link %}Workflow{% else %}System{% endif %}</span>
-          <div class="min-w-0 flex-1">
+        <div class="wf-task-grid" @click="open = !open">
+          <div class="wf-col-status">{{ status_badge(event.status) }}</div>
+          <div class="wf-col-kind"><span class="tag">{% if event.link %}Workflow{% else %}System{% endif %}</span></div>
+          <div class="wf-col-name">
             <div class="td-title">{{ event.label | replace("Workflow", "") | trim }}</div>
             {% if event.detail and event.status != 'failed' %}
             <div class="td-subtitle">{{ event.detail }}</div>
             {% endif %}
           </div>
-          {% if event.duration %}
-          <span class="timeline-duration hidden sm:inline">{{ event.duration }}</span>
-          {% endif %}
-          <span class="td-time hidden md:inline">{{ event.event_time }}</span>
-          <svg class="accordion-chevron" :class="open && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
+          <div class="wf-col-meta">
+            {% if event.duration %}<span class="timeline-duration">{{ event.duration }}</span>{% endif %}
+          </div>
+          <div class="wf-col-time"><span class="td-time">{{ event.event_time }}</span></div>
+          <div class="wf-col-action">
+            <svg class="accordion-chevron" :class="open && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </div>
         </div>
         <div x-show="open" x-cloak x-collapse>
           <div class="px-5 py-4 border-t border-border" style="background: var(--color-bg-raised)">
@@ -157,33 +159,30 @@
       {# ── Pending human tasks ── #}
       {% for pt in pending_tasks %}
       <div x-data="{ expanded: {{ 'true' if pending_tasks | length == 1 else 'false' }}, submitting: false }">
-        <div class="flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors" @click="expanded = !expanded"
-             :style="expanded ? 'background: var(--color-surface-active)' : ''"
-             onmouseover="if(!this.__x) this.style.background='var(--color-surface-hover)'"
-             onmouseout="if(!this.__x) this.style.background=''">
-          {{ status_badge("pending") }}
-          <span class="tag hidden sm:inline-flex" style="min-width:52px;justify-content:center">Human</span>
-          <div class="min-w-0 flex-1">
+        <div class="wf-task-grid" @click="expanded = !expanded" :style="expanded ? 'background: var(--color-surface-active)' : ''">
+          <div class="wf-col-status">{{ status_badge("pending") }}</div>
+          <div class="wf-col-kind"><span class="tag">Human</span></div>
+          <div class="wf-col-name">
             <div class="td-title">{{ pt.title }}</div>
             {% if pt.description %}
             <div class="td-subtitle">{{ pt.description }}</div>
             {% endif %}
           </div>
-          {% if pt.assigned_user %}
-          <span class="pill pill-blue hidden sm:inline-flex">{{ pt.assigned_user }}</span>
-          {% endif %}
-          {% if pt.assigned_group %}
-          <span class="pill pill-emerald hidden sm:inline-flex">{{ pt.assigned_group }}</span>
-          {% endif %}
-          <span class="td-time hidden md:inline">{{ pt.started }}</span>
-          <a href="/task/{{ pt.workflow_id }}" class="btn btn-icon" title="Open full page" onclick="event.stopPropagation()">
-            <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+          <div class="wf-col-meta">
+            {% if pt.assigned_user %}<span class="pill pill-blue">{{ pt.assigned_user }}</span>{% endif %}
+            {% if pt.assigned_group %}<span class="pill pill-emerald">{{ pt.assigned_group }}</span>{% endif %}
+          </div>
+          <div class="wf-col-time"><span class="td-time">{{ pt.started }}</span></div>
+          <div class="wf-col-action">
+            <a href="/task/{{ pt.workflow_id }}" class="btn btn-icon" title="Open full page" onclick="event.stopPropagation()">
+              <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+            </a>
+            <svg class="accordion-chevron" :class="expanded && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
             </svg>
-          </a>
-          <svg class="accordion-chevron" :class="expanded && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
+          </div>
         </div>
         {% if pt.form %}
         <div x-show="expanded" x-cloak x-collapse>

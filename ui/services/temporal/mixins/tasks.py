@@ -25,7 +25,8 @@ class TasksMixin:
                 return None
             meta = TaskMeta.model_validate_json(raw)
             return await self._sanitize_assignment(meta)
-        except Exception:
+        except Exception as exc:
+            logger.debug("Failed to get pending task for %s: %s", workflow_id, exc)
             return None
 
     async def signal_complete(self, workflow_id: str, data: str) -> None:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
 from core.models import TaskMeta
 from core.workflows import WorkSysFlow
@@ -10,6 +11,8 @@ from ui.config import STATUS_QUERIES, TAB_ORDER
 from ui.helpers import duration, relative_time, status_name
 from ui.models import PaginatedResult, PendingTaskItem, WorkflowItem
 from ui.services.temporal.helpers import build_query, group_by_parent, is_assigned_to_user
+
+logger = logging.getLogger(__name__)
 
 
 class ListingsMixin:
@@ -29,7 +32,8 @@ class ListingsMixin:
                 handle = self._client.get_workflow_handle(wf_id)
                 desc = await handle.describe()
                 return desc.run_id == run_id
-            except Exception:
+            except Exception as exc:
+                logger.debug("Failed to check latest run for %s: %s", wf_id, exc)
                 return True
 
         checks = await asyncio.gather(*[_is_latest(wid, rid) for wid, rid in seen.items()])
@@ -47,7 +51,8 @@ class ListingsMixin:
                 raw = await handle.query(WorkSysFlow.get_pending_task)
                 if raw:
                     count += 1
-            except Exception:
+            except Exception as exc:
+                logger.debug("Failed to query pending task for %s: %s", wf.id, exc)
                 continue
         return count
 
@@ -131,7 +136,8 @@ class ListingsMixin:
                         assigned_group=meta.assigned_group,
                     )
                 )
-            except Exception:
+            except Exception as exc:
+                logger.debug("Failed to process workflow %s: %s", wf.id, exc)
                 continue
 
         size = per_page or self.page_size
@@ -154,7 +160,8 @@ class ListingsMixin:
                 handle = self._client.get_workflow_handle(item.workflow_id)
                 desc = await handle.describe()
                 return desc.run_id == item.run_id
-            except Exception:
+            except Exception as exc:
+                logger.debug("Failed to check latest run for %s: %s", item.workflow_id, exc)
                 return True
 
         checks = await asyncio.gather(*[_is_latest(item) for item in items])

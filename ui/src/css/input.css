@@ -1563,78 +1563,25 @@
     border-color: rgba(239, 68, 68, 0.2);
   }
 
-  /* ── Workflow detail task rows ── */
-  .wf-task-row {
-    @apply flex items-center gap-3 px-5 py-3 cursor-pointer;
+  /* ── Workflow detail task grid ── */
+  .wf-task-grid {
+    @apply px-5 py-3 cursor-pointer;
+    display: grid;
+    grid-template-columns: auto auto 1fr auto auto auto;
+    align-items: center;
+    gap: 0 12px;
     transition: background 0.15s ease;
   }
-  .wf-task-row:hover {
+  .wf-task-grid:hover {
     background: var(--color-surface-hover);
   }
-  .wf-task-row-pending {
-    background: color-mix(in srgb, var(--color-pill-amber-bg) 40%, var(--color-bg));
-    border-left: 3px solid var(--color-pill-amber-text);
-    padding-left: 17px;
-  }
-  .wf-task-row-pending:hover {
-    background: color-mix(in srgb, var(--color-pill-amber-bg) 60%, var(--color-bg));
-  }
-  .wf-task-row-failed {
-    border-left: 3px solid var(--color-pill-red-text);
-    padding-left: 17px;
-  }
-  .wf-task-status {
-    @apply shrink-0;
-  }
-  .wf-task-kind {
-    @apply shrink-0 hidden sm:flex items-center justify-center rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider;
-    color: var(--color-text-ghost);
-    background: var(--color-surface-active);
-    min-width: 52px;
-    text-align: center;
-  }
-  .wf-task-name {
-    @apply min-w-0 flex-1;
-  }
-  .wf-task-label {
-    @apply text-sm font-medium;
-    color: var(--color-text-secondary);
-  }
-  .wf-task-row:hover .wf-task-label {
-    color: var(--color-text-primary);
-  }
-  .wf-task-row-pending .wf-task-label {
-    color: var(--color-text-primary);
-  }
-  .wf-task-desc {
-    @apply block text-xs truncate mt-0.5;
-    color: var(--color-text-faint);
-  }
-  .wf-task-meta {
-    @apply flex items-center gap-2 shrink-0;
-  }
-  .wf-task-time {
-    @apply text-[11px] tabular-nums hidden md:inline;
-    color: var(--color-text-ghost);
-  }
-  .wf-task-action {
-    @apply flex items-center gap-1.5 shrink-0;
-  }
-  .wf-task-detail {
-    @apply px-5 py-4;
-    border-top: 1px solid var(--color-border);
-    background: var(--color-bg-raised);
-  }
-  .wf-task-detail-section {
-    @apply mb-3;
-  }
-  .wf-task-detail-section:last-child {
-    @apply mb-0;
-  }
-  .wf-task-detail-label {
-    @apply text-[10px] font-medium uppercase tracking-wider mb-1.5;
-    color: var(--color-text-ghost);
-  }
+  .wf-col-status { @apply shrink-0; }
+  .wf-col-kind { @apply hidden sm:block; }
+  .wf-col-kind .tag { min-width: 56px; justify-content: center; display: inline-flex; }
+  .wf-col-name { @apply min-w-0; }
+  .wf-col-meta { @apply hidden sm:flex items-center gap-1.5; min-width: 70px; justify-content: flex-end; }
+  .wf-col-time { @apply hidden md:block; min-width: 60px; text-align: right; }
+  .wf-col-action { @apply flex items-center gap-1.5; }
 
   /* ── Accordion ── */
   .accordion-trigger {

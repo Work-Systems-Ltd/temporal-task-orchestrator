@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta, timezone
 
 from ui.helpers import duration, relative_time, status_name
 from ui.models import TimelineEvent, TimelineStats, WorkflowDetail
 from ui.services.temporal.helpers import ms_duration
+
+logger = logging.getLogger(__name__)
 
 
 class DetailMixin:
@@ -31,7 +34,8 @@ class DetailMixin:
                 history_length=desc.history_length,
                 parent_id=desc.parent_id,
             )
-        except Exception:
+        except Exception as exc:
+            logger.debug("Workflow detail error: %s", exc)
             return None
 
     async def get_run_history(self, workflow_id: str) -> list[dict]:
@@ -81,7 +85,7 @@ class DetailMixin:
                 if attrs and attrs.input and attrs.input.payloads:
                     try:
                         workflow_input = attrs.input.payloads[0].data.decode("utf-8")
-                    except Exception:
+                    except Exception as exc:
                         pass
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow started", status="completed"))
 
@@ -91,7 +95,7 @@ class DetailMixin:
                 if attrs and attrs.result and attrs.result.payloads:
                     try:
                         workflow_output = attrs.result.payloads[0].data.decode("utf-8")
-                    except Exception:
+                    except Exception as exc:
                         pass
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow completed", status="completed"))
 
