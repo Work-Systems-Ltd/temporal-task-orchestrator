@@ -8,6 +8,7 @@ from tasks.human.testing_input import TestingInputTask
 from workflows.approval import ApprovalWorkflow
 from workflows.hiring import HiringWorkflow
 from workflows.onboarding import OnboardingWorkflow
+from workflows.ping import PingWorkflow
 from workflows.testing import TestingWorkflow
 
 register_workflow(
@@ -32,6 +33,16 @@ register_workflow(
     input_task=OnboardingInputTask,
     task_types=[OnboardingTask],
     required_users=["admin"],
+)
+
+register_workflow(
+    key="ping",
+    label="Ping",
+    description="Simple test — runs one system task and returns the result",
+    workflow_cls=PingWorkflow,
+    input_label="Message",
+    input_placeholder="e.g. hello",
+    task_types=[],
 )
 
 register_workflow(
