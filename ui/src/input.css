@@ -1312,6 +1312,74 @@
     opacity: 0;
   }
 
+  /* ── Login page ── */
+  .login-bg-pattern {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.4;
+    background-image:
+      radial-gradient(var(--color-border) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 100%);
+    pointer-events: none;
+  }
+  .login-card {
+    @apply relative w-full max-w-sm rounded-xl p-8;
+    background: var(--color-glass-bg);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    backdrop-filter: blur(20px) saturate(1.5);
+    border: 1px solid var(--color-glass-border);
+    box-shadow:
+      0 1px 3px var(--color-glass-shadow),
+      0 8px 32px rgba(0, 0, 0, 0.08);
+  }
+  .dark .login-card {
+    box-shadow:
+      0 1px 3px var(--color-glass-shadow),
+      0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+  .login-label {
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wider;
+    color: var(--color-text-faint);
+    letter-spacing: 0.05em;
+  }
+  .login-input {
+    @apply w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition-all;
+    color: var(--color-text-primary);
+    background: var(--color-bg);
+    border-color: var(--color-border);
+  }
+  .login-input::placeholder {
+    color: var(--color-text-ghost);
+  }
+  .login-input:hover {
+    border-color: var(--color-border-hover);
+  }
+  .login-input:focus {
+    border-color: var(--color-text-muted);
+    box-shadow: 0 0 0 3px var(--color-focus-ring-outer);
+  }
+  .login-input-icon {
+    @apply pointer-events-none absolute left-3 top-1/2 -translate-y-1/2;
+    color: var(--color-text-ghost);
+    transition: color 0.2s ease;
+  }
+  .login-input:focus ~ .login-input-icon,
+  *:has(.login-input:focus) > .login-input-icon {
+    color: var(--color-text-muted);
+  }
+  .login-error {
+    @apply flex items-center gap-2.5 rounded-lg px-4 py-3 text-sm;
+    background: var(--color-pill-red-bg);
+    color: var(--color-pill-red-text);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+  }
+  .dark .login-error {
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+
   /* ── Staggered entrance for child elements ── */
   .stagger-in > * {
     opacity: 0;
