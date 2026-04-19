@@ -160,19 +160,21 @@
   <div x-show="tab === 'tasks'" class="card mb-5">
     <div class="divide-y divide-border">
 
-      {# ── System tasks & child workflows ── #}
+      {# ── All timeline events ── #}
       {% for event in timeline %}
       <div x-data="{ open: false }">
         <div class="wf-task-grid" @click="open = !open">
           <div class="wf-col-status">{{ status_badge(event.status) }}</div>
-          <div class="wf-col-kind"><span class="tag">{% if event.link %}Workflow{% else %}System{% endif %}</span></div>
+          <div class="wf-col-kind"><span class="tag">{{ event.kind | default('system') | capitalize }}</span></div>
           <div class="wf-col-name">
             <div class="td-title">{{ event.label | replace("Workflow", "") | trim }}</div>
-            {% if event.detail and event.status != 'failed' %}
+            {% if event.detail and event.status != 'failed' and event.kind != 'human' %}
             <div class="td-subtitle">{{ event.detail }}</div>
             {% endif %}
           </div>
           <div class="wf-col-meta">
+            {% if event.assigned_user %}<span class="pill pill-blue">{{ event.assigned_user }}</span>{% endif %}
+            {% if event.assigned_group %}<span class="pill pill-emerald">{{ event.assigned_group }}</span>{% endif %}
             {% if event.duration %}<span class="timeline-duration">{{ event.duration }}</span>{% endif %}
           </div>
           <div class="wf-col-time"><span class="td-time">{{ event.event_time }}</span></div>
@@ -184,15 +186,21 @@
         </div>
         <div x-show="open" x-cloak x-collapse>
           <div class="px-5 py-4 border-t border-border" style="background: var(--color-bg-raised)">
+            {% if event.kind == 'human' and event.input_data %}
+            <div class="text-[10px] font-medium uppercase tracking-wider text-ghost mb-1.5">Submitted Data</div>
+            <div class="json-viewer" style="border:none;border-radius:0.5rem">
+              <div data-json-viewer="{{ event.input_data | e }}"></div>
+            </div>
+            {% endif %}
             {% if event.detail and event.status == 'failed' %}
-            <div class="text-[10px] font-medium uppercase tracking-wider text-ghost mb-1.5">Error</div>
+            <div class="{% if event.input_data %}mt-3{% endif %} text-[10px] font-medium uppercase tracking-wider text-ghost mb-1.5">Error</div>
             <div class="timeline-error">{{ event.detail }}</div>
-            {% elif event.detail %}
+            {% elif event.detail and event.kind != 'human' %}
             <div class="text-[10px] font-medium uppercase tracking-wider text-ghost mb-1.5">Detail</div>
             <div class="text-sm text-secondary">{{ event.detail }}</div>
             {% endif %}
             {% if event.link %}
-            <div class="{% if event.detail %}mt-3{% endif %}">
+            <div class="{% if event.detail or event.input_data %}mt-3{% endif %}">
               <a href="{{ event.link }}" class="btn btn-secondary">
                 View workflow
                 <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -201,7 +209,7 @@
               </a>
             </div>
             {% endif %}
-            {% if not event.detail and not event.link %}
+            {% if not event.detail and not event.link and not event.input_data %}
             <span class="text-xs text-ghost">No additional details</span>
             {% endif %}
           </div>
