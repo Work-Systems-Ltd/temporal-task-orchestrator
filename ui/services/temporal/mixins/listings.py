@@ -19,42 +19,17 @@ class ListingsMixin:
     """Workflow listing, counting, and pagination."""
 
     async def count_workflows(self, query: str | None) -> int:
-        """Count workflows matching *query*, deduplicating by workflow ID."""
-        seen: dict[str, str] = {}
-        async for wf in self._client.list_workflows(query, page_size=100):
-            if wf.id not in seen:
-                seen[wf.id] = wf.run_id or ""
-
-        async def _is_latest(wf_id: str, run_id: str) -> bool:
-            if not run_id:
-                return True
-            try:
-                handle = self._client.get_workflow_handle(wf_id)
-                desc = await handle.describe()
-                return desc.run_id == run_id
-            except Exception as exc:
-                logger.debug("Failed to check latest run for %s: %s", wf_id, exc)
-                return True
-
-        checks = await asyncio.gather(*[_is_latest(wid, rid) for wid, rid in seen.items()])
-        return sum(1 for ok in checks if ok)
+        """Count workflows matching *query* using Temporal's server-side count."""
+        result = await self._client.count_workflows(query or "")
+        return result.count
 
     async def count_pending(self, wf_type: str | None = None) -> int:
-        """Count running workflows that have a pending human task."""
-        count = 0
+        """Count running workflows (approximation — counts all running, not just those with pending tasks)."""
         query = 'ExecutionStatus="Running"'
         if wf_type:
             query += f' AND WorkflowType="{wf_type}"'
-        async for wf in self._client.list_workflows(query, page_size=100):
-            try:
-                handle = self._client.get_workflow_handle(wf.id)
-                raw = await handle.query(WorkSysFlow.get_pending_task)
-                if raw:
-                    count += 1
-            except Exception as exc:
-                logger.debug("Failed to query pending task for %s: %s", wf.id, exc)
-                continue
-        return count
+        result = await self._client.count_workflows(query)
+        return result.count
 
     async def get_tab_counts(
         self, wf_type: str | None = None, tabs: list[str] | None = None,
@@ -88,7 +63,12 @@ class ListingsMixin:
         if wf_type:
             query += f' AND WorkflowType="{wf_type}"'
 
-        async for wf in self._client.list_workflows(query):
+        max_scan = 500  # Safety limit to avoid scanning too many workflows
+        scanned = 0
+        async for wf in self._client.list_workflows(query, page_size=100):
+            scanned += 1
+            if scanned > max_scan:
+                break
             try:
                 handle = self._client.get_workflow_handle(wf.id)
                 raw = await handle.query(WorkSysFlow.get_pending_task)
@@ -148,25 +128,6 @@ class ListingsMixin:
             has_next=end < len(all_pending),
         )
 
-    async def _deduplicate_runs(self, items: list[WorkflowItem]) -> list[WorkflowItem]:
-        """Remove items that have been superseded by a newer run."""
-        if not items:
-            return items
-
-        async def _is_latest(item: WorkflowItem) -> bool:
-            if not item.run_id:
-                return True
-            try:
-                handle = self._client.get_workflow_handle(item.workflow_id)
-                desc = await handle.describe()
-                return desc.run_id == item.run_id
-            except Exception as exc:
-                logger.debug("Failed to check latest run for %s: %s", item.workflow_id, exc)
-                return True
-
-        checks = await asyncio.gather(*[_is_latest(item) for item in items])
-        return [item for item, ok in zip(items, checks) if ok]
-
     async def list_workflows(
         self,
         tab: str,
@@ -213,6 +174,5 @@ class ListingsMixin:
             collected += 1
 
         has_next = len(items) > size
-        deduped = await self._deduplicate_runs(items[:size])
-        grouped = group_by_parent(deduped)
+        grouped = group_by_parent(items[:size])
         return PaginatedResult(items=grouped, has_next=has_next)
