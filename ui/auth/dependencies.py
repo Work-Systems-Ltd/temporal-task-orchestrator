@@ -26,6 +26,13 @@ async def require_auth(request: Request) -> User:
     return user
 
 
+async def require_admin(request: Request) -> User:
+    user = await require_auth(request)
+    if not any(g.name == "admin" for g in user.groups):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user
+
+
 async def require_ws_auth(ws: WebSocket) -> User:
     secret = ws.app.state.settings.session_secret
     user = await load_user_from_session(ws, secret)

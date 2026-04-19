@@ -60,6 +60,18 @@ async def seed(username: str, password: str, group_names: list[str]) -> None:
         await db.commit()
 
 
+async def ensure_default_groups(group_names: list[str]) -> None:
+    """Create groups if they don't already exist."""
+    factory = get_session_factory()
+    async with factory() as db:
+        for name in group_names:
+            result = await db.execute(select(Group).where(Group.name == name))
+            if not result.scalar_one_or_none():
+                db.add(Group(name=name))
+                logger.info("Created default group '%s'", name)
+        await db.commit()
+
+
 def main() -> None:
     """CLI entrypoint — initialises its own engine."""
     from ui.config import AppSettings

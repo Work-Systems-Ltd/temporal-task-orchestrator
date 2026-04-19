@@ -16,10 +16,10 @@ from ui.auth.csrf import get_csrf_token, set_csrf_cookie, validate_csrf
 from ui.auth.database import dispose_engine, init_engine
 from ui.auth.dependencies import LoginRequiredError
 from ui.auth.routes import router as auth_router
-from ui.auth.seed import seed as seed_user
+from ui.auth.seed import ensure_default_groups, seed as seed_user
 from ui.auth.session import delete_expired_sessions, load_user_from_session
 from ui.config import AppSettings
-from ui.routers import task_list, tasks, workflow_detail, workflows as workflows_router, ws
+from ui.routers import admin, task_list, tasks, workflow_detail, workflows as workflows_router, ws
 from ui.services.temporal import TemporalService
 
 logger = logging.getLogger(__name__)
