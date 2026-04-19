@@ -16,7 +16,7 @@ email-validator = "^2.0.0"
 python-multipart = "^0.0.20"
 sqlalchemy = {version = "^2.0", extras = ["asyncio"]}
 asyncpg = "^0.30"
-passlib = {version = "^1.7", extras = ["bcrypt"]}
+bcrypt = "^4.0"
 alembic = "^1.14"
 typer = "^0.15"
 pydantic-settings = "^2.0"

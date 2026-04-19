@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from passlib.hash import bcrypt
+import bcrypt
 from sqlalchemy import select
 
 from ui.dependencies import get_templates
@@ -61,7 +61,7 @@ async def login_submit(
         )
         user = result.scalar_one_or_none()
 
-    if not user or not bcrypt.verify(password, user.password_hash):
+    if not user or not bcrypt.checkpw(password.encode(), user.password_hash.encode()):
         return templates.TemplateResponse(
             "login.html",
             {

@@ -13,7 +13,7 @@ import argparse
 import asyncio
 import logging
 
-from passlib.hash import bcrypt
+import bcrypt
 from sqlalchemy import select
 
 from .database import dispose_engine, get_session_factory, init_engine
@@ -51,7 +51,7 @@ async def seed(username: str, password: str, group_names: list[str]) -> None:
             user = User(
                 username=username,
                 display_name=username,
-                password_hash=bcrypt.hash(password),
+                password_hash=bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode(),
                 groups=groups,
             )
             db.add(user)
