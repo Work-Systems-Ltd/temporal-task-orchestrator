@@ -197,9 +197,12 @@ class TemporalService:
 
                     # Assignment sub-filter (tabs within visible tasks)
                     if assignment == "mine":
-                        if not self._is_assigned_to_user(
-                            meta, user_slug, user_group_slugs or [],
-                        ):
+                        # Only tasks explicitly assigned to this user or their groups
+                        is_mine = (
+                            (meta.assigned_user and meta.assigned_user == user_slug)
+                            or (meta.assigned_group and meta.assigned_group in (user_group_slugs or []))
+                        )
+                        if not is_mine:
                             continue
                     elif assignment == "my_groups":
                         if not meta.assigned_group or meta.assigned_group not in (user_group_slugs or []):
