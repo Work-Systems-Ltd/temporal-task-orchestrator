@@ -1,4 +1,4 @@
-from datetime import timedelta
+import asyncio
 
 from temporalio import workflow
 
@@ -17,11 +17,11 @@ class HiringWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: HiringInputTask.Model) -> str:
-        # Step 1: Get hiring approved
+        # Step 1: Get hiring approved via child workflow
         approval_result = await workflow.execute_child_workflow(
             ApprovalWorkflow.run,
             ApprovalInputTask.Model(
-                description="New hire request",
+                description=f"New hire request: {input.employee_name}",
                 urgency=input.urgency,
             ),
             id=f"{workflow.info().workflow_id}-approval",
@@ -30,33 +30,29 @@ class HiringWorkflow(WorkSysFlow):
         if "REJECTED" in approval_result:
             return f"Hiring rejected: {approval_result}"
 
-        self.create_human_task(
-            lambda: None,  # No activity, just a signal wait
-            task_type="hiring",
-            title="Hiring approved",
-            description="The new hire request has been approved. Please proceed with onboarding.",
+        # Step 2: Collect onboarding details via human task
+        onboarding_meta = TaskMeta(
+            task_type="onboarding_input",
+            title="Provide onboarding details",
+            description=f"The hire for {input.employee_name} has been approved. Please provide onboarding details.",
+            assigned_group="admin",
         )
+        onboarding_data = await self.wait_for_human_task(onboarding_meta)
+        onboarding_input = OnboardingInputTask.Model(**onboarding_data)
 
-        # Step 3: Run onboarding
-        import asyncio
-        # Start both child workflows concurrently
+        # Step 3: Run onboarding workflows concurrently
         onboarding1 = await workflow.start_child_workflow(
             OnboardingWorkflow.run,
-            lambda: None,  # No input needed, just a signal wait
+            onboarding_input,
             id=f"{workflow.info().workflow_id}-onboarding",
         )
 
         onboarding2 = await workflow.start_child_workflow(
             OnboardingWorkflow.run,
-            lambda: None,   # No input needed, just a signal wait
-            id=f"{workflow.info().workflow_id}-onboarding-test",
+            onboarding_input,
+            id=f"{workflow.info().workflow_id}-onboarding-2",
         )
 
-        # Now wait for both results
-        result1, result2 = await asyncio.gather(
-            onboarding1,
-            onboarding2,
-        )
+        result1, result2 = await asyncio.gather(onboarding1, onboarding2)
 
-        return "foo"
-        #return f"Hiring complete for {onboarding_input.employee_name}: {onboarding_result}"
+        return f"Hiring complete for {input.employee_name}: {result1} | {result2}"
