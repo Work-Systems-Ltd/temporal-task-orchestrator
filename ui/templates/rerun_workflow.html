@@ -1,0 +1,68 @@
+{% from "partials/form_fields.html" import render_field %}
+{% extends "base.html" %}
+{% block title %}Rerun {{ wf.label }} — Task Console{% endblock %}
+
+{% block content %}
+<div x-data="{ submitting: false }" class="mx-auto max-w-[520px] animate-slide-up">
+
+  <a href="/workflow/{{ workflow_id }}" class="back-link">
+    <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+    </svg>
+    Back to workflow
+  </a>
+
+  <div class="card">
+
+    <div class="card-header">
+      <div class="flex items-center gap-2 mb-1">
+        <svg class="h-4 w-4 text-muted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+        </svg>
+        <span class="text-xs font-medium uppercase tracking-wider text-faint">Rerun workflow</span>
+      </div>
+      <h1 class="text-base font-semibold text-primary">{{ wf.label }}</h1>
+      <p class="mt-1 text-sm text-muted">Edit the input below and rerun with the same workflow ID.</p>
+      <div class="mt-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-mono" style="color: var(--color-text-faint); background: var(--color-surface-active);">
+        {{ workflow_id }}
+      </div>
+    </div>
+
+    <form method="post" action="/workflow/{{ workflow_id }}/rerun" @submit="submitting = true" class="space-y-4 p-5">
+      <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
+      {% if form %}
+        {% for field in form %}
+          {{ render_field(field, errors.get(field.name)) }}
+        {% endfor %}
+      {% else %}
+      <div class="space-y-1.5">
+        <label for="input_value" class="block text-sm font-medium text-secondary">{{ wf.input_label }}</label>
+        <textarea id="input_value" name="input_value" rows="3"
+                  placeholder="{{ wf.input_placeholder }}"
+                  class="input-field {{ 'input-field-error' if errors.get('input_value') else '' }}">{{ original_input or '' }}</textarea>
+      </div>
+      {% endif %}
+
+      <div class="flex items-center justify-end gap-2 border-t border-border pt-4">
+        <a href="/workflow/{{ workflow_id }}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" :disabled="submitting"
+                class="btn btn-primary relative">
+          <span :class="submitting ? 'invisible' : ''">
+            <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+            </svg>
+            Rerun
+          </span>
+          <span x-show="submitting" x-cloak class="absolute inset-0 flex items-center justify-center">
+            <svg class="h-3.5 w-3.5 animate-spin spinner-on-inverted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </span>
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
