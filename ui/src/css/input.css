@@ -247,41 +247,44 @@
   .pill {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
     letter-spacing: 0.02em;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 1px 3px rgba(0, 0, 0, 0.12);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
   }
   .pill-amber {
-    background: #f59e0b;
+    background: rgba(245, 158, 11, 0.85);
     color: #fff;
   }
   .pill-blue {
-    background: #3b82f6;
+    background: rgba(59, 130, 246, 0.85);
     color: #fff;
   }
   .pill-emerald {
-    background: #10b981;
+    background: rgba(16, 185, 129, 0.85);
     color: #fff;
   }
   .pill-red {
-    background: #ef4444;
+    background: rgba(239, 68, 68, 0.85);
     color: #fff;
   }
   .pill-zinc {
-    background: #71717a;
+    background: rgba(113, 113, 122, 0.85);
     color: #fff;
   }
   .dark .pill-amber {
-    background: #d97706;
+    background: rgba(217, 119, 6, 0.8);
   }
   .dark .pill-blue {
-    background: #2563eb;
+    background: rgba(37, 99, 235, 0.8);
   }
   .dark .pill-emerald {
-    background: #059669;
+    background: rgba(5, 150, 105, 0.8);
   }
   .dark .pill-red {
-    background: #dc2626;
+    background: rgba(220, 38, 38, 0.8);
   }
   .dark .pill-zinc {
-    background: #52525b;
+    background: rgba(82, 82, 91, 0.8);
   }
   .tag {
     @apply inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold;
