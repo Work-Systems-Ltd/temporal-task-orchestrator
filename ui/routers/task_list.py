@@ -8,12 +8,13 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from ui.auth.dependencies import require_auth
 from ui.config import TAB_ORDER
 from ui.dependencies import get_templates, get_temporal_service
 from ui.services.temporal import TemporalService
 from core.workflows import get_all_workflows
 
-router = APIRouter(tags=["task_list"])
+router = APIRouter(tags=["task_list"], dependencies=[Depends(require_auth)])
 
 
 def _get_workflow_types() -> list[str]:

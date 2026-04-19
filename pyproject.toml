@@ -14,7 +14,15 @@ jinja2 = "^3.1.0"
 wtforms = "^3.2.0"
 email-validator = "^2.0.0"
 python-multipart = "^0.0.20"
+sqlalchemy = {version = "^2.0", extras = ["asyncio"]}
+asyncpg = "^0.30"
+passlib = {version = "^1.7", extras = ["bcrypt"]}
+alembic = "^1.14"
+typer = "^0.15"
+pydantic-settings = "^2.0"
 
+[tool.poetry.scripts]
+taskorch = "core.cli.main:app"
 
 [build-system]
 requires = ["poetry-core"]

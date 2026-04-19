@@ -6,12 +6,13 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from ui.auth.dependencies import require_auth
 from ui.dependencies import get_templates, get_temporal_service
 from ui.helpers import validate_task_form
 from ui.services.temporal import TemporalService
 from core.workflows import get_all_workflows, get_workflow
 
-router = APIRouter(tags=["workflows"])
+router = APIRouter(tags=["workflows"], dependencies=[Depends(require_auth)])
 
 
 @router.get("/start", response_class=HTMLResponse)

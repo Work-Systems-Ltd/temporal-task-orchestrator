@@ -31,6 +31,7 @@
 
   <div class="card">
     <form method="post" action="/task/{{ workflow_id }}" @submit="submitting = true" class="space-y-4 p-5">
+      <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
       {% for field in form %}
         {{ render_field(field, errors.get(field.name)) }}
       {% endfor %}

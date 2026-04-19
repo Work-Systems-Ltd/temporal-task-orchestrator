@@ -6,10 +6,11 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+from ui.auth.dependencies import require_auth
 from ui.dependencies import get_templates, get_temporal_service
 from ui.services.temporal import TemporalService
 
-router = APIRouter(tags=["workflow_detail"])
+router = APIRouter(tags=["workflow_detail"], dependencies=[Depends(require_auth)])
 
 
 async def _noop() -> None:

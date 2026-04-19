@@ -54,6 +54,11 @@
             <span>refresh</span>
           </div>
         </div>
+        {% if request.state.user %}
+        <div class="header-divider"></div>
+        <span class="text-sm opacity-60">{{ request.state.user.display_name or request.state.user.username }}</span>
+        <a href="/logout" class="nav-link text-sm">Logout</a>
+        {% endif %}
         <div class="header-divider"></div>
         <button @click="$store.theme.toggle()" class="theme-toggle" :title="$store.theme.dark ? 'Switch to light mode' : 'Switch to dark mode'" x-data>
           <svg x-show="$store.theme.dark" x-cloak class="h-[18px] w-[18px]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">

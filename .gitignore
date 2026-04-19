@@ -1,5 +1,6 @@
 *.pyc
 *.swp
+.env
 /site/
 /venv/
 **/dist/

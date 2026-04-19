@@ -20,6 +20,7 @@
     </div>
 
     <form method="post" action="/start/{{ wf.key }}" @submit="submitting = true" class="space-y-4 p-5">
+      <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
       {% if form %}
         {% for field in form %}
           {{ render_field(field, errors.get(field.name)) }}

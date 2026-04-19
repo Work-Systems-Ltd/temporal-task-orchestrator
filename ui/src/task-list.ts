@@ -167,9 +167,14 @@ function taskList(): TaskListData {
         }
       };
 
-      ws.onclose = () => {
+      ws.onclose = (ev: CloseEvent) => {
         this.connected = false;
         this.ws = null;
+        // Server rejected with 4401 — session expired, redirect to login
+        if (ev.code === 4401) {
+          window.location.href = "/login";
+          return;
+        }
         if (!this.reconnectTimer) {
           this.reconnectTimer = window.setTimeout(() => {
             this.reconnectTimer = null;

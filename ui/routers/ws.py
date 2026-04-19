@@ -8,6 +8,7 @@ import logging
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
 
+from ui.auth.session import load_user_from_session
 from ui.config import TAB_ORDER
 from ui.dependencies import get_templates, get_temporal_service
 from ui.services.temporal import TemporalService
@@ -90,6 +91,14 @@ async def tasks_ws(
     service: TemporalService = Depends(get_temporal_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> None:
+    # Auth check — must accept before closing with application-level code
+    secret = ws.app.state.settings.session_secret
+    user = await load_user_from_session(ws, secret)
+    if user is None:
+        await ws.accept()
+        await ws.close(code=4401, reason="Unauthorized")
+        return
+
     await ws.accept()
 
     # Shared state — only modified by the receive loop, read by push_loop

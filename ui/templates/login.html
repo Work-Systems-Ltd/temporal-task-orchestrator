@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign In — Task Console</title>
+  <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico" />
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <script src="/static/js/theme.js"></script>
+  <script defer src="/static/vendor/alpine.min.js"></script>
+</head>
+<body class="flex h-full flex-col bg-bg font-sans antialiased" :class="$store.theme.dark ? 'text-white' : 'text-zinc-900'" x-data>
+
+  <div class="flex flex-1 items-center justify-center px-4">
+    <div class="w-full max-w-sm">
+      <div class="mb-8 text-center">
+        <img src="/static/img/logo.png" alt="Worksystems" class="logo-img mx-auto mb-4 h-6 opacity-70" />
+        <h1 class="text-xl font-semibold">Sign in to Task Console</h1>
+      </div>
+
+      {% if error %}
+      <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="post" action="/login" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
+        <input type="hidden" name="next_url" value="{{ next_url }}" />
+        <div>
+          <label for="username" class="mb-1 block text-sm font-medium opacity-80">Username</label>
+          <input
+            type="text" id="username" name="username" required autofocus
+            class="field-input w-full"
+            autocomplete="username"
+          />
+        </div>
+        <div>
+          <label for="password" class="mb-1 block text-sm font-medium opacity-80">Password</label>
+          <input
+            type="password" id="password" name="password" required
+            class="field-input w-full"
+            autocomplete="current-password"
+          />
+        </div>
+        <button type="submit" class="btn btn-primary w-full">
+          Sign In
+        </button>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>
