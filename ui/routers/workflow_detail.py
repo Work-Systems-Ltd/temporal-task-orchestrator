@@ -96,7 +96,7 @@ async def rerun_form(
     )
 
 
-@router.post("/workflow/{workflow_id}/rerun", response_class=HTMLResponse)
+@router.post("/workflow/{workflow_id}/rerun", response_class=HTMLResponse, response_model=None)
 async def rerun_submit(
     request: Request,
     workflow_id: str,
