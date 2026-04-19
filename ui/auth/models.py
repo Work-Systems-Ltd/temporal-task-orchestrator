@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import unicodedata
 import uuid
+from functools import cached_property
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime, ForeignKey, String, Table, func
@@ -58,15 +59,15 @@ class User(Base):
         secondary=user_groups, back_populates="users", lazy="selectin"
     )
 
-    @property
+    @cached_property
     def slug(self) -> str:
         return _slugify(self.username)
 
-    @property
+    @cached_property
     def is_admin(self) -> bool:
         return any(g.name == "admin" for g in self.groups)
 
-    @property
+    @cached_property
     def group_slugs(self) -> list[str]:
         return [g.slug for g in self.groups]
 

@@ -8,6 +8,13 @@ from datetime import datetime, timedelta, timezone
 from ui.helpers import duration, relative_time, status_name
 from ui.models import TimelineEvent, TimelineStats, WorkflowDetail
 from ui.services.temporal.helpers import ms_duration
+from ui.services.temporal.event_types import (
+    WORKFLOW_EXECUTION_STARTED, WORKFLOW_EXECUTION_COMPLETED, WORKFLOW_EXECUTION_FAILED,
+    ACTIVITY_TASK_SCHEDULED, ACTIVITY_TASK_COMPLETED, ACTIVITY_TASK_FAILED_LEGACY,
+    WORKFLOW_EXECUTION_SIGNALED,
+    START_CHILD_WORKFLOW_EXECUTION_INITIATED, CHILD_WORKFLOW_EXECUTION_STARTED,
+    CHILD_WORKFLOW_EXECUTION_COMPLETED, CHILD_WORKFLOW_EXECUTION_FAILED,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +86,7 @@ class DetailMixin:
             eid = event.event_id
 
             # Workflow lifecycle
-            if etype == 1:  # WORKFLOW_EXECUTION_STARTED
+            if etype == WORKFLOW_EXECUTION_STARTED:  # WORKFLOW_EXECUTION_STARTED
                 workflow_start = _ts(event)
                 attrs = event.workflow_execution_started_event_attributes
                 if attrs and attrs.input and attrs.input.payloads:
@@ -89,7 +96,7 @@ class DetailMixin:
                         logger.debug("Failed to decode workflow payload: %s", exc)
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow started", status="completed"))
 
-            elif etype == 2:  # WORKFLOW_EXECUTION_COMPLETED
+            elif etype == WORKFLOW_EXECUTION_COMPLETED:  # WORKFLOW_EXECUTION_COMPLETED
                 workflow_end = _ts(event)
                 attrs = event.workflow_execution_completed_event_attributes
                 if attrs and attrs.result and attrs.result.payloads:
@@ -99,7 +106,7 @@ class DetailMixin:
                         logger.debug("Failed to decode workflow payload: %s", exc)
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow completed", status="completed"))
 
-            elif etype == 3:  # WORKFLOW_EXECUTION_FAILED
+            elif etype == WORKFLOW_EXECUTION_FAILED:  # WORKFLOW_EXECUTION_FAILED
                 workflow_end = _ts(event)
                 fail_detail = ""
                 attrs = event.workflow_execution_failed_event_attributes
@@ -110,12 +117,12 @@ class DetailMixin:
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label="Workflow failed", status="failed", detail=fail_detail))
 
             # Activity lifecycle
-            elif etype == 10:  # ACTIVITY_TASK_SCHEDULED
+            elif etype == ACTIVITY_TASK_SCHEDULED:  # ACTIVITY_TASK_SCHEDULED
                 attrs = event.activity_task_scheduled_event_attributes
                 name = attrs.activity_type.name if attrs and attrs.activity_type else "unknown"
                 scheduled_activities[eid] = (name, _ts(event))
 
-            elif etype == 12:  # ACTIVITY_TASK_COMPLETED
+            elif etype == ACTIVITY_TASK_COMPLETED:  # ACTIVITY_TASK_COMPLETED
                 attrs = event.activity_task_completed_event_attributes
                 sched_id = attrs.scheduled_event_id if attrs else 0
                 name, sched_time = scheduled_activities.get(sched_id, ("activity", _ts(event)))
@@ -125,7 +132,7 @@ class DetailMixin:
                 dur_str = ms_duration(sched_time, _ts(event))
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="completed", duration=dur_str))
 
-            elif etype == 13:  # ACTIVITY_TASK_FAILED
+            elif etype == ACTIVITY_TASK_FAILED_LEGACY:  # ACTIVITY_TASK_FAILED
                 attrs = event.activity_task_failed_event_attributes
                 sched_id = attrs.scheduled_event_id if attrs else 0
                 name, sched_time = scheduled_activities.get(sched_id, ("activity", _ts(event)))
@@ -140,7 +147,7 @@ class DetailMixin:
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="failed", detail=fail_detail, duration=dur_str))
 
             # Signals
-            elif etype == 26:  # WORKFLOW_EXECUTION_SIGNALED
+            elif etype == WORKFLOW_EXECUTION_SIGNALED:  # WORKFLOW_EXECUTION_SIGNALED
                 attrs = event.workflow_execution_signaled_event_attributes
                 sig_name = attrs.signal_name if attrs else "signal"
                 dur_str = ""
@@ -151,13 +158,13 @@ class DetailMixin:
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label=f"Signal: {sig_name}", status="info", duration=dur_str))
 
             # Child workflows
-            elif etype == 29:  # START_CHILD_WORKFLOW_EXECUTION_INITIATED
+            elif etype == START_CHILD_WORKFLOW_EXECUTION_INITIATED:  # START_CHILD_WORKFLOW_EXECUTION_INITIATED
                 attrs = event.start_child_workflow_execution_initiated_event_attributes
                 wf_type = attrs.workflow_type.name if attrs and attrs.workflow_type else "child"
                 child_wf_id = attrs.workflow_id if attrs else ""
                 child_workflows[eid] = (wf_type, child_wf_id)
 
-            elif etype == 31:  # CHILD_WORKFLOW_EXECUTION_STARTED
+            elif etype == CHILD_WORKFLOW_EXECUTION_STARTED:  # CHILD_WORKFLOW_EXECUTION_STARTED
                 attrs = event.child_workflow_execution_started_event_attributes
                 init_id = attrs.initiated_event_id if attrs else 0
                 wf_type, child_wf_id = child_workflows.get(init_id, ("child", ""))
@@ -166,14 +173,14 @@ class DetailMixin:
                 link = f"/workflow/{child_wf_id}" if child_wf_id else ""
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="info", detail="Child workflow", link=link))
 
-            elif etype == 32:  # CHILD_WORKFLOW_EXECUTION_COMPLETED
+            elif etype == CHILD_WORKFLOW_EXECUTION_COMPLETED:  # CHILD_WORKFLOW_EXECUTION_COMPLETED
                 attrs = event.child_workflow_execution_completed_event_attributes
                 init_id = attrs.initiated_event_id if attrs else 0
                 wf_type, child_wf_id = child_workflows.get(init_id, ("child", ""))
                 link = f"/workflow/{child_wf_id}" if child_wf_id else ""
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label=wf_type, status="completed", detail="Child completed", link=link))
 
-            elif etype == 33:  # CHILD_WORKFLOW_EXECUTION_FAILED
+            elif etype == CHILD_WORKFLOW_EXECUTION_FAILED:  # CHILD_WORKFLOW_EXECUTION_FAILED
                 attrs = event.child_workflow_execution_failed_event_attributes
                 init_id = attrs.initiated_event_id if attrs else 0
                 wf_type, child_wf_id = child_workflows.get(init_id, ("child", ""))

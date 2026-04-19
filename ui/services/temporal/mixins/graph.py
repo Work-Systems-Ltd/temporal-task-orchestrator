@@ -10,6 +10,12 @@ from core.workflows import WorkSysFlow
 from ui.helpers import duration, relative_time
 from ui.models import GraphNode, WorkflowDetail
 from ui.services.temporal.helpers import ms_duration
+from ui.services.temporal.event_types import (
+    ACTIVITY_TASK_SCHEDULED, ACTIVITY_TASK_COMPLETED, ACTIVITY_TASK_FAILED_LEGACY,
+    WORKFLOW_EXECUTION_SIGNALED,
+    START_CHILD_WORKFLOW_EXECUTION_INITIATED, CHILD_WORKFLOW_EXECUTION_STARTED,
+    CHILD_WORKFLOW_EXECUTION_COMPLETED, CHILD_WORKFLOW_EXECUTION_FAILED,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -86,26 +92,26 @@ class GraphMixin:
             etype = event.event_type
             eid = event.event_id
 
-            if etype == 29:  # START_CHILD_WORKFLOW_EXECUTION_INITIATED
+            if etype == START_CHILD_WORKFLOW_EXECUTION_INITIATED:  # START_CHILD_WORKFLOW_EXECUTION_INITIATED
                 attrs = event.start_child_workflow_execution_initiated_event_attributes
                 wf_type = attrs.workflow_type.name if attrs and attrs.workflow_type else "child"
                 child_wf_id = attrs.workflow_id if attrs else ""
                 if child_wf_id:
                     initiated[eid] = (wf_type, child_wf_id)
                     child_status[child_wf_id] = "pending"
-            elif etype == 31:  # CHILD_WORKFLOW_EXECUTION_STARTED
+            elif etype == CHILD_WORKFLOW_EXECUTION_STARTED:  # CHILD_WORKFLOW_EXECUTION_STARTED
                 attrs = event.child_workflow_execution_started_event_attributes
                 init_id = attrs.initiated_event_id if attrs else 0
                 if init_id in initiated:
                     _, child_wf_id = initiated[init_id]
                     child_status[child_wf_id] = "running"
-            elif etype == 32:  # CHILD_WORKFLOW_EXECUTION_COMPLETED
+            elif etype == CHILD_WORKFLOW_EXECUTION_COMPLETED:  # CHILD_WORKFLOW_EXECUTION_COMPLETED
                 attrs = event.child_workflow_execution_completed_event_attributes
                 init_id = attrs.initiated_event_id if attrs else 0
                 if init_id in initiated:
                     _, child_wf_id = initiated[init_id]
                     child_status[child_wf_id] = "completed"
-            elif etype == 33:  # CHILD_WORKFLOW_EXECUTION_FAILED
+            elif etype == CHILD_WORKFLOW_EXECUTION_FAILED:  # CHILD_WORKFLOW_EXECUTION_FAILED
                 attrs = event.child_workflow_execution_failed_event_attributes
                 init_id = attrs.initiated_event_id if attrs else 0
                 if init_id in initiated:
@@ -168,7 +174,7 @@ class GraphMixin:
             for event in history.events:
                 etype = event.event_type
 
-                if etype == 5:  # ACTIVITY_TASK_SCHEDULED
+                if etype == ACTIVITY_TASK_SCHEDULED:  # ACTIVITY_TASK_SCHEDULED
                     attrs = event.activity_task_scheduled_event_attributes
                     if attrs:
                         scheduled[event.event_id] = (
@@ -176,7 +182,7 @@ class GraphMixin:
                             event.event_time.ToDatetime() if event.event_time else None,
                         )
 
-                elif etype == 9:  # ACTIVITY_TASK_COMPLETED
+                elif etype == ACTIVITY_TASK_COMPLETED:  # ACTIVITY_TASK_COMPLETED
                     attrs = event.activity_task_completed_event_attributes
                     sched_id = attrs.scheduled_event_id if attrs else 0
                     if sched_id in scheduled:
@@ -190,7 +196,7 @@ class GraphMixin:
                             node_type="activity", is_current=False, duration=dur,
                         ))
 
-                elif etype == 10:  # ACTIVITY_TASK_FAILED
+                elif etype == ACTIVITY_TASK_FAILED_LEGACY:  # ACTIVITY_TASK_FAILED
                     attrs = event.activity_task_failed_event_attributes
                     sched_id = attrs.scheduled_event_id if attrs else 0
                     if sched_id in scheduled:
@@ -201,7 +207,7 @@ class GraphMixin:
                             node_type="activity", is_current=False,
                         ))
 
-                elif etype == 26:  # WORKFLOW_EXECUTION_SIGNALED
+                elif etype == WORKFLOW_EXECUTION_SIGNALED:  # WORKFLOW_EXECUTION_SIGNALED
                     attrs = event.workflow_execution_signaled_event_attributes
                     if attrs and attrs.signal_name == "complete_human_task":
                         has_human_task = True
