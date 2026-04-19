@@ -1190,6 +1190,18 @@
     background: var(--color-surface-subtle);
   }
 
+  /* ── Task form context banner ── */
+  .task-form-context {
+    @apply overflow-hidden rounded-t-lg;
+    border: 1px solid var(--color-border);
+    border-bottom: none;
+  }
+  .task-form-context-header {
+    @apply flex items-center justify-between px-5 py-2.5;
+    background: var(--color-pill-amber-bg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
   /* ── Task detail page ── */
   /* ── Detail hero ── */
   .detail-hero {

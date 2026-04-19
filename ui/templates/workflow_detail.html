@@ -62,7 +62,6 @@
        class="wf-graph-node {% if is_root %}wf-graph-node-root{% endif %} {% if node.is_current %}wf-graph-node-current{% endif %} {% if node.node_type == 'task' %}wf-graph-node-task{% if node.status != 'running' %} wf-graph-node-task-done{% endif %}{% endif %}">
       {% if node.node_type == 'task' %}
       <span class="wf-graph-node-tag {% if node.status != 'running' %}wf-graph-node-tag-done{% endif %}">
-        {% if node.status == 'running' %}<span class="pending-dot" style="width:5px;height:5px;"></span>{% endif %}
         {% if node.status == 'running' %}Human Task{% else %}Task Done{% endif %}
       </span>
       {% endif %}

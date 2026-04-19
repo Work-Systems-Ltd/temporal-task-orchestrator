@@ -4,57 +4,150 @@
 {% block title %}{{ meta.title }} — Task Console{% endblock %}
 
 {% block content %}
-<div x-data="{ submitting: false, copied: false }" class="mx-auto max-w-[520px] animate-slide-up">
+<div x-data="{ submitting: false, copied: false, showMeta: false }" class="mx-auto max-w-[520px] animate-slide-up">
 
-  <a href="/tasks" class="back-link">
+  <a href="/workflow/{{ workflow_id }}" class="back-link">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
-    Back to tasks
+    Back to workflow
   </a>
 
-  <div class="mb-5">
-    <div class="flex items-center gap-2 mb-2">
-      {{ task_type_badge(meta.task_type) }}
-      <span class="text-xs text-faint">{{ workflow_type }}</span>
-      {% if meta.assigned_user %}
-      <span class="pill pill-blue" title="Assigned user">{{ meta.assigned_user }}</span>
-      {% endif %}
-      {% if meta.assigned_group %}
-      <span class="pill pill-emerald" title="Assigned group">{{ meta.assigned_group }}</span>
-      {% endif %}
-    </div>
-    <h1 class="text-lg font-semibold text-primary">{{ meta.title }}</h1>
-    <p class="mt-1 text-sm text-muted">{{ meta.description }}</p>
-    <div class="mt-2 flex items-center justify-between gap-2">
-      <div class="detail-hero-id"
-           @click="navigator.clipboard.writeText('{{ workflow_id }}'); copied = true; setTimeout(() => copied = false, 2000)">
-        <span class="detail-hero-id-text" x-text="copied ? 'Copied!' : '{{ workflow_id }}'"></span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="detail-hero-id-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-        </svg>
+  {# ── Context banner ── #}
+  <div class="task-form-context">
+    <div class="task-form-context-header">
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--color-pill-amber-text);">Action Required</span>
       </div>
-      <a href="/workflow/{{ workflow_id }}" class="btn btn-secondary text-[11px] py-1.5">
-        <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+      <div class="flex items-center gap-2">
+        {{ task_type_badge(meta.task_type) }}
+        <span class="text-xs text-faint">{{ workflow_type | replace("Workflow", "") | trim }}</span>
+      </div>
+    </div>
+    <div class="px-5 py-4" style="background: var(--color-bg);">
+      <h1 class="text-base font-semibold text-primary">{{ meta.title }}</h1>
+      <p class="mt-1 text-sm text-muted">{{ meta.description }}</p>
+
+      {# ── Assignment row with reassign pickers ── #}
+      <div class="mt-3 flex items-center gap-3 flex-wrap">
+        <span class="text-[11px] text-faint flex items-center gap-1">
+          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0" />
+          </svg>
+          User
+        </span>
+        <div class="relative"
+             x-data="reassignPicker('{{ workflow_id }}', 'user', '{{ meta.assigned_user }}', '{{ meta.assigned_group }}')"
+             @click.away="close()"
+             @reassign-close.window="handleClose()">
+          <button type="button" @click="toggle()" class="reassign-trigger" :class="value ? 'reassign-trigger-blue' : ''">
+            <span x-text="value || 'Assign'"></span>
+            <svg class="h-3 w-3 shrink-0 opacity-40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <div x-show="open" x-cloak class="reassign-dropdown">
+            <div class="reassign-search-wrap">
+              <input x-ref="searchInput"
+                     x-model="search"
+                     type="text"
+                     placeholder="Search users…"
+                     class="reassign-search"
+                     @keydown.escape="close()" />
+            </div>
+            <div class="reassign-options">
+              <button type="button" @click="assign('')" class="dropdown-item w-full text-left text-ghost text-xs">Unassign</button>
+              <template x-for="opt in filtered" :key="opt.slug">
+                <button type="button" @click="assign(opt.slug)"
+                        class="dropdown-item w-full text-left text-xs"
+                        :class="opt.slug === value ? 'dropdown-item-active' : ''"
+                        x-text="opt.label"></button>
+              </template>
+              <div x-show="filtered.length === 0 && search" class="px-3 py-2 text-xs text-ghost">No matches</div>
+            </div>
+          </div>
+        </div>
+
+        <span class="text-[11px] text-ghost">|</span>
+
+        <span class="text-[11px] text-faint flex items-center gap-1">
+          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+          </svg>
+          Group
+        </span>
+        <div class="relative"
+             x-data="reassignPicker('{{ workflow_id }}', 'group', '{{ meta.assigned_group }}', '{{ meta.assigned_user }}')"
+             @click.away="close()"
+             @reassign-close.window="handleClose()">
+          <button type="button" @click="toggle()" class="reassign-trigger" :class="value ? 'reassign-trigger-emerald' : ''">
+            <span x-text="value || 'Assign'"></span>
+            <svg class="h-3 w-3 shrink-0 opacity-40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <div x-show="open" x-cloak class="reassign-dropdown">
+            <div class="reassign-search-wrap">
+              <input x-ref="searchInput"
+                     x-model="search"
+                     type="text"
+                     placeholder="Search groups…"
+                     class="reassign-search"
+                     @keydown.escape="close()" />
+            </div>
+            <div class="reassign-options">
+              <button type="button" @click="assign('')" class="dropdown-item w-full text-left text-ghost text-xs">Unassign</button>
+              <template x-for="opt in filtered" :key="opt.slug">
+                <button type="button" @click="assign(opt.slug)"
+                        class="dropdown-item w-full text-left text-xs"
+                        :class="opt.slug === value ? 'dropdown-item-active' : ''"
+                        x-text="opt.label"></button>
+              </template>
+              <div x-show="filtered.length === 0 && search" class="px-3 py-2 text-xs text-ghost">No matches</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {# ── Collapsible workflow metadata ── #}
+      <button type="button" @click="showMeta = !showMeta"
+              class="mt-3 flex items-center gap-1 text-[11px] text-ghost transition-colors hover:text-faint">
+        <svg class="h-3 w-3 transition-transform duration-150" :class="showMeta && 'rotate-90'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
         </svg>
-        View workflow
-      </a>
+        Workflow details
+      </button>
+      <div x-show="showMeta" x-cloak x-collapse class="mt-2 flex items-center gap-2">
+        <div class="detail-hero-id"
+             @click.stop="navigator.clipboard.writeText('{{ workflow_id }}'); copied = true; setTimeout(() => copied = false, 2000)">
+          <span class="detail-hero-id-text" x-text="copied ? 'Copied!' : '{{ workflow_id }}'"></span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="detail-hero-id-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+          </svg>
+        </div>
+        <a href="/workflow/{{ workflow_id }}" class="text-[11px] font-medium text-faint transition-colors hover:text-primary">View workflow</a>
+      </div>
     </div>
   </div>
 
-  <div class="card">
+  {# ── Form card ── #}
+  <div class="card" style="border-top: none; border-top-left-radius: 0; border-top-right-radius: 0;">
     <form method="post" action="/task/{{ workflow_id }}" @submit="submitting = true" class="space-y-4 p-5">
       <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
       {% for field in form %}
         {{ render_field(field, errors.get(field.name)) }}
       {% endfor %}
 
-      <div class="flex items-center justify-end gap-3 pt-2">
-        <a href="/tasks" class="btn btn-ghost">Back</a>
+      <div class="flex items-center justify-between pt-2">
+        <a href="/workflow/{{ workflow_id }}" class="text-xs text-ghost transition-colors hover:text-secondary">Cancel</a>
         <button type="submit" :disabled="submitting"
                 class="btn btn-primary btn-lg relative">
-          <span :class="submitting ? 'invisible' : ''">Submit</span>
+          <span :class="submitting ? 'invisible' : ''">
+            <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+            Submit
+          </span>
           <span x-show="submitting" x-cloak class="absolute inset-0 flex items-center justify-center">
             <svg class="h-3.5 w-3.5 animate-spin spinner-on-inverted" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -66,4 +159,8 @@
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/reassign.js"></script>
 {% endblock %}
