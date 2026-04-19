@@ -28,14 +28,6 @@ class Task(ABC):
     color: ClassVar[str] = "zinc"
     label: ClassVar[str] = ""
 
-    def run(self, **kwargs: Any) -> None:
-        """Execute the task logic.
-
-        Args:
-            kwargs: Arbitrary keyword arguments passed from the workflow.
-        """
-        pass
-
     @abstractmethod
     class Model(BaseModel):
         ...
@@ -45,10 +37,26 @@ class SystemTask(Task):
 
     Subclasses must define:
         task_type: A unique string identifier for this task type.
-        activity: The @activity.defn function to execute.
         Model: A Pydantic BaseModel subclass for the activity input.
+        run: An async method containing the task logic.
+
+    Example::
+
+        class LogRequestTask(SystemTask):
+            task_type = "log_request"
+            label = "Log Request"
+
+            class Model(BaseModel):
+                request: str
+
+            async def run(self, request: str) -> str:
+                print(f"Request logged: {request}")
+                return f"Logged: {request}"
     """
-    activity: ClassVar[Any] = None
+
+    async def run(self, *args: Any, **kwargs: Any) -> Any:
+        """Override this method with the task logic."""
+        raise NotImplementedError
 
 class HumanTask(Task):
     """Abstract base class for human tasks.

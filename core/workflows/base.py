@@ -113,19 +113,26 @@ class WorkSysFlow:
 
     async def create_system_task(
         self,
-        activity,
+        task_cls: type,
         *args,
         start_to_close_timeout: timedelta = timedelta(seconds=10),
         retry_policy: Any | None = None,
     ) -> Any:
-        """Execute an activity as a system task (no human input required).
+        """Execute a SystemTask.
+
+        Args:
+            task_cls: The SystemTask class (must have been registered with @register_task).
+            *args: Positional arguments passed to the activity.
+            start_to_close_timeout: Temporal activity timeout.
+            retry_policy: Optional Temporal RetryPolicy.
 
         Returns the activity result directly without waiting for a signal.
         """
+        activity_fn = task_cls._activity
         kwargs: dict[str, Any] = {
             "args": list(args),
             "start_to_close_timeout": start_to_close_timeout,
         }
         if retry_policy is not None:
             kwargs["retry_policy"] = retry_policy
-        return await workflow.execute_activity(activity, **kwargs)
+        return await workflow.execute_activity(activity_fn, **kwargs)
