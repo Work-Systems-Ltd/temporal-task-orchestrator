@@ -99,9 +99,42 @@ class WorkSysFlow:
 
         Returns the activity result directly without waiting for a signal.
         """
-        return await workflow.execute_activity(
-            activity_fn,
-            args=list(args),
-            start_to_close_timeout=start_to_close_timeout,
-            **({"retry_policy": retry_policy} if retry_policy else {}),
-        )
+        if retry_policy is not None:
+            if len(args) == 0:
+                return await workflow.execute_activity(
+                    activity_fn,
+                    start_to_close_timeout=start_to_close_timeout,
+                    retry_policy=retry_policy,
+                )
+            elif len(args) == 1:
+                return await workflow.execute_activity(
+                    activity_fn,
+                    args[0],
+                    start_to_close_timeout=start_to_close_timeout,
+                    retry_policy=retry_policy,
+                )
+            else:
+                return await workflow.execute_activity(
+                    activity_fn,
+                    args=list(args),
+                    start_to_close_timeout=start_to_close_timeout,
+                    retry_policy=retry_policy,
+                )
+        else:
+            if len(args) == 0:
+                return await workflow.execute_activity(
+                    activity_fn,
+                    start_to_close_timeout=start_to_close_timeout,
+                )
+            elif len(args) == 1:
+                return await workflow.execute_activity(
+                    activity_fn,
+                    args[0],
+                    start_to_close_timeout=start_to_close_timeout,
+                )
+            else:
+                return await workflow.execute_activity(
+                    activity_fn,
+                    args=list(args),
+                    start_to_close_timeout=start_to_close_timeout,
+                )
