@@ -63,62 +63,71 @@ class ListingsMixin:
         if wf_type:
             query += f' AND WorkflowType="{wf_type}"'
 
-        max_scan = 500  # Safety limit to avoid scanning too many workflows
-        scanned = 0
+        # Only scan workflow types that have human tasks registered
+        from core.workflows import get_all_workflows
+        human_wf_types = {
+            wf.workflow_cls.__name__
+            for wf in get_all_workflows()
+            if wf.task_types  # Only workflows with human task types
+        }
+
+        # Collect candidate workflow IDs first (fast — just listing)
+        candidates: list[tuple] = []  # (wf_id, wf_type, start_time)
         async for wf in self._client.list_workflows(query, page_size=100):
-            scanned += 1
-            if scanned > max_scan:
+            if wf.workflow_type not in human_wf_types:
+                continue
+            candidates.append((wf.id, wf.workflow_type, wf.start_time))
+            if len(candidates) >= 200:  # Safety cap
                 break
-            try:
-                handle = self._client.get_workflow_handle(wf.id)
-                raw = await handle.query(WorkSysFlow.get_pending_task)
-                if not raw:
-                    continue
 
-                meta = await self._sanitize_assignment(TaskMeta.model_validate_json(raw))
+        # Query candidates for pending tasks in parallel batches
+        batch_size = 20
+        for i in range(0, len(candidates), batch_size):
+            batch = candidates[i:i + batch_size]
 
-                if search:
-                    haystack = (
-                        f"{wf.id} {meta.title} "
-                        f"{meta.description} {wf.workflow_type or ''}"
-                    ).lower()
-                    if search.lower() not in haystack:
-                        continue
+            async def _check(wf_id, wf_type, start_time):
+                try:
+                    meta = await self.get_pending_task(wf_id)
+                    if not meta:
+                        return None
 
-                # Access filter — non-admins only see tasks they can act on
-                if not is_admin:
-                    if not is_assigned_to_user(
-                        meta.assigned_user, meta.assigned_group,
-                        user_slug, user_group_slugs or [],
-                    ):
-                        continue
+                    if search:
+                        haystack = f"{wf_id} {meta.title} {meta.description} {wf_type or ''}".lower()
+                        if search.lower() not in haystack:
+                            return None
 
-                # Assignment sub-filter (tabs within visible tasks)
-                if assignment == "mine":
-                    if not meta.assigned_user or meta.assigned_user != user_slug:
-                        continue
-                elif assignment == "my_groups":
-                    if not meta.assigned_group or meta.assigned_group not in (user_group_slugs or []):
-                        continue
-                elif assignment == "unassigned":
-                    if meta.assigned_user or meta.assigned_group:
-                        continue
+                    if not is_admin:
+                        if not is_assigned_to_user(
+                            meta.assigned_user, meta.assigned_group,
+                            user_slug, user_group_slugs or [],
+                        ):
+                            return None
 
-                all_pending.append(
-                    PendingTaskItem(
-                        workflow_id=wf.id,
-                        workflow_type=wf.workflow_type,
+                    if assignment == "mine":
+                        if not meta.assigned_user or meta.assigned_user != user_slug:
+                            return None
+                    elif assignment == "my_groups":
+                        if not meta.assigned_group or meta.assigned_group not in (user_group_slugs or []):
+                            return None
+                    elif assignment == "unassigned":
+                        if meta.assigned_user or meta.assigned_group:
+                            return None
+
+                    return PendingTaskItem(
+                        workflow_id=wf_id,
+                        workflow_type=wf_type,
                         task_type=meta.task_type,
                         title=meta.title,
                         description=meta.description,
-                        started=relative_time(wf.start_time),
+                        started=relative_time(start_time),
                         assigned_user=meta.assigned_user,
                         assigned_group=meta.assigned_group,
                     )
-                )
-            except Exception as exc:
-                logger.debug("Failed to process workflow %s: %s", wf.id, exc)
-                continue
+                except Exception:
+                    return None
+
+            results = await asyncio.gather(*[_check(wid, wt, st) for wid, wt, st in batch])
+            all_pending.extend(r for r in results if r is not None)
 
         size = per_page or self.page_size
         start = (page - 1) * size
