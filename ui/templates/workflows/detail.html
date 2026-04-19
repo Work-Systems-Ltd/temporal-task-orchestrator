@@ -49,23 +49,62 @@
     </div>
   </div>
 
-  {# ═══ TASK LIST ═══ #}
-  <div data-ws-section="pending">
-  {% if timeline or pending_tasks %}
-  <div class="card mb-5">
-    <div class="card-header">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Tasks</h2>
-        <div class="flex items-center gap-3">
-          {% if pending_tasks %}
-          <span class="count-badge count-badge-active">{{ pending_tasks | length }} pending</span>
-          {% endif %}
-          {% if stats.total_time != "—" %}
-          <span class="text-xs font-mono tabular-nums text-ghost">{{ stats.total_time }}</span>
-          {% endif %}
-        </div>
+  {# ═══ GRAPH MACRO ═══ #}
+  {% macro render_subtree(node, is_root) %}
+  <div class="wf-graph-subtree">
+    <a href="{% if node.node_type == 'activity' %}#{% else %}{{ request.url_for('workflow_detail', workflow_id=node.workflow_id) }}{% endif %}"
+       {% if node.node_type == 'activity' or node.is_current %}onclick="event.preventDefault()" style="cursor:default"{% endif %}
+       class="wf-graph-node {% if is_root %}wf-graph-node-root{% endif %} {% if node.is_current %}wf-graph-node-current{% endif %}">
+      <span class="wf-graph-node-label">{{ node.label | replace("Workflow", "") | trim }}</span>
+      {% if node.node_type != 'activity' %}
+      <span class="wf-graph-node-id">{{ node.workflow_id }}</span>
+      {% endif %}
+      <span class="wf-graph-node-pill">{{ status_badge(node.status) }}</span>
+      {% if node.duration and node.duration != "—" %}
+      <span class="wf-graph-node-meta">{{ node.duration }}</span>
+      {% elif node.started %}
+      <span class="wf-graph-node-meta">{{ node.started }}</span>
+      {% endif %}
+    </a>
+    {% if node.children %}
+    <div class="wf-graph-trunk"></div>
+    <div class="wf-graph-branches">
+      {% for child in node.children %}
+      <div class="wf-graph-branch">
+        <div class="wf-graph-branch-line"></div>
+        {{ render_subtree(child, false) }}
       </div>
+      {% endfor %}
     </div>
+    {% endif %}
+  </div>
+  {% endmacro %}
+
+  {# ═══ TASK LIST + PIPELINE TABS ═══ #}
+  <div data-ws-section="pending" x-data="{ tab: 'tasks' }">
+  {% if timeline or pending_tasks %}
+
+  <div class="flex items-center justify-between mb-4">
+    <div class="tab-bar" style="margin-bottom:0;border-bottom:none">
+      <button @click="tab = 'tasks'" class="tab-item" :class="tab === 'tasks' && 'tab-item-active'" type="button">
+        Tasks
+        {% if pending_tasks %}
+        <span class="count-badge" :class="tab === 'tasks' ? 'count-badge-active' : 'count-badge-muted'">{{ pending_tasks | length }}</span>
+        {% endif %}
+      </button>
+      {% if graph %}
+      <button @click="tab = 'pipeline'" class="tab-item" :class="tab === 'pipeline' && 'tab-item-active'" type="button">
+        Pipeline
+      </button>
+      {% endif %}
+    </div>
+    {% if stats.total_time != "—" %}
+    <span class="text-xs font-mono tabular-nums text-ghost">{{ stats.total_time }}</span>
+    {% endif %}
+  </div>
+
+  {# ── Tasks tab ── #}
+  <div x-show="tab === 'tasks'" class="card mb-5">
     <div class="divide-y divide-border">
 
       {# ── System tasks & child workflows ── #}
@@ -166,6 +205,18 @@
 
     </div>
   </div>
+
+  {# ── Pipeline tab ── #}
+  {% if graph %}
+  <div x-show="tab === 'pipeline'" x-cloak class="card mb-5">
+    <div class="px-5 py-5 overflow-x-auto">
+      <div class="wf-graph">
+        {{ render_subtree(graph, true) }}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   {% endif %}
   </div>
 
