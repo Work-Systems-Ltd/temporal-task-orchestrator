@@ -59,13 +59,10 @@ async def workflow_detail(
     for pt in pending_tasks:
         try:
             task = get_task(pt["task_type"])
-            prefix = pt["workflow_id"][:8]
-            pt["form"] = task.Form(prefix=prefix)
-            pt["form_prefix"] = prefix
+            pt["form"] = task.Form()
             pt["errors"] = {}
         except KeyError:
             pt["form"] = None
-            pt["form_prefix"] = ""
             pt["errors"] = {}
 
     return templates.TemplateResponse(

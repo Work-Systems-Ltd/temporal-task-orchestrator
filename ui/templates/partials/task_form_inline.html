@@ -1,6 +1,6 @@
 {% from "partials/form_fields.html" import render_field %}
 
-{% macro inline_task_form(form, errors, workflow_id, csrf_token, inline=false, prefix="") %}
+{% macro inline_task_form(form, errors, workflow_id, csrf_token, inline=false) %}
 <div class="card {% if inline %}border-t-0 rounded-t-none{% endif %}">
   <form method="post"
         action="/task/{{ workflow_id }}"
@@ -11,9 +11,6 @@
         {% endif %}
         class="space-y-4 p-5">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
-    {% if inline and prefix %}
-    <input type="hidden" name="_prefix" value="{{ prefix }}" />
-    {% endif %}
     {% for field in form %}
       {{ render_field(field, errors.get(field.name)) }}
     {% endfor %}

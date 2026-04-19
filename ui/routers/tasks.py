@@ -110,9 +110,7 @@ async def task_submit_inline(
     task = get_task(meta.task_type)
 
     form_data = await request.form()
-    # Detect prefix: inline forms use workflow_id[:8] as prefix
-    prefix = form_data.get("_prefix", "")
-    form = task.Form(form_data, prefix=prefix) if prefix else task.Form(form_data)
+    form = task.Form(form_data)
 
     model, errors = validate_task_form(task, form)
     if errors:

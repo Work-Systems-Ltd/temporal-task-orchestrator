@@ -36,13 +36,9 @@ function submitInlineTask(event: Event, workflowId: string): void {
       }
 
       if (data.errors) {
-        const prefix = (form.querySelector('input[name="_prefix"]') as HTMLInputElement)?.value || "";
-
         Object.keys(data.errors).forEach((fieldName) => {
           const msgs = data.errors![fieldName];
-          // Field names may be prefixed (e.g. "abc12345-decision")
-          const inputName = prefix ? prefix + "-" + fieldName : fieldName;
-          const input = form.querySelector('[name="' + inputName + '"]');
+          const input = form.querySelector('[name="' + fieldName + '"]');
           if (!input) return;
 
           const container = input.closest(".space-y-1\\.5");
