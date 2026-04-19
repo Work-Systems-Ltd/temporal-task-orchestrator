@@ -8,7 +8,7 @@ from datetime import datetime
 
 from core.workflows import WorkSysFlow
 from ui.helpers import duration, relative_time
-from ui.models import GraphNode, WorkflowDetail
+from ui.models import GraphNode, PendingTaskItem, WorkflowDetail
 from ui.services.temporal.helpers import ms_duration
 from ui.services.temporal.event_types import (
     ACTIVITY_TASK_SCHEDULED, ACTIVITY_TASK_COMPLETED, ACTIVITY_TASK_FAILED,
@@ -43,7 +43,7 @@ class GraphMixin:
 
     async def get_all_pending_tasks(
         self, graph: GraphNode | None, workflow_id: str,
-    ) -> list[dict]:
+    ) -> list[PendingTaskItem]:
         """Collect pending tasks from the current workflow and all descendants."""
         wf_ids: list[str] = []
 
@@ -63,10 +63,18 @@ class GraphMixin:
         if not wf_ids:
             return []
 
-        async def _fetch(wid: str) -> dict | None:
+        async def _fetch(wid: str) -> PendingTaskItem | None:
             meta = await self.get_pending_task(wid)
             if meta:
-                return {"workflow_id": wid, **meta.model_dump()}
+                return PendingTaskItem(
+                    workflow_id=wid,
+                    task_type=meta.task_type,
+                    title=meta.title,
+                    description=meta.description,
+                    started="",
+                    assigned_user=meta.assigned_user,
+                    assigned_group=meta.assigned_group,
+                )
             return None
 
         results = await asyncio.gather(*[_fetch(wid) for wid in wf_ids])

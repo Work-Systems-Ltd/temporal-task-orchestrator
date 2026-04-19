@@ -9,20 +9,18 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
+import os
 import time
 import uuid
 
 from temporalio.client import Client
 
-from ui.config import AppSettings
-
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 logger = logging.getLogger(__name__)
 
 
-async def main(count: int, batch_size: int) -> None:
-    settings = AppSettings()
-    client = await Client.connect(settings.temporal_address)
+async def main(count: int, batch_size: int, address: str, task_queue: str) -> None:
+    client = await Client.connect(address)
 
     logger.info("Starting %d workflows in batches of %d...", count, batch_size)
     started = 0
@@ -38,7 +36,7 @@ async def main(count: int, batch_size: int) -> None:
                     "PingWorkflow",
                     f"load test {started}",
                     id=wf_id,
-                    task_queue=settings.task_queue,
+                    task_queue=task_queue,
                 )
             )
         await asyncio.gather(*tasks)
@@ -62,6 +60,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Load test — create many workflows")
     parser.add_argument("--count", type=int, default=10000, help="Number of workflows to create")
     parser.add_argument("--batch", type=int, default=200, help="Batch size for concurrent starts")
+    parser.add_argument("--address", default=os.getenv("TEMPORAL_ADDRESS", "localhost:7233"), help="Temporal address")
+    parser.add_argument("--queue", default="hello-world-task-queue", help="Task queue name")
     args = parser.parse_args()
 
-    asyncio.run(main(args.count, args.batch))
+    asyncio.run(main(args.count, args.batch, args.address, args.queue))

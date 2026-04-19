@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta, timezone
 
 from ui.helpers import duration, relative_time, status_name
-from ui.models import TimelineEvent, TimelineStats, WorkflowDetail
+from ui.models import TimelineEvent, TimelineStats, WorkflowDetail, WorkflowRun
 from ui.services.temporal.helpers import ms_duration
 from ui.services.temporal.event_types import (
     WORKFLOW_EXECUTION_STARTED, WORKFLOW_EXECUTION_COMPLETED, WORKFLOW_EXECUTION_FAILED,
@@ -47,17 +47,17 @@ class DetailMixin:
             logger.debug("Workflow detail error: %s", exc)
             return None
 
-    async def get_run_history(self, workflow_id: str) -> list[dict]:
+    async def get_run_history(self, workflow_id: str) -> list[WorkflowRun]:
         """Return all runs for a workflow ID, newest first."""
-        runs: list[dict] = []
+        runs: list[WorkflowRun] = []
         query = f'WorkflowId="{workflow_id}"'
         async for wf in self._client.list_workflows(query):
-            runs.append({
-                "run_id": wf.run_id or "",
-                "status": status_name(wf.status),
-                "started": relative_time(wf.start_time),
-                "duration": duration(wf.start_time, wf.close_time),
-            })
+            runs.append(WorkflowRun(
+                run_id=wf.run_id or "",
+                status=status_name(wf.status),
+                started=relative_time(wf.start_time),
+                duration=duration(wf.start_time, wf.close_time),
+            ))
         return runs
 
     async def get_workflow_timeline(

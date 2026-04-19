@@ -10,6 +10,7 @@ from core.tasks import get_task
 from ui.auth.dependencies import require_auth
 from ui.dependencies import get_templates, get_temporal_service
 from ui.helpers import validate_task_form
+from ui.models import PendingTaskDetail
 from ui.services.temporal import TemporalService
 
 router = APIRouter(tags=["workflow_detail"], dependencies=[Depends(require_auth)])
@@ -48,32 +49,42 @@ async def workflow_detail(
     total_runs = len(run_history)
     current_run_id = detail.run_id
     run_number = next(
-        (i + 1 for i, r in enumerate(run_history) if r["run_id"] == current_run_id),
+        (i + 1 for i, r in enumerate(run_history) if r.run_id == current_run_id),
         1,
     )
 
     # Collect pending tasks from this workflow + all descendants
-    pending_tasks = await service.get_all_pending_tasks(graph, workflow_id) if is_running else []
+    raw_pending = await service.get_all_pending_tasks(graph, workflow_id) if is_running else []
 
-    # Attach form instances for inline completion
-    for pt in pending_tasks:
+    # Build PendingTaskDetail models with attached form instances
+    pending_tasks: list[PendingTaskDetail] = []
+    for pt in raw_pending:
         try:
-            task = get_task(pt["task_type"])
-            pt["form"] = task.Form()
-            pt["errors"] = {}
+            task = get_task(pt.task_type)
+            form = task.Form()
         except KeyError:
-            pt["form"] = None
-            pt["errors"] = {}
+            form = None
+        pending_tasks.append(PendingTaskDetail(
+            workflow_id=pt.workflow_id,
+            task_type=pt.task_type,
+            title=pt.title,
+            description=pt.description,
+            assigned_user=pt.assigned_user,
+            assigned_group=pt.assigned_group,
+            started=pt.started,
+            form=form,
+            errors={},
+        ))
 
     return templates.TemplateResponse(
         "workflows/detail.html",
         {
             "request": request,
-            "detail": detail.model_dump(),
+            "detail": detail,
             "pending_tasks": pending_tasks,
-            "timeline": [e.model_dump() for e in timeline],
-            "stats": stats.model_dump(),
-            "graph": graph.model_dump() if graph else None,
+            "timeline": timeline,
+            "stats": stats,
+            "graph": graph,
             "is_child": is_child,
             "workflow_id": workflow_id,
             "can_rerun": detail.status in RERUNNABLE_STATUSES,

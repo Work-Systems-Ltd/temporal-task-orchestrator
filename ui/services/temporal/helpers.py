@@ -70,7 +70,7 @@ def group_by_parent(items: list) -> list:
     for item in items:
         pid = getattr(item, "parent_id", "") or ""
         if pid and pid in by_id:
-            by_id[pid].children.append(item.model_dump())
+            by_id[pid].children.append(item)
             children_ids.add(item.workflow_id)
             continue
 
@@ -79,7 +79,7 @@ def group_by_parent(items: list) -> list:
         if len(parts) == 2:
             potential_parent = parts[0]
             if potential_parent in by_id and potential_parent != item.workflow_id:
-                by_id[potential_parent].children.append(item.model_dump())
+                by_id[potential_parent].children.append(item)
                 item.parent_id = potential_parent
                 children_ids.add(item.workflow_id)
 

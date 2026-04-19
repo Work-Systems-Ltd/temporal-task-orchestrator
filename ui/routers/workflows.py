@@ -9,6 +9,7 @@ from fastapi.templating import Jinja2Templates
 from ui.auth.dependencies import require_auth
 from ui.dependencies import get_templates, get_temporal_service
 from ui.helpers import validate_task_form
+from ui.models import WorkflowPickerItem
 from ui.services.temporal import TemporalService
 from core.workflows import get_all_workflows, get_workflow
 
@@ -26,14 +27,14 @@ async def start_picker(
     is_admin = user.is_admin if user else False
 
     wf_list = [
-        {
-            "key": w.key,
-            "label": w.label,
-            "description": w.description,
-            "input_label": w.input_label,
-            "input_placeholder": w.input_placeholder,
-            "has_input_task": w.input_task is not None,
-        }
+        WorkflowPickerItem(
+            key=w.key,
+            label=w.label,
+            description=w.description,
+            input_label=w.input_label,
+            input_placeholder=w.input_placeholder,
+            has_input_task=w.input_task is not None,
+        ).model_dump()
         for w in get_all_workflows()
         if w.can_access(user_slug, user_group_slugs, is_admin)
     ]
