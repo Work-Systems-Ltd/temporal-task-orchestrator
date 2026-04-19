@@ -39,6 +39,7 @@
       <thead class="table-head">
         <tr>
           <th class="th">User</th>
+          <th class="hidden th sm:table-cell">Slug</th>
           <th class="hidden th sm:table-cell">Groups</th>
           <th class="hidden th md:table-cell">Status</th>
           <th class="th">Created</th>
@@ -51,6 +52,9 @@
           <td class="td">
             <div class="td-title">{{ user.username }}</div>
             <div class="td-subtitle">{{ user.display_name if user.display_name != user.username else "" }}</div>
+          </td>
+          <td class="hidden td sm:table-cell">
+            <span class="td-mono">{{ user.slug }}</span>
           </td>
           <td class="hidden td sm:table-cell">
             {% for g in user.groups %}
@@ -101,7 +105,7 @@
         {% endfor %}
         {% if not users %}
         <tr>
-          <td colspan="5" class="td text-center text-ghost py-8">No users found</td>
+          <td colspan="6" class="td text-center text-ghost py-8">No users found</td>
         </tr>
         {% endif %}
       </tbody>

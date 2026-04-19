@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+import unicodedata
 import uuid
 from datetime import datetime
 
@@ -10,6 +12,12 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 class Base(DeclarativeBase):
     pass
+
+
+def _slugify(value: str) -> str:
+    value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
+    value = re.sub(r"[^\w\s-]", "", value.lower())
+    return re.sub(r"[-\s]+", "-", value).strip("-")
 
 
 user_groups = Table(
@@ -50,6 +58,10 @@ class User(Base):
         secondary=user_groups, back_populates="users", lazy="selectin"
     )
 
+    @property
+    def slug(self) -> str:
+        return _slugify(self.username)
+
     def __repr__(self) -> str:
         return f"<User {self.username}>"
 
@@ -70,6 +82,10 @@ class Group(Base):
     users: Mapped[list[User]] = relationship(
         secondary=user_groups, back_populates="groups", lazy="selectin"
     )
+
+    @property
+    def slug(self) -> str:
+        return _slugify(self.name)
 
     def __repr__(self) -> str:
         return f"<Group {self.name}>"

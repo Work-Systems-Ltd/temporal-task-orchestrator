@@ -37,6 +37,7 @@
       <thead class="table-head">
         <tr>
           <th class="th">Group</th>
+          <th class="hidden th sm:table-cell">Slug</th>
           <th class="hidden th sm:table-cell">Members</th>
           <th class="th">Created</th>
           <th class="th" style="width:1%"></th>
@@ -47,6 +48,9 @@
         <tr class="group table-row animate-slide-up" style="animation-delay: {{ loop.index0 * 30 }}ms">
           <td class="td">
             <div class="td-title">{{ group.name }}</div>
+          </td>
+          <td class="hidden td sm:table-cell">
+            <span class="td-mono">{{ group.slug }}</span>
           </td>
           <td class="hidden td sm:table-cell">
             {% if group.users %}
@@ -74,7 +78,7 @@
         {% endfor %}
         {% if not groups %}
         <tr>
-          <td colspan="4" class="td text-center text-ghost py-8">No groups found</td>
+          <td colspan="5" class="td text-center text-ghost py-8">No groups found</td>
         </tr>
         {% endif %}
       </tbody>
