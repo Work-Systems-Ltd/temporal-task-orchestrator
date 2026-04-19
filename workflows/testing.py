@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from temporalio import activity, workflow
+from temporalio.common import RetryPolicy
 
 from core.workflows import WorkSysFlow
 from tasks.testing_input import TestingInputTask
@@ -52,7 +53,7 @@ class TestingWorkflow(WorkSysFlow):
                 step_activity,
                 args=[input.message, should_fail],
                 start_to_close_timeout=timedelta(seconds=10),
-                retry_policy=workflow.RetryPolicy(maximum_attempts=1),
+                retry_policy=RetryPolicy(maximum_attempts=1),
             )
             results.append(result)
 

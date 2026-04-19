@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import bcrypt
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Form, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
@@ -13,27 +13,81 @@ from ui.dependencies import get_templates
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
+ADMIN_TABS = ["users", "groups"]
+
 
 # ---------------------------------------------------------------------------
-# Users
+# List views
 # ---------------------------------------------------------------------------
 
 @router.get("/users", response_class=HTMLResponse)
 async def user_list(
     request: Request,
+    q: str | None = Query(None),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
+    search = q.strip() if q else None
     factory = get_session_factory()
     async with factory() as db:
-        result = await db.execute(select(User).order_by(User.username))
+        stmt = select(User).order_by(User.username)
+        if search:
+            stmt = stmt.where(User.username.ilike(f"%{search}%"))
+        result = await db.execute(stmt)
         users = result.scalars().all()
         result = await db.execute(select(Group).order_by(Group.name))
         groups = result.scalars().all()
+
+        user_count = len(users) if search else (await db.execute(select(User))).scalars().all().__len__()
+        group_count = (await db.execute(select(Group))).scalars().all().__len__()
+
     return templates.TemplateResponse(
         "admin_users.html",
-        {"request": request, "users": users, "groups": groups},
+        {
+            "request": request,
+            "users": users,
+            "groups": groups,
+            "search": search or "",
+            "tab": "users",
+            "tabs": ADMIN_TABS,
+            "counts": {"users": user_count, "groups": group_count},
+        },
     )
 
+
+@router.get("/groups", response_class=HTMLResponse)
+async def group_list(
+    request: Request,
+    q: str | None = Query(None),
+    templates: Jinja2Templates = Depends(get_templates),
+) -> HTMLResponse:
+    search = q.strip() if q else None
+    factory = get_session_factory()
+    async with factory() as db:
+        stmt = select(Group).order_by(Group.name)
+        if search:
+            stmt = stmt.where(Group.name.ilike(f"%{search}%"))
+        result = await db.execute(stmt)
+        groups = result.scalars().all()
+
+        user_count = (await db.execute(select(User))).scalars().all().__len__()
+        group_count = len(groups) if search else (await db.execute(select(Group))).scalars().all().__len__()
+
+    return templates.TemplateResponse(
+        "admin_groups.html",
+        {
+            "request": request,
+            "groups": groups,
+            "search": search or "",
+            "tab": "groups",
+            "tabs": ADMIN_TABS,
+            "counts": {"users": user_count, "groups": group_count},
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# User actions
+# ---------------------------------------------------------------------------
 
 @router.post("/users/add")
 async def user_add(
@@ -45,7 +99,6 @@ async def user_add(
 ) -> RedirectResponse:
     factory = get_session_factory()
     async with factory() as db:
-        # Check uniqueness
         result = await db.execute(select(User).where(User.username == username))
         if result.scalar_one_or_none():
             return RedirectResponse(url="/admin/users?error=exists", status_code=303)
@@ -121,23 +174,8 @@ async def user_update_groups(
 
 
 # ---------------------------------------------------------------------------
-# Groups
+# Group actions
 # ---------------------------------------------------------------------------
-
-@router.get("/groups", response_class=HTMLResponse)
-async def group_list(
-    request: Request,
-    templates: Jinja2Templates = Depends(get_templates),
-) -> HTMLResponse:
-    factory = get_session_factory()
-    async with factory() as db:
-        result = await db.execute(select(Group).order_by(Group.name))
-        groups = result.scalars().all()
-    return templates.TemplateResponse(
-        "admin_groups.html",
-        {"request": request, "groups": groups},
-    )
-
 
 @router.post("/groups/add")
 async def group_add(
