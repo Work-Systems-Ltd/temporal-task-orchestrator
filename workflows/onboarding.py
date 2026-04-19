@@ -35,6 +35,7 @@ class OnboardingWorkflow(WorkSysFlow):
             task_type="onboarding",
             title=f"Onboard: {input.employee_name}",
             description=f"Complete the onboarding checklist for {input.employee_name}.",
+            assigned_user="admin",
         )
 
         team = human_data["team"]

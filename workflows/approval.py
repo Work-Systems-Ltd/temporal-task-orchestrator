@@ -41,6 +41,7 @@ class ApprovalWorkflow(WorkSysFlow):
             task_type="approval",
             title=f"Approve: {input.description}",
             description=f"Please review this {input.urgency}-priority request and approve or reject it.",
+            assigned_group="admin",
         )
 
         decision = human_data["decision"]

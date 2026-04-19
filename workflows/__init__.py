@@ -17,6 +17,7 @@ register_workflow(
     input_placeholder="e.g. Expense report: $500 for conference travel",
     input_task=ApprovalInputTask,
     task_types=["approval"],
+    required_groups=["admin"],
 )
 
 register_workflow(
@@ -28,6 +29,7 @@ register_workflow(
     input_placeholder="e.g. Jane Smith",
     input_task=OnboardingInputTask,
     task_types=["onboarding"],
+    required_users=["admin"],
 )
 
 register_workflow(
@@ -50,4 +52,6 @@ register_workflow(
     input_placeholder="",
     input_task=HiringInputTask,
     task_types=["approval", "onboarding"],
+    required_users=["admin"],
+    required_groups=["admin"],
 )
