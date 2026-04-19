@@ -82,35 +82,6 @@ class WorkSysFlow:
         )
         return await self._wait_for_signal(task_meta)
 
-    async def create_human_task(
-        self,
-        activity,
-        *args,
-        task: Type[HumanTask],
-        title: str,
-        description: str,
-        assigned_user: str = "",
-        assigned_group: str = "",
-        start_to_close_timeout: timedelta = timedelta(seconds=10),
-    ) -> dict[str, Any]:
-        """Execute an activity then block until a human task is completed.
-
-        Combines ``workflow.execute_activity`` + ``wait_for_task``
-        into a single call.
-        """
-        await workflow.execute_activity(
-            activity,
-            args=list(args),
-            start_to_close_timeout=start_to_close_timeout,
-        )
-        return await self.wait_for_task(
-            task,
-            title=title,
-            description=description,
-            assigned_user=assigned_user,
-            assigned_group=assigned_group,
-        )
-
     async def create_system_task(
         self,
         task_cls: type,
