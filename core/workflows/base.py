@@ -5,6 +5,7 @@ from datetime import timedelta
 from typing import Any, Type
 
 from temporalio import workflow
+from temporalio.common import RetryPolicy
 
 from core.models import TaskMeta
 from core.tasks.base import HumanTask
@@ -82,12 +83,14 @@ class WorkSysFlow:
         )
         return await self._wait_for_signal(task_meta)
 
+    _DEFAULT_RETRY_POLICY = RetryPolicy(maximum_attempts=3)
+
     async def create_system_task(
         self,
         activity_fn,
         *args,
         start_to_close_timeout: timedelta = timedelta(seconds=10),
-        retry_policy: Any | None = None,
+        retry_policy: RetryPolicy | None = None,
     ) -> Any:
         """Execute a system task activity.
 
@@ -95,12 +98,13 @@ class WorkSysFlow:
             activity_fn: The @activity.defn function to execute.
             *args: Positional arguments passed to the activity.
             start_to_close_timeout: Temporal activity timeout.
-            retry_policy: Optional Temporal RetryPolicy.
+            retry_policy: Optional Temporal RetryPolicy. Defaults to 3 max attempts.
 
         Returns the activity result directly without waiting for a signal.
         """
         return await workflow.execute_activity(
             activity_fn,
             args=list(args),
+            retry_policy=retry_policy or self._DEFAULT_RETRY_POLICY,
             start_to_close_timeout=start_to_close_timeout,
         )
