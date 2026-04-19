@@ -696,19 +696,53 @@
     color: var(--color-text-ghost);
   }
 
+  /* ── Reassign picker trigger ── */
+  .reassign-trigger {
+    @apply inline-flex items-center gap-0.5 rounded-md px-2 py-0.5 text-[11px] font-medium cursor-pointer;
+    color: var(--color-text-faint);
+    border: 1px dashed var(--color-border);
+    transition: all 0.15s ease;
+  }
+  .reassign-trigger:hover {
+    border-color: var(--color-border-hover);
+    color: var(--color-text-secondary);
+    border-style: solid;
+    background: var(--color-surface-subtle);
+  }
+  .reassign-trigger-blue {
+    color: var(--color-pill-blue-text);
+    border-color: var(--color-pill-blue-text);
+    border-style: solid;
+    background: var(--color-pill-blue-bg);
+  }
+  .reassign-trigger-blue:hover {
+    color: var(--color-pill-blue-text);
+    background: color-mix(in srgb, var(--color-pill-blue-bg) 80%, var(--color-surface-hover));
+  }
+  .reassign-trigger-emerald {
+    color: var(--color-pill-emerald-text);
+    border-color: var(--color-pill-emerald-text);
+    border-style: solid;
+    background: var(--color-pill-emerald-bg);
+  }
+  .reassign-trigger-emerald:hover {
+    color: var(--color-pill-emerald-text);
+    background: color-mix(in srgb, var(--color-pill-emerald-bg) 80%, var(--color-surface-hover));
+  }
+
   /* ── Reassign picker ── */
   .reassign-dropdown {
-    @apply absolute w-48 rounded-lg shadow-xl;
+    @apply absolute w-48 rounded-lg;
     top: 100%;
     left: 0;
     margin-top: 4px;
     border: 1px solid var(--color-border);
     background: var(--color-bg);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-    z-index: 100;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+    z-index: 1;
   }
   .dark .reassign-dropdown {
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
   }
   .reassign-search-wrap {
     @apply px-2 pt-2 pb-1;

@@ -1,29 +1,25 @@
 {% from "partials/macros.html" import status_badge %}
 
 {% macro reassign_picker(workflow_id, field, current_value, other_value, color) %}
-<td class="hidden td sm:table-cell" style="position:relative;overflow:visible" onclick="event.stopPropagation()"
+<td class="hidden td sm:table-cell" onclick="event.stopPropagation()"
     x-data="reassignPicker('{{ workflow_id }}', '{{ field }}', '{{ current_value }}', '{{ other_value }}')"
     @click.away="close()"
-    @reassign-close.window="handleClose()">
-  <button @click="toggle()"
-          class="pill cursor-pointer transition-opacity hover:opacity-80"
-          :class="value ? 'pill-{{ color }}' : 'pill-zinc'"
-          x-text="value || '—'"></button>
-  <div x-show="open" x-cloak
-       x-transition:enter="transition ease-out duration-100"
-       x-transition:enter-start="opacity-0 scale-95"
-       x-transition:enter-end="opacity-100 scale-100"
-       x-transition:leave="transition ease-in duration-75"
-       x-transition:leave-start="opacity-100 scale-100"
-       x-transition:leave-end="opacity-0 scale-95"
-       class="reassign-dropdown"
-       style="background: var(--color-bg)">
+    @reassign-close.window="handleClose()"
+    x-effect="$el.closest('tr').style.zIndex = open ? '9999' : ''; $el.closest('tr').style.position = open ? 'relative' : ''"
+    :style="open ? 'position:relative;overflow:visible' : ''">
+  <button @click="toggle()" class="reassign-trigger" :class="value ? 'reassign-trigger-{{ color }}' : ''">
+    <span x-text="value || 'Assign'"></span>
+    <svg class="h-3 w-3 shrink-0 opacity-40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+    </svg>
+  </button>
+  <div x-show="open" x-cloak class="reassign-dropdown">
     <div class="reassign-search-wrap">
       <input x-ref="searchInput"
              x-model="search"
              type="text"
              placeholder="Search…"
-             class="reassign-search"
+             class="reassign-search" style="background: var(--color-bg-raised)"
              @keydown.escape="close()" />
     </div>
     <div class="reassign-options">

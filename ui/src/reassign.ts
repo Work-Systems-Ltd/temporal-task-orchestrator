@@ -33,6 +33,7 @@ function reassignPicker(
     value: currentValue,
     search: "",
     options: [] as AssigneeOption[],
+    dropStyle: "" as string,
 
     get filtered(): AssigneeOption[] {
       if (!this.search) return this.options;
@@ -51,6 +52,17 @@ function reassignPicker(
       // Close any other open picker
       if (activePickerId && activePickerId !== pickerId) {
         window.dispatchEvent(new CustomEvent("reassign-close"));
+      }
+
+      // Position dropdown below the trigger button
+      const el = (this as any).$el as HTMLElement;
+      const btn = el.querySelector("button") as HTMLElement;
+      if (btn) {
+        const rect = btn.getBoundingClientRect();
+        const dropW = 192;
+        let left = rect.left;
+        if (left + dropW > window.innerWidth - 8) left = window.innerWidth - dropW - 8;
+        this.dropStyle = `top:${rect.bottom + 4}px;left:${left}px`;
       }
 
       this.open = true;
