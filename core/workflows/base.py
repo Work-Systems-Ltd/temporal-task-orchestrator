@@ -54,6 +54,8 @@ class WorkSysFlow:
         task_type: str,
         title: str,
         description: str,
+        assigned_user: str = "",
+        assigned_group: str = "",
         start_to_close_timeout: timedelta = timedelta(seconds=10),
     ) -> dict[str, Any]:
         """Execute an activity then block until a human task is completed.
@@ -70,5 +72,7 @@ class WorkSysFlow:
             task_type=task_type,
             title=title,
             description=description,
+            assigned_user=assigned_user,
+            assigned_group=assigned_group,
         )
         return await self.wait_for_human_task(task_meta)

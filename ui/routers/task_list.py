@@ -29,6 +29,7 @@ async def task_list(
     per_page: int | None = Query(None, ge=10, le=100),
     type: str | None = Query(None),
     q: str | None = Query(None),
+    assignment: str | None = Query(None),
     service: TemporalService = Depends(get_temporal_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
@@ -38,8 +39,18 @@ async def task_list(
     wf_type = type or None
     search = q.strip() if q else None
 
+    # Get current user info for assignment filtering
+    user = getattr(request.state, "user", None)
+    user_slug = user.slug if user else ""
+    user_group_slugs = [g.slug for g in user.groups] if user else []
+
     if tab == "pending":
-        list_coro = service.list_pending(page, wf_type, search, per_page=per_page)
+        list_coro = service.list_pending(
+            page, wf_type, search, per_page=per_page,
+            assignment=assignment,
+            user_slug=user_slug,
+            user_group_slugs=user_group_slugs,
+        )
     else:
         list_coro = service.list_workflows(tab, page, wf_type, search, per_page=per_page)
 
@@ -68,6 +79,7 @@ async def task_list(
             "per_page": per_page,
             "wf_type": wf_type,
             "search": search or "",
+            "assignment": assignment or "",
             "workflow_types": _get_workflow_types(),
             "data_hash": data_hash,
         },

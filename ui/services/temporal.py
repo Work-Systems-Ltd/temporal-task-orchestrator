@@ -110,6 +110,19 @@ class TemporalService:
         return [item for item, is_latest in zip(items, checks) if is_latest]
 
     @staticmethod
+    def _is_assigned_to_user(
+        meta: TaskMeta, user_slug: str, group_slugs: list[str],
+    ) -> bool:
+        """Check if a task is assigned to the given user or any of their groups."""
+        if not meta.assigned_user and not meta.assigned_group:
+            return True  # unassigned → visible to everyone
+        if meta.assigned_user and meta.assigned_user == user_slug:
+            return True
+        if meta.assigned_group and meta.assigned_group in group_slugs:
+            return True
+        return False
+
+    @staticmethod
     def _group_by_parent(items: list) -> list:
         """Group child workflows under their parents.
 
@@ -146,6 +159,9 @@ class TemporalService:
         wf_type: str | None = None,
         search: str | None = None,
         per_page: int | None = None,
+        assignment: str | None = None,
+        user_slug: str = "",
+        user_group_slugs: list[str] | None = None,
     ) -> PaginatedResult:
         all_pending: list[PendingTaskItem] = []
         query = 'ExecutionStatus="Running"'
@@ -164,6 +180,17 @@ class TemporalService:
                         ).lower()
                         if search.lower() not in haystack:
                             continue
+
+                    # Assignment filter
+                    if assignment == "mine":
+                        if not self._is_assigned_to_user(
+                            meta, user_slug, user_group_slugs or [],
+                        ):
+                            continue
+                    elif assignment == "unassigned":
+                        if meta.assigned_user or meta.assigned_group:
+                            continue
+
                     all_pending.append(
                         PendingTaskItem(
                             workflow_id=wf.id,
@@ -172,6 +199,8 @@ class TemporalService:
                             title=meta.title,
                             description=meta.description,
                             started=relative_time(wf.start_time),
+                            assigned_user=meta.assigned_user,
+                            assigned_group=meta.assigned_group,
                         )
                     )
             except Exception:
