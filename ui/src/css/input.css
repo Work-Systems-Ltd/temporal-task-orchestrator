@@ -249,24 +249,44 @@
     letter-spacing: 0.02em;
   }
   .pill-amber {
-    background: var(--color-pill-amber-bg);
-    color: var(--color-pill-amber-text);
+    background: #fbbf24;
+    color: #78350f;
   }
   .pill-blue {
-    background: var(--color-pill-blue-bg);
-    color: var(--color-pill-blue-text);
+    background: #60a5fa;
+    color: #1e3a5f;
   }
   .pill-emerald {
-    background: var(--color-pill-emerald-bg);
-    color: var(--color-pill-emerald-text);
+    background: #34d399;
+    color: #064e3b;
   }
   .pill-red {
-    background: var(--color-pill-red-bg);
-    color: var(--color-pill-red-text);
+    background: #f87171;
+    color: #7f1d1d;
   }
   .pill-zinc {
-    background: var(--color-pill-zinc-bg);
-    color: var(--color-pill-zinc-text);
+    background: #a1a1aa;
+    color: #27272a;
+  }
+  .dark .pill-amber {
+    background: #b45309;
+    color: #fef3c7;
+  }
+  .dark .pill-blue {
+    background: #2563eb;
+    color: #dbeafe;
+  }
+  .dark .pill-emerald {
+    background: #059669;
+    color: #d1fae5;
+  }
+  .dark .pill-red {
+    background: #dc2626;
+    color: #fee2e2;
+  }
+  .dark .pill-zinc {
+    background: #52525b;
+    color: #d4d4d8;
   }
   .tag {
     @apply inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold;

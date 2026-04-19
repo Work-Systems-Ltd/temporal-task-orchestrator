@@ -134,7 +134,7 @@ class DetailMixin:
                 dur_str = ms_duration(sched_time, _ts(event))
                 events.append(TimelineEvent(event_id=eid, event_time=etime, label=name, status="completed", duration=dur_str))
 
-            elif etype == ACTIVITY_TASK_FAILED_LEGACY:  # ACTIVITY_TASK_FAILED
+            elif etype == ACTIVITY_TASK_FAILED:  # ACTIVITY_TASK_FAILED
                 attrs = event.activity_task_failed_event_attributes
                 sched_id = attrs.scheduled_event_id if attrs else 0
                 name, sched_time = scheduled_activities.get(sched_id, ("activity", _ts(event)))

@@ -11,7 +11,7 @@ from ui.helpers import duration, relative_time
 from ui.models import GraphNode, WorkflowDetail
 from ui.services.temporal.helpers import ms_duration
 from ui.services.temporal.event_types import (
-    ACTIVITY_TASK_SCHEDULED, ACTIVITY_TASK_COMPLETED, ACTIVITY_TASK_FAILED_LEGACY,
+    ACTIVITY_TASK_SCHEDULED, ACTIVITY_TASK_COMPLETED, ACTIVITY_TASK_FAILED,
     WORKFLOW_EXECUTION_SIGNALED,
     START_CHILD_WORKFLOW_EXECUTION_INITIATED, CHILD_WORKFLOW_EXECUTION_STARTED,
     CHILD_WORKFLOW_EXECUTION_COMPLETED, CHILD_WORKFLOW_EXECUTION_FAILED,
@@ -196,7 +196,7 @@ class GraphMixin:
                             node_type="activity", is_current=False, duration=dur,
                         ))
 
-                elif etype == ACTIVITY_TASK_FAILED_LEGACY:  # ACTIVITY_TASK_FAILED
+                elif etype == ACTIVITY_TASK_FAILED:  # ACTIVITY_TASK_FAILED
                     attrs = event.activity_task_failed_event_attributes
                     sched_id = attrs.scheduled_event_id if attrs else 0
                     if sched_id in scheduled:
