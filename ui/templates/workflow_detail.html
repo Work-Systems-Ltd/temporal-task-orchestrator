@@ -34,10 +34,10 @@
       {% endif %}
     </div>
     <h1 class="detail-hero-title">{{ detail.workflow_type | replace("Workflow", "") | trim }}</h1>
-    {% if pending_tasks and pending_tasks | length == 1 %}
-    <p class="mt-1 text-sm text-muted">{{ pending_tasks[0].description }}</p>
-    {% elif pending_tasks and pending_tasks | length > 1 %}
-    <p class="mt-1 text-sm text-muted">{{ pending_tasks | length }} tasks waiting for input</p>
+    {% if pending_tasks %}
+    <p class="mt-1 text-sm font-medium" style="color: var(--color-pill-amber-text);">
+      {{ pending_tasks | length }} task{{ "s" if pending_tasks | length > 1 else "" }} awaiting input
+    </p>
     {% endif %}
     <div class="detail-hero-id"
          @click="navigator.clipboard.writeText('{{ workflow_id }}'); copied = true; setTimeout(() => copied = false, 2000)">
@@ -98,31 +98,63 @@
   {% endif %}
 
   {% if pending_tasks %}
-  <div class="card mb-5">
-    <div class="card-header">
-      <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Pending Tasks{% if pending_tasks | length > 1 %} ({{ pending_tasks | length }}){% endif %}</h2>
+  <div class="pending-section mb-5">
+    <div class="pending-section-header">
+      <span class="pending-dot"></span>
+      <h2 class="pending-section-title">
+        Action Required{% if pending_tasks | length > 1 %} &middot; {{ pending_tasks | length }} Tasks{% endif %}
+      </h2>
     </div>
-    <div class="divide-y divide-border">
-      {% for pt in pending_tasks %}
-      <div class="flex items-center justify-between gap-4 px-5 py-3">
-        <div class="flex items-center gap-3 min-w-0">
+    {% for pt in pending_tasks %}
+    <div class="pending-task-row">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
           {{ task_type_badge(pt.task_type) }}
-          <div class="min-w-0">
-            <div class="text-sm font-medium text-primary truncate">{{ pt.title }}</div>
-            {% if pt.workflow_id != workflow_id %}
-            <div class="text-[11px] font-mono text-ghost mt-0.5">{{ pt.workflow_id }}</div>
+          <div class="min-w-0 flex-1">
+            <div class="text-sm font-medium text-primary">{{ pt.title }}</div>
+            {% if pt.description %}
+            <div class="mt-0.5 text-xs text-muted" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ pt.description }}</div>
             {% endif %}
+            <div class="mt-1.5 flex items-center gap-3 flex-wrap">
+              {% if pt.started %}
+              <span class="text-[11px] text-faint flex items-center gap-1">
+                <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                Waiting {{ pt.started }}
+              </span>
+              {% endif %}
+              {% if pt.assigned_user %}
+              <span class="text-[11px] text-faint flex items-center gap-1">
+                <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0" />
+                </svg>
+                {{ pt.assigned_user }}
+              </span>
+              {% endif %}
+              {% if pt.assigned_group %}
+              <span class="text-[11px] text-faint flex items-center gap-1">
+                <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                </svg>
+                {{ pt.assigned_group }}
+              </span>
+              {% endif %}
+              {% if pt.workflow_id != workflow_id %}
+              <span class="text-[11px] font-mono text-ghost">{{ pt.workflow_id }}</span>
+              {% endif %}
+            </div>
           </div>
         </div>
-        <a href="/task/{{ pt.workflow_id }}" class="btn btn-primary shrink-0">
-          Open
+        <a href="/task/{{ pt.workflow_id }}" class="btn-action shrink-0">
+          Open Task
           <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
           </svg>
         </a>
       </div>
-      {% endfor %}
     </div>
+    {% endfor %}
   </div>
   {% endif %}
 

@@ -9,7 +9,8 @@
       <tr>
         <th class="th">Task</th>
         <th class="hidden th sm:table-cell">Type</th>
-        <th class="hidden th sm:table-cell">Assigned</th>
+        <th class="hidden th sm:table-cell">User</th>
+        <th class="hidden th sm:table-cell">Group</th>
         <th class="hidden th md:table-cell">Workflow</th>
         <th class="th">
           <span class="hidden sm:inline">Waiting since</span>
@@ -46,17 +47,18 @@
           <span class="tag">{{ item.task_type }}</span>
         </td>
         <td class="hidden td sm:table-cell">
-          <div class="flex items-center gap-1.5 flex-wrap">
-            {% if item.assigned_user %}
-            <span class="pill pill-blue" title="User">{{ item.assigned_user }}</span>
-            {% endif %}
-            {% if item.assigned_group %}
-            <span class="pill pill-emerald" title="Group">{{ item.assigned_group }}</span>
-            {% endif %}
-            {% if not item.assigned_user and not item.assigned_group %}
-            <span class="text-xs text-ghost">—</span>
-            {% endif %}
-          </div>
+          {% if item.assigned_user %}
+          <span class="pill pill-blue">{{ item.assigned_user }}</span>
+          {% else %}
+          <span class="text-xs text-ghost">—</span>
+          {% endif %}
+        </td>
+        <td class="hidden td sm:table-cell">
+          {% if item.assigned_group %}
+          <span class="pill pill-emerald">{{ item.assigned_group }}</span>
+          {% else %}
+          <span class="text-xs text-ghost">—</span>
+          {% endif %}
         </td>
         <td class="hidden td md:table-cell">
           <a href="/workflow/{{ item.workflow_id }}" class="td-mono timeline-link" title="{{ item.workflow_id }}" onclick="event.stopPropagation()">{{ item.workflow_id }}</a>
@@ -90,17 +92,18 @@
           </span>
         </td>
         <td class="hidden td sm:table-cell">
-          <div class="flex items-center gap-1.5 flex-wrap">
-            {% if child.assigned_user %}
-            <span class="pill pill-blue" title="User">{{ child.assigned_user }}</span>
-            {% endif %}
-            {% if child.assigned_group %}
-            <span class="pill pill-emerald" title="Group">{{ child.assigned_group }}</span>
-            {% endif %}
-            {% if not child.assigned_user and not child.assigned_group %}
-            <span class="text-xs text-ghost">—</span>
-            {% endif %}
-          </div>
+          {% if child.assigned_user %}
+          <span class="pill pill-blue">{{ child.assigned_user }}</span>
+          {% else %}
+          <span class="text-xs text-ghost">—</span>
+          {% endif %}
+        </td>
+        <td class="hidden td sm:table-cell">
+          {% if child.assigned_group %}
+          <span class="pill pill-emerald">{{ child.assigned_group }}</span>
+          {% else %}
+          <span class="text-xs text-ghost">—</span>
+          {% endif %}
         </td>
         <td class="hidden td md:table-cell">
           <a href="/workflow/{{ child.workflow_id }}" class="td-mono timeline-link" title="{{ child.workflow_id }}" onclick="event.stopPropagation()">{{ child.workflow_id }}</a>

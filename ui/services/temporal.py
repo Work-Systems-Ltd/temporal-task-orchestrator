@@ -193,6 +193,9 @@ class TemporalService:
                             meta, user_slug, user_group_slugs or [],
                         ):
                             continue
+                    elif assignment == "my_groups":
+                        if not meta.assigned_group or meta.assigned_group not in (user_group_slugs or []):
+                            continue
                     elif assignment == "unassigned":
                         if meta.assigned_user or meta.assigned_group:
                             continue

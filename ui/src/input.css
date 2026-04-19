@@ -989,7 +989,59 @@
     display: none;
   }
 
-  /* ── Subtask banner ── */
+  /* ── Pending tasks callout ── */
+  .pending-section {
+    @apply overflow-hidden rounded-lg;
+    border: 1px solid var(--color-pill-amber-bg);
+    border-left: 3px solid var(--color-pill-amber-text);
+    background: var(--color-pill-amber-bg);
+  }
+  .pending-section-header {
+    @apply flex items-center gap-2 px-5 py-3;
+  }
+  .pending-section-title {
+    @apply text-xs font-semibold uppercase tracking-wider;
+    color: var(--color-pill-amber-text);
+    letter-spacing: 0.05em;
+  }
+  .pending-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-pill-amber-text);
+    flex-shrink: 0;
+    animation: pendingPulse 2s ease-in-out infinite;
+  }
+  @keyframes pendingPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+  .pending-task-row {
+    @apply px-5 py-4;
+    background: var(--color-bg);
+    border-top: 1px solid var(--color-border);
+  }
+  .pending-task-row:last-child {
+    border-bottom-left-radius: calc(0.5rem - 1px);
+    border-bottom-right-radius: calc(0.5rem - 1px);
+  }
+  .btn-action {
+    @apply inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-sm font-medium px-4 py-1.5 border border-transparent;
+    background: var(--color-pill-amber-text);
+    color: #ffffff;
+    transition: all 0.15s ease;
+  }
+  .dark .btn-action {
+    color: #18181b;
+  }
+  .btn-action:hover {
+    opacity: 0.88;
+  }
+  .btn-action:active {
+    opacity: 0.78;
+    transform: scale(0.98);
+  }
+
   /* ── JSON viewer (CodeMirror) ── */
   .json-viewer {
     @apply overflow-hidden rounded-lg;

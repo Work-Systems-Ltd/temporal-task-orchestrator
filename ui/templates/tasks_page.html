@@ -60,39 +60,26 @@
         </div>
       </div>
 
-      <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
-        <button @click="open = !open" class="btn btn-secondary">
-          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-          </svg>
-          {% if assignment == "mine" %}Assigned to me{% elif assignment == "unassigned" %}Unassigned{% else %}All tasks{% endif %}
-          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
-        <div x-show="open" @click.away="open = false" x-cloak
-             x-transition:enter="transition ease-out duration-100"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-75"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="dropdown-menu origin-top-right">
-          <a href="/tasks{% if wf_type %}?type={{ wf_type }}{% endif %}" class="dropdown-item {% if not assignment %}dropdown-item-active{% endif %}">
-            {% if not assignment %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
-            All tasks
-          </a>
-          <a href="/tasks?assignment=mine{% if wf_type %}&type={{ wf_type }}{% endif %}" class="dropdown-item {% if assignment == 'mine' %}dropdown-item-active{% endif %}">
-            {% if assignment == "mine" %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
-            Assigned to me
-          </a>
-          <a href="/tasks?assignment=unassigned{% if wf_type %}&type={{ wf_type }}{% endif %}" class="dropdown-item {% if assignment == 'unassigned' %}dropdown-item-active{% endif %}">
-            {% if assignment == "unassigned" %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
-            Unassigned
-          </a>
-        </div>
-      </div>
     </div>
+  </div>
+
+  <div class="tab-bar">
+    <a href="/tasks{% if wf_type %}?type={{ wf_type }}{% endif %}"
+       class="tab-item {% if not assignment %}tab-item-active{% endif %}">
+      All
+    </a>
+    <a href="/tasks?assignment=mine{% if wf_type %}&type={{ wf_type }}{% endif %}"
+       class="tab-item {% if assignment == 'mine' %}tab-item-active{% endif %}">
+      Assigned to me
+    </a>
+    <a href="/tasks?assignment=my_groups{% if wf_type %}&type={{ wf_type }}{% endif %}"
+       class="tab-item {% if assignment == 'my_groups' %}tab-item-active{% endif %}">
+      My groups
+    </a>
+    <a href="/tasks?assignment=unassigned{% if wf_type %}&type={{ wf_type }}{% endif %}"
+       class="tab-item {% if assignment == 'unassigned' %}tab-item-active{% endif %}">
+      Unassigned
+    </a>
   </div>
 
   {% set tab = "pending" %}
