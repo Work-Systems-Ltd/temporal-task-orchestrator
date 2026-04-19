@@ -37,10 +37,17 @@ async def seed(username: str, password: str, group_names: list[str]) -> None:
                 logger.info("Created group '%s'", name)
         await db.flush()
 
-        # Create or skip user
+        # Create user or ensure group membership
         result = await db.execute(select(User).where(User.username == username))
-        if result.scalar_one_or_none():
-            logger.info("User '%s' already exists — skipping", username)
+        existing_user = result.scalar_one_or_none()
+        if existing_user:
+            # Ensure the user belongs to all specified groups
+            existing_names = {g.name for g in existing_user.groups}
+            for name in group_names:
+                if name not in existing_names:
+                    result = await db.execute(select(Group).where(Group.name == name))
+                    existing_user.groups.append(result.scalar_one())
+                    logger.info("Added user '%s' to group '%s'", username, name)
         else:
             groups: list[Group] = []
             for name in group_names:

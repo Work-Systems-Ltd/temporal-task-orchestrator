@@ -11,7 +11,7 @@ class AppSettings(BaseSettings):
     session_secret: str = "insecure-dev-secret-change-me"
     seed_username: str = ""
     seed_password: str = ""
-    seed_groups: str = ""
+    seed_groups: str = "admin"
 
 
 STATUS_QUERIES: dict[str, str | None] = {

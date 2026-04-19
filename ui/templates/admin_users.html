@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Users — Admin{% endblock %}
+
+{% block content %}
+<div class="animate-slide-up">
+
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-lg font-semibold">Users</h1>
+    <div class="flex gap-1.5">
+      <a href="/admin/users" class="nav-link nav-link--active">Users</a>
+      <a href="/admin/groups" class="nav-link">Groups</a>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="w-full text-left">
+      <thead class="table-head">
+        <tr>
+          <th class="th">Username</th>
+          <th class="th">Display Name</th>
+          <th class="th">Groups</th>
+          <th class="th">Active</th>
+          <th class="th">Created</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        {% for user in users %}
+        <tr class="group table-row">
+          <td class="td font-medium">{{ user.username }}</td>
+          <td class="td text-muted">{{ user.display_name or "—" }}</td>
+          <td class="td">
+            {% for g in user.groups %}
+            <span class="tag">{{ g.name }}</span>
+            {% endfor %}
+            {% if not user.groups %}
+            <span class="text-faint">—</span>
+            {% endif %}
+          </td>
+          <td class="td">
+            {% if user.is_active %}
+            <span class="status-dot status-dot--running"></span>
+            {% else %}
+            <span class="status-dot status-dot--failed"></span>
+            {% endif %}
+          </td>
+          <td class="td text-muted text-xs">{{ user.created_at.strftime("%Y-%m-%d %H:%M") if user.created_at else "—" }}</td>
+        </tr>
+        {% endfor %}
+        {% if not users %}
+        <tr>
+          <td colspan="5" class="td text-center text-muted py-8">No users found</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Groups — Admin{% endblock %}
+
+{% block content %}
+<div class="animate-slide-up">
+
+  <div class="mb-4 flex items-center justify-between">
+    <h1 class="text-lg font-semibold">Groups</h1>
+    <div class="flex gap-1.5">
+      <a href="/admin/users" class="nav-link">Users</a>
+      <a href="/admin/groups" class="nav-link nav-link--active">Groups</a>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="w-full text-left">
+      <thead class="table-head">
+        <tr>
+          <th class="th">Group Name</th>
+          <th class="th">Members</th>
+          <th class="th">Created</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        {% for group in groups %}
+        <tr class="group table-row">
+          <td class="td font-medium">{{ group.name }}</td>
+          <td class="td text-muted">
+            {% if group.users %}
+            {{ group.users | length }} member{{ "s" if group.users | length != 1 }}
+            <span class="text-xs text-faint ml-1">({{ group.users | map(attribute="username") | join(", ") }})</span>
+            {% else %}
+            <span class="text-faint">No members</span>
+            {% endif %}
+          </td>
+          <td class="td text-muted text-xs">{{ group.created_at.strftime("%Y-%m-%d %H:%M") if group.created_at else "—" }}</td>
+        </tr>
+        {% endfor %}
+        {% if not groups %}
+        <tr>
+          <td colspan="3" class="td text-center text-muted py-8">No groups found</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+{% endblock %}

@@ -38,6 +38,12 @@ async def lifespan(app: FastAPI):
     # Database
     init_engine(settings.database_url)
 
+    # Ensure the admin group always exists
+    try:
+        await ensure_default_groups(["admin"])
+    except Exception:
+        logger.warning("Could not create default groups (tables may not exist yet)", exc_info=True)
+
     # Seed default user if configured
     if settings.seed_username and settings.seed_password:
         seed_groups = [g.strip() for g in settings.seed_groups.split(",") if g.strip()]
@@ -96,6 +102,11 @@ async def attach_user_to_request(request: Request, call_next):
     else:
         request.state.user = None
 
+    request.state.is_admin = (
+        request.state.user is not None
+        and any(g.name == "admin" for g in request.state.user.groups)
+    )
+
     # Make CSRF token available via request.state for templates
     request.state.csrf_token = get_csrf_token(request)
 
@@ -108,3 +119,4 @@ app.include_router(tasks.router)
 app.include_router(workflows_router.router)
 app.include_router(workflow_detail.router)
 app.include_router(ws.router)
+app.include_router(admin.router)
