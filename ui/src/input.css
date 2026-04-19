@@ -938,6 +938,29 @@
     color: var(--color-text-ghost);
   }
 
+  /* Task node variant — dashed border + amber accent */
+  .wf-graph-node-task {
+    border-style: dashed;
+    border-color: var(--color-pill-amber-text);
+    background: var(--color-pill-amber-bg);
+  }
+  .wf-graph-node-task:hover {
+    border-color: var(--color-pill-amber-text);
+    background: var(--color-pill-amber-bg);
+  }
+  .wf-graph-node-task .wf-graph-node-type-icon {
+    color: var(--color-pill-amber-text);
+  }
+
+  /* Type icon above label */
+  .wf-graph-node-type-icon {
+    @apply flex items-center justify-center mb-1.5;
+    color: var(--color-text-faint);
+  }
+  .wf-graph-node-root .wf-graph-node-type-icon {
+    @apply mb-2;
+  }
+
   /* ─ Vertical trunk from parent node down to branch rail ─ */
   .wf-graph-trunk {
     width: 1px;

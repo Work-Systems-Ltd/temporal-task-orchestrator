@@ -529,6 +529,9 @@ class TemporalService:
                     self._build_graph_node(cid, ctype, cstatus, current_id, depth + 1, max_depth)
                     for ctype, cid, cstatus in child_infos
                 ])
+
+        # Leaf nodes (no children) are tasks; nodes with children are orchestrators
+        node.node_type = "workflow" if node.children else "task"
         return node
 
     async def get_workflow_graph(self, workflow_id: str, detail: WorkflowDetail) -> GraphNode | None:

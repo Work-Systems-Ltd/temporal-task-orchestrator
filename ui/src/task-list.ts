@@ -247,6 +247,10 @@ function taskList(): TaskListData {
       applyExpandState();
       applyColumnState();
       this.loading = false;
+      if ((this as any)._loadingTimeout) {
+        clearTimeout((this as any)._loadingTimeout);
+        (this as any)._loadingTimeout = null;
+      }
     },
 
     _visibilityHandler: null as (() => void) | null,
@@ -302,6 +306,14 @@ function taskList(): TaskListData {
       this._lastAppliedHash = "";  // force next update to apply
       this.loading = true;
       this.sendView();
+
+      // Safety: if no WS response in 5s, fall back to full page navigation
+      if ((this as any)._loadingTimeout) clearTimeout((this as any)._loadingTimeout);
+      (this as any)._loadingTimeout = setTimeout(() => {
+        if (this.loading) {
+          window.location.href = link.href;
+        }
+      }, 5000);
     },
   };
 }

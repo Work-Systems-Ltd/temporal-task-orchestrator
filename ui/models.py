@@ -81,6 +81,7 @@ class GraphNode(BaseModel):
     workflow_type: str
     status: str  # "running", "completed", "failed", "pending"
     label: str
+    node_type: str = "workflow"  # "workflow" or "task"
     is_current: bool = False  # True for the workflow being viewed
     started: str = ""
     duration: str = ""
