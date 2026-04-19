@@ -35,18 +35,13 @@ class ApprovalWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: ApprovalInputTask.Model) -> str:
-        await workflow.execute_activity(
+        human_data = await self.execute_and_wait(
             log_request,
             input.description,
-            start_to_close_timeout=timedelta(seconds=10),
-        )
-
-        task_meta = TaskMeta(
             task_type="approval",
             title=f"Approve: {input.description}",
             description=f"Please review this {input.urgency}-priority request and approve or reject it.",
         )
-        human_data = await self.wait_for_human_task(task_meta)
 
         decision = human_data["decision"]
         comment = human_data.get("comment", "")
