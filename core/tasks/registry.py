@@ -27,13 +27,15 @@ def register_task(cls: Type[Task]) -> Type[Task]:
         # Auto-generate a Temporal activity from the run method
         instance = cls()
 
-        @activity.defn(name=cls.task_type)
+        # Wrap run() in a plain async function so Temporal can set
+        # attributes on it and inspect the correct signature.
+        import functools
+
+        @functools.wraps(instance.run)
         async def _activity(*args, **kwargs):
             return await instance.run(*args, **kwargs)
 
-        # Give it a readable name for debugging
-        _activity.__qualname__ = f"{cls.__name__}.run"
-        cls._activity = _activity
+        cls._activity = activity.defn(name=cls.task_type)(_activity)
     else:
         instance = cls()
 
