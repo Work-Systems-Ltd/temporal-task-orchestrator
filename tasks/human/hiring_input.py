@@ -11,6 +11,10 @@ class HiringInputTask(HumanTask):
     label = "Hiring Request"
 
     class Form(TaskForm):
+        employee_name = StringField(
+            "Employee name",
+            validators=[validators.DataRequired(), validators.Length(max=200)],
+        )
         urgency = SelectField(
             "Urgency",
             choices=[("normal", "Normal"), ("high", "High"), ("critical", "Critical")],
@@ -18,4 +22,5 @@ class HiringInputTask(HumanTask):
         )
 
     class Model(BaseModel):
+        employee_name: str = Field(min_length=1, max_length=200)
         urgency: str = Field(pattern=r"^(normal|high|critical)$")
