@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import uuid
 from datetime import timedelta
 from typing import Any, ClassVar, Type
 
@@ -139,7 +138,7 @@ class WorkSysFlow(ABC):
         Returns:
             The parsed human task data dict.
         """
-        task_id = str(uuid.uuid4())
+        task_id = str(workflow.uuid4())
         task_meta = TaskMeta(
             task_id=task_id,
             task_type=task.task_type,

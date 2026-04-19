@@ -58,9 +58,12 @@ services:
     depends_on:
       temporal:
         condition: service_healthy
+      postgresql:
+        condition: service_healthy
     restart: on-failure
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
+      - DATABASE_URL=postgresql+asyncpg://temporal:temporal@postgresql:5432/taskapp
     volumes:
       - .:/app
     networks:
