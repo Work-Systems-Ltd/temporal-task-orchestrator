@@ -663,6 +663,10 @@
   .card-body {
     @apply p-5;
   }
+  .card-title {
+    @apply text-sm font-semibold;
+    color: var(--color-text-primary);
+  }
 
   /* ── Back link ── */
   .back-link {

@@ -56,7 +56,7 @@
 
       {# ── Form data (if completed) ── #}
       {% if task.form_data %}
-      <div class="card">
+      <div class="card p-5">
         <h3 class="card-title mb-3">Submitted Data</h3>
         <div class="space-y-2">
           {% for key, value in task.form_data.items() %}
@@ -70,7 +70,7 @@
       {% endif %}
 
       {# ── Comments ── #}
-      <div class="card" x-data="commentForm()">
+      <div class="card p-5" x-data="commentForm()">
         <h3 class="card-title mb-4">
           Comments
           {% if comments %}<span class="ml-1 text-xs text-ghost">({{ comments | length }})</span>{% endif %}
@@ -120,7 +120,7 @@
       </div>
 
       {# ── Activity Log ── #}
-      <div class="card">
+      <div class="card p-5">
         <h3 class="card-title mb-4">Activity</h3>
         {% if activity %}
         <div class="space-y-3">
@@ -159,7 +159,7 @@
     <div class="space-y-4">
 
       {# Status + Actions card #}
-      <div class="card">
+      <div class="card p-5">
         <h3 class="card-title mb-3">Details</h3>
         <div class="space-y-3 text-sm">
           <div class="flex items-center justify-between">
@@ -211,7 +211,7 @@
 
       {# Status transitions #}
       {% if valid_transitions %}
-      <div class="card" x-data="statusActions()">
+      <div class="card p-5" x-data="statusActions()">
         <h3 class="card-title mb-3">Actions</h3>
         <div class="space-y-2">
           {% for t in valid_transitions %}
@@ -227,7 +227,7 @@
       {% endif %}
 
       {# Workflow link #}
-      <div class="card">
+      <div class="card p-5">
         <h3 class="card-title mb-3">Workflow</h3>
         <a href="/workflow/{{ task.workflow_id }}" class="text-xs text-accent hover:underline font-mono break-all">
           {{ task.workflow_id }}
