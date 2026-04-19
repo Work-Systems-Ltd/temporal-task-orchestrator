@@ -899,6 +899,14 @@
     @apply text-[11px];
     color: var(--color-text-ghost);
   }
+  .timeline-error {
+    @apply mt-1 ml-8 rounded-md px-3 py-2 text-xs font-mono whitespace-pre-wrap break-words;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--color-pill-red-bg);
+    color: var(--color-pill-red-text);
+    border: 1px solid var(--color-pill-red-bg);
+  }
   .timeline-time {
     @apply ml-auto shrink-0 text-[11px] tabular-nums;
     color: var(--color-text-ghost);

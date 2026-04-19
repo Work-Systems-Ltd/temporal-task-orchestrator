@@ -199,7 +199,7 @@
               <div class="timeline-content">
                 <div class="min-w-0 flex-1">
                   <span class="timeline-label">{{ event.label | replace("Workflow", "") | trim }}</span>
-                  {% if event.detail %}
+                  {% if event.detail and event.status != 'failed' %}
                   <span class="timeline-detail ml-1.5">{{ event.detail }}</span>
                   {% endif %}
                 </div>
@@ -211,18 +211,23 @@
                   <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                 </svg>
               </div>
+              {% if event.detail and event.status == 'failed' %}
+              <div class="timeline-error">{{ event.detail }}</div>
+              {% endif %}
             </a>
             {% else %}
-            <div class="timeline-item">
+            <div class="timeline-item" {% if event.detail and event.status == 'failed' %}x-data="{ open: false }"{% endif %}>
               <div class="timeline-track">
                 {{ timeline_icon(event.status) }}
                 <div class="timeline-stem"></div>
               </div>
-              <div class="timeline-content">
+              <div class="timeline-content" {% if event.detail and event.status == 'failed' %}@click="open = !open" style="cursor:pointer"{% endif %}>
                 <div class="min-w-0 flex-1">
                   <span class="timeline-label">{{ event.label | replace("Workflow", "") | trim }}</span>
-                  {% if event.detail %}
+                  {% if event.detail and event.status != 'failed' %}
                   <span class="timeline-detail ml-1.5">{{ event.detail }}</span>
+                  {% elif event.detail and event.status == 'failed' %}
+                  <span class="timeline-detail ml-1.5 truncate" style="max-width: 300px; display: inline-block; vertical-align: bottom;">{{ event.detail }}</span>
                   {% endif %}
                 </div>
                 {% if event.duration %}
@@ -230,6 +235,9 @@
                 {% endif %}
                 <span class="timeline-time">{{ event.event_time }}</span>
               </div>
+              {% if event.detail and event.status == 'failed' %}
+              <div class="timeline-error" x-show="open" x-cloak x-collapse>{{ event.detail }}</div>
+              {% endif %}
             </div>
             {% endif %}
             {% endfor %}
