@@ -2,15 +2,34 @@
 {% block title %}Users — Admin{% endblock %}
 
 {% block content %}
-<div class="animate-slide-up">
+<div class="animate-slide-up" x-data="{
+  addOpen: false,
+  resetOpen: false, resetUserId: '', resetUsername: '',
+  deleteOpen: false, deleteUserId: '', deleteUsername: '',
+  groupsOpen: false, groupsUserId: '', groupsUsername: '', groupsCurrent: [],
+}">
 
   <div class="mb-4 flex items-center justify-between">
     <h1 class="text-lg font-semibold">Users</h1>
-    <div class="flex gap-1.5">
-      <a href="/admin/users" class="nav-link nav-link--active">Users</a>
-      <a href="/admin/groups" class="nav-link">Groups</a>
+    <div class="flex items-center gap-3">
+      <div class="flex gap-1.5">
+        <a href="/admin/users" class="nav-link nav-link--active">Users</a>
+        <a href="/admin/groups" class="nav-link">Groups</a>
+      </div>
+      <button @click="addOpen = true" class="btn btn-primary">
+        <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Add user
+      </button>
     </div>
   </div>
+
+  {% if request.query_params.get("error") == "exists" %}
+  <div class="mb-4 rounded-lg border px-4 py-3 text-sm" style="border-color: var(--color-failed); color: var(--color-failed);">
+    A user with that username already exists.
+  </div>
+  {% endif %}
 
   <div class="table-container">
     <table class="w-full text-left">
@@ -21,6 +40,7 @@
           <th class="th">Groups</th>
           <th class="th">Active</th>
           <th class="th">Created</th>
+          <th class="th w-0"></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-border">
@@ -44,16 +64,184 @@
             {% endif %}
           </td>
           <td class="td text-muted text-xs">{{ user.created_at.strftime("%Y-%m-%d %H:%M") if user.created_at else "—" }}</td>
+          <td class="td">
+            <div class="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+              <button
+                @click="groupsUserId = '{{ user.id }}'; groupsUsername = '{{ user.username }}'; groupsCurrent = [{% for g in user.groups %}'{{ g.id }}'{{ ', ' if not loop.last }}{% endfor %}]; groupsOpen = true"
+                class="btn btn-icon" title="Manage groups">
+                <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+                </svg>
+              </button>
+              <button
+                @click="resetUserId = '{{ user.id }}'; resetUsername = '{{ user.username }}'; resetOpen = true"
+                class="btn btn-icon" title="Reset password">
+                <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
+                </svg>
+              </button>
+              {% if user.id != request.state.user.id %}
+              <button
+                @click="deleteUserId = '{{ user.id }}'; deleteUsername = '{{ user.username }}'; deleteOpen = true"
+                class="btn btn-icon" title="Delete user" style="color: var(--color-failed);">
+                <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+              </button>
+              {% endif %}
+            </div>
+          </td>
         </tr>
         {% endfor %}
         {% if not users %}
         <tr>
-          <td colspan="5" class="td text-center text-muted py-8">No users found</td>
+          <td colspan="6" class="td text-center text-muted py-8">No users found</td>
         </tr>
         {% endif %}
       </tbody>
     </table>
   </div>
+
+  <!-- Add User Modal -->
+  <template x-teleport="body">
+    <div x-show="addOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="addOpen = false">
+      <div class="fixed inset-0 bg-black/50" @click="addOpen = false"></div>
+      <div class="relative w-full max-w-md rounded-xl p-6 shadow-xl" style="background: var(--color-surface);"
+           x-show="addOpen"
+           x-transition:enter="transition ease-out duration-150"
+           x-transition:enter-start="opacity-0 scale-95"
+           x-transition:enter-end="opacity-100 scale-100"
+           x-transition:leave="transition ease-in duration-100"
+           x-transition:leave-start="opacity-100 scale-100"
+           x-transition:leave-end="opacity-0 scale-95">
+        <h2 class="mb-4 text-base font-semibold">Add User</h2>
+        <form method="post" action="/admin/users/add" class="space-y-3">
+          <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
+          <div>
+            <label class="mb-1 block text-xs font-medium text-muted">Username</label>
+            <input type="text" name="username" required class="login-input w-full" placeholder="username" autocomplete="off" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-muted">Display Name</label>
+            <input type="text" name="display_name" class="login-input w-full" placeholder="optional" autocomplete="off" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-muted">Password</label>
+            <input type="password" name="password" required class="login-input w-full" placeholder="password" autocomplete="new-password" />
+          </div>
+          <div>
+            <label class="mb-1 block text-xs font-medium text-muted">Groups</label>
+            <div class="flex flex-wrap gap-2 mt-1">
+              {% for group in groups %}
+              <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+                <input type="checkbox" name="group_ids" value="{{ group.id }}" class="accent-current rounded" />
+                {{ group.name }}
+              </label>
+              {% endfor %}
+              {% if not groups %}
+              <span class="text-xs text-faint">No groups available</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" @click="addOpen = false" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </template>
+
+  <!-- Reset Password Modal -->
+  <template x-teleport="body">
+    <div x-show="resetOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="resetOpen = false">
+      <div class="fixed inset-0 bg-black/50" @click="resetOpen = false"></div>
+      <div class="relative w-full max-w-md rounded-xl p-6 shadow-xl" style="background: var(--color-surface);"
+           x-show="resetOpen"
+           x-transition:enter="transition ease-out duration-150"
+           x-transition:enter-start="opacity-0 scale-95"
+           x-transition:enter-end="opacity-100 scale-100"
+           x-transition:leave="transition ease-in duration-100"
+           x-transition:leave-start="opacity-100 scale-100"
+           x-transition:leave-end="opacity-0 scale-95">
+        <h2 class="mb-1 text-base font-semibold">Reset Password</h2>
+        <p class="mb-4 text-sm text-muted">Set a new password for <strong x-text="resetUsername"></strong></p>
+        <form method="post" :action="'/admin/users/' + resetUserId + '/reset-password'" class="space-y-3">
+          <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
+          <div>
+            <label class="mb-1 block text-xs font-medium text-muted">New Password</label>
+            <input type="password" name="password" required class="login-input w-full" placeholder="new password" autocomplete="new-password" />
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" @click="resetOpen = false" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Reset</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </template>
+
+  <!-- Delete User Modal -->
+  <template x-teleport="body">
+    <div x-show="deleteOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="deleteOpen = false">
+      <div class="fixed inset-0 bg-black/50" @click="deleteOpen = false"></div>
+      <div class="relative w-full max-w-md rounded-xl p-6 shadow-xl" style="background: var(--color-surface);"
+           x-show="deleteOpen"
+           x-transition:enter="transition ease-out duration-150"
+           x-transition:enter-start="opacity-0 scale-95"
+           x-transition:enter-end="opacity-100 scale-100"
+           x-transition:leave="transition ease-in duration-100"
+           x-transition:leave-start="opacity-100 scale-100"
+           x-transition:leave-end="opacity-0 scale-95">
+        <h2 class="mb-1 text-base font-semibold">Delete User</h2>
+        <p class="mb-4 text-sm text-muted">Are you sure you want to delete <strong x-text="deleteUsername"></strong>? This cannot be undone.</p>
+        <form method="post" :action="'/admin/users/' + deleteUserId + '/delete'">
+          <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
+          <div class="flex justify-end gap-2">
+            <button type="button" @click="deleteOpen = false" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="background: var(--color-failed);">Delete</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </template>
+
+  <!-- Manage Groups Modal -->
+  <template x-teleport="body">
+    <div x-show="groupsOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="groupsOpen = false">
+      <div class="fixed inset-0 bg-black/50" @click="groupsOpen = false"></div>
+      <div class="relative w-full max-w-md rounded-xl p-6 shadow-xl" style="background: var(--color-surface);"
+           x-show="groupsOpen"
+           x-transition:enter="transition ease-out duration-150"
+           x-transition:enter-start="opacity-0 scale-95"
+           x-transition:enter-end="opacity-100 scale-100"
+           x-transition:leave="transition ease-in duration-100"
+           x-transition:leave-start="opacity-100 scale-100"
+           x-transition:leave-end="opacity-0 scale-95">
+        <h2 class="mb-1 text-base font-semibold">Manage Groups</h2>
+        <p class="mb-4 text-sm text-muted">Update group membership for <strong x-text="groupsUsername"></strong></p>
+        <form method="post" :action="'/admin/users/' + groupsUserId + '/groups'" class="space-y-3">
+          <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
+          <div class="flex flex-col gap-2">
+            {% for group in groups %}
+            <label class="flex items-center gap-2 text-sm cursor-pointer rounded-lg px-3 py-2 transition-colors hover:bg-white/5">
+              <input type="checkbox" name="group_ids" value="{{ group.id }}" class="accent-current rounded"
+                     :checked="groupsCurrent.includes('{{ group.id }}')" />
+              {{ group.name }}
+            </label>
+            {% endfor %}
+            {% if not groups %}
+            <span class="text-sm text-faint">No groups available</span>
+            {% endif %}
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" @click="groupsOpen = false" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </template>
 
 </div>
 {% endblock %}
