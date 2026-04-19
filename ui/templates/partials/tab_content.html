@@ -1,44 +1,11 @@
 {% from "partials/macros.html" import status_badge %}
 
 {% macro reassign_picker(workflow_id, field, current_value, other_value, color) %}
-{# field is "user" or "group"; other_value is the value of the other field to preserve #}
 <td class="hidden td sm:table-cell" style="position:relative;overflow:visible" onclick="event.stopPropagation()"
-    x-data="{
-      open: false,
-      value: '{{ current_value }}',
-      search: '',
-      options: [],
-      get filtered() {
-        if (!this.search) return this.options;
-        const q = this.search.toLowerCase();
-        return this.options.filter(o => o.label.toLowerCase().includes(q));
-      },
-      load() {
-        if (!this.options.length) {
-          fetch('/api/assignees').then(r => r.json()).then(d => {
-            this.options = d.{{ field }}s;
-          });
-        }
-      },
-      toggle() {
-        this.load();
-        this.open = !this.open;
-        if (this.open) this.$nextTick(() => this.$refs.searchInput.focus());
-      },
-      assign(slug) {
-        const body = {{ '{}' }};
-        body.assigned_{{ field }} = slug;
-        body.{{ 'assigned_group' if field == 'user' else 'assigned_user' }} = '{{ other_value }}';
-        fetch('/tasks/{{ workflow_id }}/reassign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        }).then(() => { this.value = slug; this.open = false; this.search = ''; });
-      }
-    }"
-    @click.away="open = false; search = ''"
-    @reassign-close.window="open = false; search = ''">
-  <button @click="$dispatch('reassign-close'); toggle()"
+    x-data="reassignPicker('{{ workflow_id }}', '{{ field }}', '{{ current_value }}', '{{ other_value }}')"
+    @click.away="close()"
+    @reassign-close.window="close()">
+  <button @click="$dispatch('reassign-close'); $nextTick(() => toggle())"
           class="pill cursor-pointer transition-opacity hover:opacity-80"
           :class="value ? 'pill-{{ color }}' : 'pill-zinc'"
           x-text="value || '—'"></button>
@@ -56,7 +23,7 @@
              type="text"
              placeholder="Search…"
              class="reassign-search"
-             @keydown.escape="open = false; search = ''" />
+             @keydown.escape="close()" />
     </div>
     <div class="reassign-options">
       <button @click="assign('')" class="dropdown-item w-full text-left text-ghost text-xs">Unassign</button>

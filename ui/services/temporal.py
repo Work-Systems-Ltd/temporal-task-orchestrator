@@ -530,13 +530,44 @@ class TemporalService:
                     for ctype, cid, cstatus in child_infos
                 ])
 
-        # Determine if this node has a pending human task
+        # Attach human tasks as child "task" nodes so they show separately.
         node.node_type = "workflow"
-        if not node.children and node.status == "running":
+        if node.status == "running":
+            # Running workflow — check for a live pending task via query
             try:
                 meta = await self.get_pending_task(wf_id)
                 if meta:
-                    node.node_type = "task"
+                    node.children.append(GraphNode(
+                        workflow_id=wf_id,
+                        workflow_type=wf_type,
+                        status="running",
+                        label=meta.title or meta.task_type,
+                        node_type="task",
+                        is_current=False,
+                        started=started_str,
+                    ))
+            except Exception:
+                pass
+        else:
+            # Completed/failed — scan history for complete_human_task signals
+            try:
+                handle = self._client.get_workflow_handle(wf_id)
+                history = await handle.fetch_history()
+                for event in history.events:
+                    if event.event_type == 26:  # WORKFLOW_EXECUTION_SIGNALED
+                        attrs = event.workflow_execution_signaled_event_attributes
+                        if attrs and attrs.signal_name == "complete_human_task":
+                            task_status = "completed" if node.status == "completed" else node.status
+                            node.children.append(GraphNode(
+                                workflow_id=wf_id,
+                                workflow_type=wf_type,
+                                status=task_status,
+                                label="Task completed",
+                                node_type="task",
+                                is_current=False,
+                                duration=duration_str,
+                            ))
+                            break  # one task node per workflow is enough
             except Exception:
                 pass
         return node
@@ -564,6 +595,8 @@ class TemporalService:
         wf_ids: list[str] = []
 
         def _collect_running(node: GraphNode) -> None:
+            if node.node_type == "task":
+                return  # task nodes share parent's workflow_id, skip to avoid duplicates
             if node.status == "running":
                 wf_ids.append(node.workflow_id)
             for child in node.children:
