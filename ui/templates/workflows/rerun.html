@@ -5,7 +5,7 @@
 {% block content %}
 <div x-data="{ submitting: false }" class="mx-auto max-w-[520px] animate-slide-up">
 
-  <a href="/workflow/{{ workflow_id }}" class="back-link">
+  <a href="{{ request.url_for('workflow_detail', workflow_id=workflow_id) }}" class="back-link">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
@@ -28,7 +28,7 @@
       </div>
     </div>
 
-    <form method="post" action="/workflow/{{ workflow_id }}/rerun" @submit="submitting = true" class="space-y-4 p-5">
+    <form method="post" action="{{ request.url_for('rerun_submit', workflow_id=workflow_id) }}" @submit="submitting = true" class="space-y-4 p-5">
       <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token }}" />
       {% if form %}
         {% for field in form %}
@@ -44,7 +44,7 @@
       {% endif %}
 
       <div class="flex items-center justify-end gap-2 border-t border-border pt-4">
-        <a href="/workflow/{{ workflow_id }}" class="btn btn-ghost">Cancel</a>
+        <a href="{{ request.url_for('workflow_detail', workflow_id=workflow_id) }}" class="btn btn-ghost">Cancel</a>
         <button type="submit" :disabled="submitting"
                 class="btn btn-primary relative">
           <span :class="submitting ? 'invisible' : ''" class="inline-flex items-center gap-1.5">Rerun</span>

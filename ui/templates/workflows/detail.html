@@ -5,7 +5,7 @@
 {% block content %}
 <div x-data="{ copied: false }" class="animate-slide-up stagger-in">
 
-  <a href="/workflows" class="back-link">
+  <a href="{{ request.url_for('workflows_page') }}" class="back-link">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
     </svg>
@@ -25,7 +25,7 @@
         {% endif %}
       </div>
       {% if can_rerun %}
-      <a href="/workflow/{{ workflow_id }}/rerun" class="btn btn-secondary" title="Rerun this workflow with edited input">
+      <a href="{{ request.url_for('rerun_form', workflow_id=workflow_id) }}" class="btn btn-secondary" title="Rerun this workflow with edited input">
         <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
         </svg>
@@ -50,7 +50,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-3 w-3">
           <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
         </svg>
-        <a href="/workflow/{{ detail.parent_id }}">Parent</a>
+        <a href="{{ request.url_for('workflow_detail', workflow_id=detail.parent_id) }}">Parent</a>
       </span>
       {% endif %}
     </div>
@@ -176,7 +176,7 @@
             </div>
           </div>
         </div>
-        <a href="/task/{{ pt.workflow_id }}" class="btn-action shrink-0">
+        <a href="{{ request.url_for('task_form', workflow_id=pt.workflow_id) }}" class="btn-action shrink-0">
           Open Task
           <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -391,6 +391,6 @@
 
 {% block scripts %}
 {% if stats.workflow_input or stats.workflow_output %}
-<script src="/static/js/json-viewer.js"></script>
+<script src="{{ request.url_for('static', path='js/json-viewer.js') }}"></script>
 {% endif %}
 {% endblock %}

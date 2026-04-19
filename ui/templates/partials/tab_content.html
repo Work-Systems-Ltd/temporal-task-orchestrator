@@ -70,7 +70,7 @@
         {{ reassign_picker(item.workflow_id, 'user', item.assigned_user, item.assigned_group, 'blue') }}
         {{ reassign_picker(item.workflow_id, 'group', item.assigned_group, item.assigned_user, 'emerald') }}
         <td class="hidden td md:table-cell">
-          <a href="/workflow/{{ item.workflow_id }}" class="td-mono timeline-link" title="{{ item.workflow_id }}" onclick="event.stopPropagation()">{{ item.workflow_id }}</a>
+          <a href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}" class="td-mono timeline-link" title="{{ item.workflow_id }}" onclick="event.stopPropagation()">{{ item.workflow_id }}</a>
         </td>
         <td class="td">
           <span class="td-time">{{ item.started }}</span>
@@ -151,7 +151,7 @@
         </td>
         <td class="td" data-col="parent">
           {% if item.parent_id %}
-          <a href="/workflow/{{ item.parent_id }}" class="timeline-link" onclick="event.stopPropagation()">{{ item.parent_id }}</a>
+          <a href="{{ request.url_for('workflow_detail', workflow_id=item.parent_id) }}" class="timeline-link" onclick="event.stopPropagation()">{{ item.parent_id }}</a>
           {% else %}
           <span class="text-ghost">—</span>
           {% endif %}
@@ -200,7 +200,7 @@
           <span class="td-time">{{ child.history_length }}</span>
         </td>
         <td class="td" data-col="parent">
-          <a href="/workflow/{{ item.workflow_id }}" class="timeline-link" onclick="event.stopPropagation()">{{ item.workflow_id }}</a>
+          <a href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}" class="timeline-link" onclick="event.stopPropagation()">{{ item.workflow_id }}</a>
         </td>
         <td class="td">
           <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -260,7 +260,7 @@
   {% if tab == "pending" %}
   <p class="mt-4 text-sm text-muted">All caught up</p>
   <p class="mt-1 text-xs text-ghost">No tasks waiting for your input right now</p>
-  <a href="/start" class="btn btn-secondary mt-5 text-xs">
+  <a href="{{ request.url_for('start_picker') }}" class="btn btn-secondary mt-5 text-xs">
     <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
     </svg>
@@ -269,7 +269,7 @@
   {% elif tab == "running" %}
   <p class="mt-4 text-sm text-muted">No active workflows</p>
   <p class="mt-1 text-xs text-ghost">Start a new workflow to see it here</p>
-  <a href="/start" class="btn btn-secondary mt-5 text-xs">
+  <a href="{{ request.url_for('start_picker') }}" class="btn btn-secondary mt-5 text-xs">
     <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
     </svg>

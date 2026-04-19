@@ -136,5 +136,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/task-list.js"></script>
+<script src="{{ request.url_for('static', path='js/task-list.js') }}"></script>
 {% endblock %}
