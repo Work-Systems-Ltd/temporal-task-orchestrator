@@ -771,6 +771,7 @@
   /* ── Tab bar ── */
   .tab-bar {
     @apply mb-4 flex items-center gap-0.5 border-b border-border;
+    min-height: 42px;
   }
   .tab-item {
     @apply relative flex items-center gap-2 rounded-md px-3 py-2.5 text-sm;

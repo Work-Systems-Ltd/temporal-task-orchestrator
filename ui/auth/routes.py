@@ -6,11 +6,10 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import bcrypt
-from sqlalchemy import select
 
-from ui.dependencies import get_templates
+from ui.dependencies import get_db_service, get_templates
+from ui.services.db import DbService
 
-from .database import get_session_factory
 from .dependencies import get_current_user
 from .models import User
 from .session import create_session, delete_session
@@ -52,14 +51,10 @@ async def login_submit(
     username: str = Form(...),
     password: str = Form(...),
     next_url: str = Form("/"),
+    db: DbService = Depends(get_db_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse | RedirectResponse:
-    factory = get_session_factory()
-    async with factory() as db:
-        result = await db.execute(
-            select(User).where(User.username == username, User.is_active.is_(True))
-        )
-        user = result.scalar_one_or_none()
+    user = await db.get_user_by_username(username, active_only=True)
 
     if not user or not bcrypt.checkpw(password.encode(), user.password_hash.encode()):
         return templates.TemplateResponse(

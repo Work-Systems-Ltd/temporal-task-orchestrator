@@ -6,12 +6,10 @@ import json
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import func, select
 
 from ui.auth.dependencies import require_auth
-from ui.auth.database import get_session_factory
-from ui.auth.models import Group, User, _slugify
-from ui.dependencies import get_templates, get_temporal_service
+from ui.dependencies import get_db_service, get_templates, get_temporal_service
+from ui.services.db import DbService
 from ui.services.temporal import TemporalService
 from core.workflows import get_all_workflows
 
@@ -77,6 +75,7 @@ async def tasks_page(
 async def get_assignees(
     request: Request,
     group: str | None = Query(None),
+    db: DbService = Depends(get_db_service),
 ) -> JSONResponse:
     """Return users and groups the current user can reassign to.
 
@@ -86,39 +85,15 @@ async def get_assignees(
     if not user:
         return JSONResponse({"users": [], "groups": []})
 
-    factory = get_session_factory()
-    async with factory() as db:
-        if user.is_admin:
-            if group:
-                # Filter users to members of the specified group
-                grp = (await db.execute(
-                    select(Group).where(Group.name == group)
-                )).scalar_one_or_none()
-                if not grp:
-                    grp = (await db.execute(
-                        select(Group).where(func.lower(Group.name) == group.lower())
-                    )).scalar_one_or_none()
-                if grp:
-                    users = [
-                        {"slug": _slugify(u.username), "label": u.username}
-                        for u in grp.users if u.is_active
-                    ]
-                else:
-                    users = []
-            else:
-                user_result = await db.execute(
-                    select(User.username).where(User.is_active.is_(True))
-                )
-                users = [{"slug": _slugify(r[0]), "label": r[0]} for r in user_result]
-
-            group_result = await db.execute(select(Group.name))
-            groups = [{"slug": _slugify(r[0]), "label": r[0]} for r in group_result]
+    if user.is_admin:
+        users = await db.get_assignable_users(group_slug=group)
+        groups = await db.get_assignable_groups()
+    else:
+        if group and group not in user.group_slugs:
+            users = []
         else:
-            if group and group not in user.group_slugs:
-                users = []
-            else:
-                users = [{"slug": user.slug, "label": user.username}]
-            groups = [{"slug": g.slug, "label": g.name} for g in user.groups]
+            users = [{"slug": user.slug, "label": user.username}]
+        groups = [{"slug": g.slug, "label": g.name} for g in user.groups]
 
     return JSONResponse({"users": users, "groups": groups})
 

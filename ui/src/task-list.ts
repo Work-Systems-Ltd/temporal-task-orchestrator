@@ -212,9 +212,12 @@ function taskList() {
         tabBar.innerHTML = msg.tab_bar;
       }
 
-      const tabContent = document.querySelector("[data-tab-content]");
+      const tabContent = document.querySelector(
+        "[data-tab-content]",
+      ) as HTMLElement | null;
       if (tabContent && msg.tab_content) {
         tabContent.innerHTML = msg.tab_content;
+        tabContent.style.minHeight = "";
       }
 
       applyExpandState();
@@ -263,8 +266,12 @@ function taskList() {
           });
       }
 
-      const tabContent = document.querySelector("[data-tab-content]");
+      const tabContent = document.querySelector(
+        "[data-tab-content]",
+      ) as HTMLElement | null;
       if (tabContent) {
+        // Lock the height to prevent layout jump during swap
+        tabContent.style.minHeight = tabContent.offsetHeight + "px";
         tabContent.innerHTML =
           '<div class="skeleton-loader">' +
           '<div class="flex flex-col items-center">' +

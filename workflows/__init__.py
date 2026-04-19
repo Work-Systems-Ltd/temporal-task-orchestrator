@@ -1,6 +1,8 @@
 from core.workflows import register_workflow
+from tasks.approval import ApprovalTask
 from tasks.approval_input import ApprovalInputTask
 from tasks.hiring_input import HiringInputTask
+from tasks.onboarding import OnboardingTask
 from tasks.onboarding_input import OnboardingInputTask
 from tasks.testing_input import TestingInputTask
 from workflows.approval import ApprovalWorkflow
@@ -16,7 +18,7 @@ register_workflow(
     input_label="Request description",
     input_placeholder="e.g. Expense report: $500 for conference travel",
     input_task=ApprovalInputTask,
-    task_types=["approval"],
+    task_types=[ApprovalTask],
     required_groups=["admin"],
 )
 
@@ -28,7 +30,7 @@ register_workflow(
     input_label="Employee name",
     input_placeholder="e.g. Jane Smith",
     input_task=OnboardingInputTask,
-    task_types=["onboarding"],
+    task_types=[OnboardingTask],
     required_users=["admin"],
 )
 
@@ -51,7 +53,7 @@ register_workflow(
     input_label="Employee details",
     input_placeholder="",
     input_task=HiringInputTask,
-    task_types=["approval", "onboarding"],
+    task_types=[ApprovalTask, OnboardingTask],
     required_users=["admin"],
     required_groups=["admin"],
 )

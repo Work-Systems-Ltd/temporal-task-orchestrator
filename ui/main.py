@@ -13,13 +13,13 @@ import tasks  # noqa: F401 — trigger task registration
 import workflows  # noqa: F401 — trigger workflow registration
 from core.workflows import validate_assignments, validate_registrations
 from ui.auth.csrf import get_csrf_token, set_csrf_cookie, validate_csrf
-from ui.auth.database import dispose_engine, init_engine
+from ui.auth.database import dispose_engine, get_session_factory, init_engine
 from ui.auth.dependencies import LoginRequiredError
 from ui.auth.routes import router as auth_router
-from ui.auth.seed import ensure_default_groups, seed as seed_user
-from ui.auth.session import delete_expired_sessions, load_user_from_session
+from ui.auth.session import load_user_from_session
 from ui.config import AppSettings
 from ui.routers import admin, task_list, tasks, tasks_page, workflow_detail, workflows as workflows_router, workflows_list, ws
+from ui.services.db import DbService
 from ui.services.temporal import TemporalService
 
 logger = logging.getLogger(__name__)
@@ -37,10 +37,12 @@ async def lifespan(app: FastAPI):
 
     # Database
     init_engine(settings.database_url)
+    db_service = DbService(get_session_factory())
+    app.state.db_service = db_service
 
     # Ensure the admin group always exists
     try:
-        await ensure_default_groups(["admin"])
+        await db_service.ensure_groups(["admin"])
     except Exception:
         logger.warning("Could not create default groups (tables may not exist yet)", exc_info=True)
 
@@ -48,12 +50,12 @@ async def lifespan(app: FastAPI):
     if settings.seed_username and settings.seed_password:
         seed_groups = [g.strip() for g in settings.seed_groups.split(",") if g.strip()]
         try:
-            await seed_user(settings.seed_username, settings.seed_password, seed_groups)
+            await db_service.seed_user(settings.seed_username, settings.seed_password, seed_groups)
         except Exception:
             logger.warning("Auto-seed failed (tables may not exist yet)", exc_info=True)
 
     # Purge expired sessions
-    await delete_expired_sessions()
+    await db_service.delete_expired_sessions()
 
     # Validate workflow user/group assignments exist in the database
     await validate_assignments()
@@ -62,6 +64,9 @@ async def lifespan(app: FastAPI):
     client = await Client.connect(settings.temporal_address)
     app.state.temporal_service = TemporalService(client, settings)
     app.state.templates = Jinja2Templates(directory=os.path.join(_ui_dir, "templates"))
+    from core.tasks.registry import get_task_color, get_task_label
+    app.state.templates.env.globals["get_task_color"] = get_task_color
+    app.state.templates.env.globals["get_task_label"] = get_task_label
 
     yield
 

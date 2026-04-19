@@ -21,14 +21,10 @@
 <span class="pill pill-{{ color }}">{{ icon | safe }}{{ status | capitalize }}</span>
 {% endmacro %}
 
-{% set task_type_colors = {
-  "approval": "amber",
-  "onboarding": "blue",
-} %}
-
 {% macro task_type_badge(task_type) %}
-{% set color = task_type_colors.get(task_type | lower, "zinc") %}
-<span class="pill pill-{{ color }}">{{ task_type }}</span>
+{% set color = get_task_color(task_type) %}
+{% set label = get_task_label(task_type) %}
+<span class="pill pill-{{ color }}">{{ label }}</span>
 {% endmacro %}
 
 {% macro timeline_icon(status) %}
