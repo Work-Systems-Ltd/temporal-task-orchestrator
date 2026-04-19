@@ -18,7 +18,7 @@ from ui.auth.dependencies import LoginRequiredError
 from ui.auth.routes import router as auth_router
 from ui.auth.session import load_user_from_session
 from ui.config import AppSettings
-from ui.routers import admin, task_detail, task_list, tasks, tasks_page, workflow_detail, workflows as workflows_router, workflows_list, ws
+from ui.routers import admin, dashboard, task_detail, task_list, tasks, tasks_page, workflow_detail, workflows as workflows_router, workflows_list, ws
 from ui.services.db import DbService
 from ui.services.temporal import TemporalService
 
@@ -125,6 +125,7 @@ async def attach_user_to_request(request: Request, call_next):
 
 
 app.include_router(auth_router)
+app.include_router(dashboard.router)
 app.include_router(tasks_page.router)
 app.include_router(workflows_list.router)
 app.include_router(task_list.router)
