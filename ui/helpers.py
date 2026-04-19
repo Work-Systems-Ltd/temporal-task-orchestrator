@@ -51,7 +51,7 @@ def status_name(status: object) -> str:
     return status.name.lower().replace("_", " ")
 
 
-def validate_task_form(
+async def validate_task_form(
     task: HumanTask, form: TaskForm,
 ) -> tuple[BaseModel | None, dict[str, list[str]]]:
     """Run WTForms → Pydantic → pre_submit validation pipeline.
@@ -71,7 +71,7 @@ def validate_task_form(
             field_errors.setdefault(field_name, []).append(err["msg"])
         return None, field_errors
 
-    pre_submit_errors = task.pre_submit(model)
+    pre_submit_errors = await task.pre_submit(model)
     if pre_submit_errors:
         return None, pre_submit_errors
 
