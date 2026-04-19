@@ -15,8 +15,6 @@ def relative_time(dt: datetime | None) -> str:
     now = datetime.now(timezone.utc)
     diff = now - dt
     seconds = int(diff.total_seconds())
-    if seconds < 0:
-        return "just now"
     if seconds < 60:
         return "just now"
     minutes = seconds // 60

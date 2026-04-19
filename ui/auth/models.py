@@ -115,7 +115,7 @@ class Group(Base):
         secondary=user_groups, back_populates="groups", lazy="selectin"
     )
 
-    @property
+    @cached_property
     def slug(self) -> str:
         return _slugify(self.name)
 

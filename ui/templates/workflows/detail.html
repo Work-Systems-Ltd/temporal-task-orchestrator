@@ -272,69 +272,38 @@
   {% endif %}
   </div>
 
-  {# ═══ EXTRA INFO ═══ #}
-  <div class="grid items-start gap-5 lg:grid-cols-2">
-
-    <div data-ws-section="details" class="flex flex-col gap-5">
-      {% if total_runs > 1 %}
-      <div class="card">
-        <div class="card-header">
-          <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Run History</h2>
-        </div>
-        <div class="divide-y divide-border">
-          {% for run in run_history %}
-          {% set is_current = run.run_id == detail.run_id %}
-          {% if is_current %}
-          <div class="flex items-center gap-2 px-5 py-2.5" style="background: var(--color-surface-subtle);">
-            {{ status_badge(run.status) }}
-            <span class="text-xs text-muted flex-1">{{ run.started }}</span>
-            {% if run.duration != "—" %}<span class="timeline-duration">{{ run.duration }}</span>{% endif %}
-            <span class="text-[10px] font-medium uppercase tracking-wider text-faint">current</span>
-          </div>
-          {% else %}
-          <a href="{{ request.url_for('workflow_detail', workflow_id=workflow_id) }}?run_id={{ run.run_id }}" class="flex items-center gap-2 px-5 py-2.5 table-row-clickable" style="color:inherit;text-decoration:none">
-            {{ status_badge(run.status) }}
-            <span class="text-xs text-muted flex-1">{{ run.started }}</span>
-            {% if run.duration != "—" %}<span class="timeline-duration">{{ run.duration }}</span>{% endif %}
-            <svg class="h-3 w-3 text-ghost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-            </svg>
-          </a>
-          {% endif %}
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
+  {# ═══ RUN HISTORY ═══ #}
+  {% if total_runs > 1 %}
+  <div data-ws-section="details">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Run History</h2>
     </div>
-
-    <div data-ws-section="io" class="flex flex-col gap-5">
-      {% if stats.workflow_input %}
-      <div class="json-viewer" x-data="{ copied: false }">
-        <div class="json-viewer-label flex items-center justify-between">
-          <span>Input</span>
-          <button @click="navigator.clipboard.writeText($el.closest('.json-viewer').querySelector('[data-json-raw]').textContent); copied = true; setTimeout(() => copied = false, 1500)"
-                  class="text-[10px] font-normal normal-case tracking-normal transition-colors" :style="copied ? 'color: var(--color-pill-emerald-text)' : 'color: var(--color-text-ghost)'"
-                  x-text="copied ? 'Copied' : 'Copy'"></button>
-        </div>
-        <script type="application/json" data-json-raw>{{ stats.workflow_input | tojson }}</script>
-        <div data-json-viewer="{{ stats.workflow_input | e }}"></div>
+    <div class="divide-y divide-border">
+      {% for run in run_history %}
+      {% set is_current = run.run_id == detail.run_id %}
+      {% if is_current %}
+      <div class="flex items-center gap-2 px-5 py-2.5" style="background: var(--color-surface-subtle);">
+        {{ status_badge(run.status) }}
+        <span class="text-xs text-muted flex-1">{{ run.started }}</span>
+        {% if run.duration != "—" %}<span class="timeline-duration">{{ run.duration }}</span>{% endif %}
+        <span class="text-[10px] font-medium uppercase tracking-wider text-faint">current</span>
       </div>
+      {% else %}
+      <a href="{{ request.url_for('workflow_detail', workflow_id=workflow_id) }}?run_id={{ run.run_id }}" class="flex items-center gap-2 px-5 py-2.5 table-row-clickable" style="color:inherit;text-decoration:none">
+        {{ status_badge(run.status) }}
+        <span class="text-xs text-muted flex-1">{{ run.started }}</span>
+        {% if run.duration != "—" %}<span class="timeline-duration">{{ run.duration }}</span>{% endif %}
+        <svg class="h-3 w-3 text-ghost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+        </svg>
+      </a>
       {% endif %}
-      {% if stats.workflow_output %}
-      <div class="json-viewer" x-data="{ copied: false }">
-        <div class="json-viewer-label flex items-center justify-between">
-          <span>Output</span>
-          <button @click="navigator.clipboard.writeText($el.closest('.json-viewer').querySelector('[data-json-raw]').textContent); copied = true; setTimeout(() => copied = false, 1500)"
-                  class="text-[10px] font-normal normal-case tracking-normal transition-colors" :style="copied ? 'color: var(--color-pill-emerald-text)' : 'color: var(--color-text-ghost)'"
-                  x-text="copied ? 'Copied' : 'Copy'"></button>
-        </div>
-        <script type="application/json" data-json-raw>{{ stats.workflow_output | tojson }}</script>
-        <div data-json-viewer="{{ stats.workflow_output | e }}"></div>
-      </div>
-      {% endif %}
+      {% endfor %}
     </div>
-
   </div>
+  </div>
+  {% endif %}
 
 </div>
 {% endblock %}
