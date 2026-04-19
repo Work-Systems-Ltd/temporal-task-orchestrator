@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
 
     # Ensure the admin group always exists
     try:
-        await db_service.ensure_groups(["admin"])
+        await db_service.ensure_groups([settings.admin_group])
     except Exception:
         logger.warning("Could not create default groups (tables may not exist yet)", exc_info=True)
 
@@ -115,7 +115,7 @@ async def attach_user_to_request(request: Request, call_next):
 
     request.state.is_admin = (
         request.state.user is not None
-        and any(g.name == "admin" for g in request.state.user.groups)
+        and request.state.user.is_admin
     )
 
     # Make CSRF token available via request.state for templates

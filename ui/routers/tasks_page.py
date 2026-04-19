@@ -31,7 +31,7 @@ async def tasks_page(
     service: TemporalService = Depends(get_temporal_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
-    wf_type = type or None
+    wf_type = type
     search = q.strip() if q else None
 
     user = getattr(request.state, "user", None)

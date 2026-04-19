@@ -12,6 +12,7 @@ class AppSettings(BaseSettings):
     seed_username: str = ""
     seed_password: str = ""
     seed_groups: str = "admin"
+    admin_group: str = "admin"
 
 
 STATUS_QUERIES: dict[str, str | None] = {
