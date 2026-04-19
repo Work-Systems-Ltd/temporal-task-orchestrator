@@ -2,17 +2,29 @@ import asyncio
 
 from temporalio import workflow
 
-from core.workflows import WorkSysFlow
+from core.workflows import WorkSysFlow, register_workflow
+from tasks.human.approval import ApprovalTask
 from tasks.human.approval_input import ApprovalInputTask
 from tasks.human.hiring_input import HiringInputTask
+from tasks.human.onboarding import OnboardingTask
 from tasks.human.onboarding_input import OnboardingInputTask
 from workflows.approval import ApprovalWorkflow
 from workflows.onboarding import OnboardingWorkflow
 
 
+@register_workflow(
+    key="hiring",
+    label="Hiring Pipeline",
+    description="Full hiring flow: approval then onboarding",
+    task_types=[ApprovalTask, OnboardingTask],
+    required_users=["admin"],
+    required_groups=["admin"],
+)
 @workflow.defn
 class HiringWorkflow(WorkSysFlow):
     """Orchestrates a full hiring pipeline: approval then onboarding."""
+
+    input_task = HiringInputTask
 
     @workflow.run
     async def run(self, input: HiringInputTask.Model) -> str:

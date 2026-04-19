@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import timedelta
-from typing import Any, Type
+from typing import Any, ClassVar, Type
 
 from temporalio import workflow
 from temporalio.common import RetryPolicy
@@ -15,10 +15,11 @@ from abc import ABC
 class WorkSysFlow(ABC):
     """Base class for workflows that pause for human input.
 
-    Subclasses must be decorated with @workflow.defn and must define
-    a @workflow.run method. They inherit the signal, query, and
-    wait helpers from this class.
+    Subclasses must be decorated with @register_workflow and @workflow.defn,
+    and must define a @workflow.run method and an input_task ClassVar.
     """
+
+    input_task: ClassVar[Type[HumanTask] | None]
 
     def __init__(self) -> None:
         self._human_task_complete: bool = False

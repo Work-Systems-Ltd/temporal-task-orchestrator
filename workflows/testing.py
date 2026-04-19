@@ -1,7 +1,7 @@
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from core.workflows import WorkSysFlow
+from core.workflows import WorkSysFlow, register_workflow
 from tasks.human.testing_input import TestingInputTask
 from tasks.system.testing import validate_input, process_data, finalize
 
@@ -15,8 +15,14 @@ STEPS = {
 STEP_ORDER = ["step_1", "step_2", "step_3"]
 
 
+@register_workflow(
+    key="testing",
+    label="Testing",
+    description="Configurable test workflow — can succeed or fail at a chosen step",
+)
 @workflow.defn
 class TestingWorkflow(WorkSysFlow):
+    input_task = TestingInputTask
 
     @workflow.run
     async def run(self, input: TestingInputTask.Model) -> str:

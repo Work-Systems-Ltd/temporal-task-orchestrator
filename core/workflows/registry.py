@@ -15,9 +15,9 @@ class WorkflowDef:
     label: str
     description: str
     workflow_cls: Type[WorkSysFlow]
-    input_label: str
-    input_placeholder: str
     input_task: Type[HumanTask] | None = None
+    input_label: str = ""
+    input_placeholder: str = ""
     task_types: list[Type[HumanTask]] = field(default_factory=list)
     required_users: list[str] = field(default_factory=list)
     required_groups: list[str] = field(default_factory=list)
@@ -39,29 +39,53 @@ _WORKFLOW_REGISTRY: dict[str, WorkflowDef] = {}
 
 
 def register_workflow(
+    *,
     key: str,
     label: str,
     description: str,
-    workflow_cls: Type[WorkSysFlow],
-    input_label: str,
-    input_placeholder: str,
-    input_task: Type[HumanTask] | None = None,
     task_types: list[Type[HumanTask]] | None = None,
+    input_label: str = "",
+    input_placeholder: str = "",
     required_users: list[str] | None = None,
     required_groups: list[str] | None = None,
-) -> None:
-    _WORKFLOW_REGISTRY[key] = WorkflowDef(
-        key=key,
-        label=label,
-        description=description,
-        workflow_cls=workflow_cls,
-        input_label=input_label,
-        input_placeholder=input_placeholder,
-        input_task=input_task,
-        task_types=task_types or [],
-        required_users=required_users or [],
-        required_groups=required_groups or [],
-    )
+):
+    """Class decorator factory that registers a WorkSysFlow subclass.
+
+    Usage::
+
+        @register_workflow(
+            key="approval",
+            label="Approval",
+            description="Submit a request...",
+            task_types=[ApprovalTask],
+        )
+        @workflow.defn
+        class ApprovalWorkflow(WorkSysFlow):
+            input_task = ApprovalInputTask
+            ...
+    """
+    def decorator(cls: Type[WorkSysFlow]) -> Type[WorkSysFlow]:
+        if not hasattr(cls, "input_task"):
+            raise ValueError(
+                f"{cls.__name__} must declare an 'input_task' ClassVar "
+                f"(set to a HumanTask class or None)"
+            )
+
+        _WORKFLOW_REGISTRY[key] = WorkflowDef(
+            key=key,
+            label=label,
+            description=description,
+            workflow_cls=cls,
+            input_task=cls.input_task,
+            input_label=input_label,
+            input_placeholder=input_placeholder,
+            task_types=task_types or [],
+            required_users=required_users or [],
+            required_groups=required_groups or [],
+        )
+        return cls
+
+    return decorator
 
 
 def get_workflow(key: str) -> WorkflowDef:
@@ -75,10 +99,7 @@ def get_all_workflows() -> list[WorkflowDef]:
 
 
 async def validate_assignments() -> None:
-    """Warn if any required_users or required_groups don't exist in the database.
-
-    Must be called after the database engine is initialized.
-    """
+    """Warn if any required_users or required_groups don't exist in the database."""
     import logging
 
     from sqlalchemy import select

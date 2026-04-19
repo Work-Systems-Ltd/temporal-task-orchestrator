@@ -1,13 +1,21 @@
 from temporalio import workflow
 
-from core.workflows import WorkSysFlow
+from core.workflows import WorkSysFlow, register_workflow
 from tasks.human.onboarding import OnboardingTask
 from tasks.human.onboarding_input import OnboardingInputTask
 from tasks.system.onboarding import create_onboarding_ticket, provision_equipment, setup_accounts
 
 
+@register_workflow(
+    key="onboarding",
+    label="Employee Onboarding",
+    description="Start the onboarding process for a new team member",
+    task_types=[OnboardingTask],
+    required_users=["admin"],
+)
 @workflow.defn
 class OnboardingWorkflow(WorkSysFlow):
+    input_task = OnboardingInputTask
 
     @workflow.run
     async def run(self, input: OnboardingInputTask.Model) -> str:

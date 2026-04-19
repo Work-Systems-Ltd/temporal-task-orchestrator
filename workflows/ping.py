@@ -1,11 +1,19 @@
 from temporalio import workflow
 
-from core.workflows import WorkSysFlow
+from core.workflows import WorkSysFlow, register_workflow
 from tasks.system.ping import ping
 
 
+@register_workflow(
+    key="ping",
+    label="Ping",
+    description="Ping an IP address to check connectivity",
+    input_label="IP Address",
+    input_placeholder="e.g. 8.8.8.8",
+)
 @workflow.defn
 class PingWorkflow(WorkSysFlow):
+    input_task = None
 
     @workflow.run
     async def run(self, ip_address: str) -> str:
