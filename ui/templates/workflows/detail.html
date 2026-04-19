@@ -115,6 +115,7 @@
       {% if depth > 0 %}<span class="tree-branch">└</span>{% endif %}
       <div class="flex items-center gap-2.5 min-w-0 flex-1">
         {{ status_badge("pending") }}
+        <span class="text-[10px] font-medium uppercase tracking-wider text-ghost">Task</span>
         <div class="min-w-0">
           <div class="text-sm font-medium text-primary text-left">{{ pt.title }}</div>
           {% if pt.description %}
@@ -153,6 +154,7 @@
      style="text-decoration:none; color:inherit; padding-left: {{ 20 + indent }}px">
     {% if depth > 0 %}<span class="tree-branch">└</span>{% endif %}
     {{ status_badge(node.status) }}
+    <span class="text-[10px] font-medium uppercase tracking-wider text-ghost">Workflow</span>
     <span class="text-sm text-secondary flex-1">{{ node.label | replace("Workflow", "") | trim }}</span>
     {% if node.duration and node.duration != "—" %}
     <span class="timeline-duration">{{ node.duration }}</span>
@@ -170,6 +172,7 @@
        style="padding-left: {{ 20 + indent }}px">
     {% if depth > 0 %}<span class="tree-branch">└</span>{% endif %}
     {{ status_badge(node.status) }}
+    <span class="text-[10px] font-medium uppercase tracking-wider text-ghost">{% if node.node_type == 'activity' %}System{% elif node.node_type == 'task' %}Task{% else %}Workflow{% endif %}</span>
     <span class="text-sm text-secondary flex-1">{{ node.label | replace("Workflow", "") | trim }}</span>
     {% if node.duration and node.duration != "—" %}
     <span class="timeline-duration">{{ node.duration }}</span>
