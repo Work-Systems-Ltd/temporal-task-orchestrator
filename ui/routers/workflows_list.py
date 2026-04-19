@@ -43,9 +43,9 @@ async def workflows_page(
         service.list_workflows(tab, page, wf_type, search, per_page=per_page),
     )
 
-    items = [item.model_dump() for item in result.items]
+    items = result.items
 
-    stable = [{k: v for k, v in it.items() if k not in ("started", "closed", "duration")} for it in items]
+    stable = [{k: v for k, v in it.model_dump().items() if k not in ("started", "closed", "duration")} for it in items]
     data_hash = hashlib.md5(json.dumps({"counts": counts, "items": stable, "has_next": result.has_next}, sort_keys=True).encode()).hexdigest()
 
     return templates.TemplateResponse(

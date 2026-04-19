@@ -9,6 +9,7 @@ from fastapi.templating import Jinja2Templates
 
 from ui.auth.dependencies import require_auth
 from ui.dependencies import get_db_service, get_templates, get_temporal_service
+from ui.models import AssigneeOption, AssigneesResponse, ReassignResult
 from ui.services.db import DbService
 from ui.services.temporal import TemporalService
 from core.workflows import get_all_workflows
@@ -48,9 +49,9 @@ async def tasks_page(
         is_admin=is_admin,
     )
 
-    items = [item.model_dump() for item in result.items]
+    items = result.items
 
-    stable = [{k: v for k, v in it.items() if k not in ("started",)} for it in items]
+    stable = [{k: v for k, v in it.model_dump().items() if k not in ("started",)} for it in items]
     data_hash = hashlib.md5(json.dumps({"items": stable, "has_next": result.has_next}, sort_keys=True).encode()).hexdigest()
 
     return templates.TemplateResponse(
@@ -83,19 +84,21 @@ async def get_assignees(
     """
     user = getattr(request.state, "user", None)
     if not user:
-        return JSONResponse({"users": [], "groups": []})
+        return JSONResponse(AssigneesResponse(users=[], groups=[]).model_dump())
 
     if user.is_admin:
-        users = await db.get_assignable_users(group_slug=group)
-        groups = await db.get_assignable_groups()
+        raw_users = await db.get_assignable_users(group_slug=group)
+        raw_groups = await db.get_assignable_groups()
+        users = [AssigneeOption(**u) for u in raw_users]
+        groups = [AssigneeOption(**g) for g in raw_groups]
     else:
         if group and group not in user.group_slugs:
             users = []
         else:
-            users = [{"slug": user.slug, "label": user.username}]
-        groups = [{"slug": g.slug, "label": g.name} for g in user.groups]
+            users = [AssigneeOption(slug=user.slug, label=user.username)]
+        groups = [AssigneeOption(slug=g.slug, label=g.name) for g in user.groups]
 
-    return JSONResponse({"users": users, "groups": groups})
+    return JSONResponse(AssigneesResponse(users=users, groups=groups).model_dump())
 
 
 @router.post("/tasks/{workflow_id}/reassign")
@@ -106,21 +109,23 @@ async def reassign_task(
 ) -> JSONResponse:
     user = getattr(request.state, "user", None)
     if not user:
-        return JSONResponse({"error": "Not authenticated"}, status_code=401)
+        return JSONResponse(ReassignResult(ok=False, error="Not authenticated").model_dump(), status_code=401)
 
     # Verify user can access this task before allowing reassignment
     meta = await service.get_pending_task(workflow_id)
     if not meta:
-        return JSONResponse({"error": "Task not found"}, status_code=404)
+        return JSONResponse(ReassignResult(ok=False, error="Task not found").model_dump(), status_code=404)
     if not user.can_access_task(meta.assigned_user, meta.assigned_group):
-        return JSONResponse({"error": "Not allowed"}, status_code=403)
+        return JSONResponse(ReassignResult(ok=False, error="Not allowed").model_dump(), status_code=403)
 
     body = await request.json()
     assigned_user = body.get("assigned_user", "")
     assigned_group = body.get("assigned_group", "")
 
     if not user.can_reassign_to(user_slug=assigned_user, group_slug=assigned_group):
-        return JSONResponse({"error": "Not allowed"}, status_code=403)
+        return JSONResponse(ReassignResult(ok=False, error="Not allowed").model_dump(), status_code=403)
 
     await service.reassign_task(workflow_id, assigned_user=assigned_user, assigned_group=assigned_group)
-    return JSONResponse({"ok": True, "assigned_user": assigned_user, "assigned_group": assigned_group})
+    return JSONResponse(ReassignResult(
+        ok=True, assigned_user=assigned_user, assigned_group=assigned_group,
+    ).model_dump())

@@ -26,11 +26,12 @@ def _get_workflow_types() -> list[str]:
     return [wf.workflow_cls.__name__ for wf in get_all_workflows()]
 
 
-def _data_hash(counts: dict, items: list[dict], has_next: bool) -> str:
+def _data_hash(counts: dict, items: list, has_next: bool) -> str:
     """Hash the actual data (ignoring time-formatted strings) to detect real changes."""
     stable_items = []
     for item in items:
-        stable = {k: v for k, v in item.items() if k not in ("started", "closed", "duration")}
+        d = item.model_dump() if hasattr(item, "model_dump") else item
+        stable = {k: v for k, v in d.items() if k not in ("started", "closed", "duration")}
         stable_items.append(stable)
     blob = json.dumps({"counts": counts, "items": stable_items, "has_next": has_next}, sort_keys=True)
     return hashlib.md5(blob.encode()).hexdigest()
@@ -57,7 +58,7 @@ async def _build_update(
         list_coro,
     )
 
-    items = [item.model_dump() for item in result.items]
+    items = result.items
 
     ctx = {
         "request": ws,

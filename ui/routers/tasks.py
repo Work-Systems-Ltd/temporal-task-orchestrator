@@ -39,7 +39,7 @@ async def task_form(
         {
             "request": request,
             "form": form,
-            "meta": meta.model_dump(),
+            "meta": meta,
             "workflow_id": workflow_id,
             "workflow_type": wf_type,
             "errors": {},
@@ -76,7 +76,7 @@ async def task_submit(
             {
                 "request": request,
                 "form": form,
-                "meta": meta.model_dump(),
+                "meta": meta,
                 "workflow_id": workflow_id,
                 "workflow_type": wf_type,
                 "errors": errors,
