@@ -1563,6 +1563,69 @@
     border-color: rgba(239, 68, 68, 0.2);
   }
 
+  /* ── Workflow detail task rows ── */
+  .wf-task-row {
+    @apply flex items-center gap-3 px-5 py-3 cursor-pointer;
+    transition: background 0.1s ease;
+  }
+  .wf-task-row:hover {
+    background: var(--color-surface-hover);
+  }
+  .wf-task-row-pending {
+    background: var(--color-surface-subtle);
+  }
+  .wf-task-row-pending:hover {
+    background: var(--color-surface-active);
+  }
+  .wf-task-row-failed {
+  }
+  .wf-task-status {
+    @apply shrink-0;
+  }
+  .wf-task-kind {
+    @apply shrink-0 hidden sm:block text-[10px] font-medium uppercase tracking-wider w-16;
+    color: var(--color-text-ghost);
+  }
+  .wf-task-name {
+    @apply min-w-0 flex-1;
+  }
+  .wf-task-label {
+    @apply text-sm;
+    color: var(--color-text-secondary);
+  }
+  .wf-task-row:hover .wf-task-label {
+    color: var(--color-text-primary);
+  }
+  .wf-task-desc {
+    @apply block text-xs truncate mt-0.5;
+    color: var(--color-text-ghost);
+  }
+  .wf-task-meta {
+    @apply flex items-center gap-2 shrink-0;
+  }
+  .wf-task-time {
+    @apply text-[11px] tabular-nums hidden md:inline;
+    color: var(--color-text-ghost);
+  }
+  .wf-task-action {
+    @apply flex items-center gap-1 shrink-0;
+  }
+  .wf-task-detail {
+    @apply px-5 py-4;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface-subtle);
+  }
+  .wf-task-detail-section {
+    @apply mb-3;
+  }
+  .wf-task-detail-section:last-child {
+    @apply mb-0;
+  }
+  .wf-task-detail-label {
+    @apply text-[10px] font-medium uppercase tracking-wider mb-1.5;
+    color: var(--color-text-ghost);
+  }
+
   /* ── Accordion ── */
   .accordion-trigger {
     @apply flex w-full items-center gap-4 px-5 py-3.5 text-left cursor-pointer;
