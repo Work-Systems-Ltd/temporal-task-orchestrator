@@ -44,16 +44,17 @@
   {% endif %}
 
   {# ── Users table ── #}
+  {% from "partials/table_view/sort_header.html" import sort_th with context %}
   {% if items %}
   <div class="table-container">
     <table class="w-full text-left">
       <thead class="table-head">
         <tr>
-          <th class="th">User</th>
+          {{ sort_th("User", "username") }}
           <th class="hidden th sm:table-cell">Slug</th>
           <th class="hidden th sm:table-cell">Groups</th>
           <th class="hidden th md:table-cell">Status</th>
-          <th class="th">Created</th>
+          {{ sort_th("Created", "created_at") }}
           <th class="th" style="width:1%"></th>
         </tr>
       </thead>
