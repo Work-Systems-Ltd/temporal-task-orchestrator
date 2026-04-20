@@ -1,5 +1,5 @@
 import { createSocket, type SocketHandle } from "../api/ws";
-import { ALL_COLUMNS, COL_STORAGE_KEY, DEFAULT_COLUMNS } from "../shared/constants";
+import { ALL_COLUMNS, COL_STORAGE_KEY, DEFAULT_COLUMNS } from "../constants";
 
 interface ViewParams {
   type: "view";
