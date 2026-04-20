@@ -69,13 +69,16 @@ class TaskPersistenceActivities:
         data = CreateTaskInput.model_validate_json(raw_input)
 
         async with self.session_factory() as db:
-            # Link to workflow record if it exists
+            # Try to link to workflow record if it exists
             workflow_record_id = None
             if data.workflow_id:
-                stmt = select(WorkflowRecord.id).where(
-                    WorkflowRecord.workflow_id == data.workflow_id
-                )
-                workflow_record_id = (await db.execute(stmt)).scalar_one_or_none()
+                try:
+                    stmt = select(WorkflowRecord.id).where(
+                        WorkflowRecord.workflow_id == data.workflow_id
+                    )
+                    workflow_record_id = (await db.execute(stmt)).scalar_one_or_none()
+                except Exception:
+                    pass  # workflow record may not exist yet
 
             record = TaskRecord(
                 id=uuid.UUID(data.task_id),
