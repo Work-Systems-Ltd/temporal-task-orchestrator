@@ -1642,6 +1642,31 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
+  /* ── Sortable table headers ── */
+  .th-sortable {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    transition: color 0.15s ease;
+    user-select: none;
+  }
+  .th-sortable:hover {
+    color: var(--color-text-secondary);
+  }
+  .th-sort-active {
+    color: var(--color-text-primary);
+  }
+  .th-sort-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+  .th-sort-asc {
+    transform: rotate(180deg);
+  }
+
   /* ── Dashboard counters ── */
   .dash-counter {
     display: flex;
