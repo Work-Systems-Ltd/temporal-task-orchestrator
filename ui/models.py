@@ -142,6 +142,30 @@ class TaskListItem(BaseModel):
     due_at: str = ""
 
 
+# ── Admin list items ──
+
+class UserListItem(BaseModel):
+    """A user record as shown in the admin user list."""
+    record_id: str
+    username: str
+    display_name: str = ""
+    slug: str = ""
+    is_active: bool = True
+    groups: str = ""  # comma-separated group names
+    group_count: int = 0
+    created_at: str = ""
+
+
+class GroupListItem(BaseModel):
+    """A group record as shown in the admin group list."""
+    record_id: str
+    name: str
+    slug: str = ""
+    member_count: int = 0
+    members: str = ""  # comma-separated usernames
+    created_at: str = ""
+
+
 class TaskFilters(BaseModel):
     """Query parameters for the task list page."""
     tab: str = "open"

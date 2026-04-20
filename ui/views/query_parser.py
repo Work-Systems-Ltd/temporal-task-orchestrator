@@ -45,6 +45,8 @@ def _coerce_value(value: str, field_type: str) -> Any:
             except ValueError:
                 continue
         return value
+    if field_type == "boolean":
+        return value.lower() in ("true", "1", "yes")
     return value
 
 
@@ -91,6 +93,12 @@ def parse_filters(
         # Coerce value for typed operators
         if op not in ("null", "notnull", "in"):
             value = _coerce_value(value, qf.field_type)
+
+            # Handle boolean columns with enum-style string values
+            if hasattr(col, "property") and hasattr(col.property, "columns"):
+                col_type = col.property.columns[0].type
+                if hasattr(col_type, "python_type") and col_type.python_type is bool and isinstance(value, str):
+                    value = value.lower() in ("true", "1", "yes")
 
         conditions.append(_OPERATORS[op](col, value))
 

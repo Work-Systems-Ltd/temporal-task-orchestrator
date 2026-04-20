@@ -11,7 +11,7 @@
         <div class="flex flex-wrap items-center gap-2">
           {# Field selector #}
           <select x-model="cond.field" @change="cond.op = getOperators(cond.field)[0]?.value || 'eq'; cond.value = ''"
-                  class="rounded border border-border bg-surface px-2 py-1.5 text-xs text-primary">
+                  class="rounded border border-border bg-bg-raised px-2 py-1.5 text-xs text-primary">
             <template x-for="f in fields" :key="f.key">
               <option :value="f.key" x-text="f.label"></option>
             </template>
@@ -19,7 +19,7 @@
 
           {# Operator selector #}
           <select x-model="cond.op"
-                  class="rounded border border-border bg-surface px-2 py-1.5 text-xs text-primary">
+                  class="rounded border border-border bg-bg-raised px-2 py-1.5 text-xs text-primary">
             <template x-for="op in getOperators(cond.field)" :key="op.value">
               <option :value="op.value" x-text="op.label"></option>
             </template>
@@ -31,7 +31,7 @@
               {# Enum: show select #}
               <template x-if="getFieldType(cond.field) === 'enum'">
                 <select x-model="cond.value"
-                        class="rounded border border-border bg-surface px-2 py-1.5 text-xs text-primary">
+                        class="rounded border border-border bg-bg-raised px-2 py-1.5 text-xs text-primary">
                   <option value="">Select...</option>
                   <template x-for="v in getEnumValues(cond.field)" :key="v">
                     <option :value="v" x-text="v"></option>
@@ -41,12 +41,12 @@
               {# Date: show date input #}
               <template x-if="getFieldType(cond.field) === 'date'">
                 <input type="date" x-model="cond.value"
-                       class="rounded border border-border bg-surface px-2 py-1.5 text-xs text-primary" />
+                       class="rounded border border-border bg-bg-raised px-2 py-1.5 text-xs text-primary" />
               </template>
               {# String/number: show text input #}
               <template x-if="!['enum', 'date'].includes(getFieldType(cond.field))">
                 <input type="text" x-model="cond.value" placeholder="Value..."
-                       class="rounded border border-border bg-surface px-2 py-1.5 text-xs text-primary w-32" />
+                       class="rounded border border-border bg-bg-raised px-2 py-1.5 text-xs text-primary w-32" />
               </template>
             </div>
           </template>
