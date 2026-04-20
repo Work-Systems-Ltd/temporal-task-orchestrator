@@ -64,25 +64,34 @@ class TaskPersistenceActivities:
     @activity.defn
     async def create_task_record(self, raw_input: str) -> str:
         """Insert a new task record with status='open'. Returns the task_id."""
-        from ui.auth.models import TaskRecord
+        from ui.auth.models import TaskRecord, WorkflowRecord
 
         data = CreateTaskInput.model_validate_json(raw_input)
 
-        record = TaskRecord(
-            id=uuid.UUID(data.task_id),
-            workflow_id=data.workflow_id,
-            run_id=data.run_id or None,
-            task_type=data.task_type,
-            title=data.title,
-            description=data.description or None,
-            status="open",
-            priority=data.priority,
-            assigned_user=data.assigned_user or None,
-            assigned_group=data.assigned_group or None,
-            created_by=data.created_by or None,
-        )
-
         async with self.session_factory() as db:
+            # Link to workflow record if it exists
+            workflow_record_id = None
+            if data.workflow_id:
+                stmt = select(WorkflowRecord.id).where(
+                    WorkflowRecord.workflow_id == data.workflow_id
+                )
+                workflow_record_id = (await db.execute(stmt)).scalar_one_or_none()
+
+            record = TaskRecord(
+                id=uuid.UUID(data.task_id),
+                workflow_id=data.workflow_id,
+                run_id=data.run_id or None,
+                workflow_record_id=workflow_record_id,
+                task_type=data.task_type,
+                title=data.title,
+                description=data.description or None,
+                status="open",
+                priority=data.priority,
+                assigned_user=data.assigned_user or None,
+                assigned_group=data.assigned_group or None,
+                created_by=data.created_by or None,
+            )
+
             db.add(record)
             await db.commit()
 

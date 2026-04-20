@@ -11,7 +11,7 @@ from fastapi.templating import Jinja2Templates
 
 from ui.auth.dependencies import require_ws_auth
 from ui.auth.models import User
-from ui.config import TAB_ORDER, WORKFLOW_TAB_ORDER
+from ui.config import WORKFLOW_TAB_ORDER
 from ui.dependencies import get_db_service, get_templates, get_temporal_service
 from ui.services.db import DbService
 from ui.services.temporal import TemporalService
@@ -99,6 +99,7 @@ async def workflow_detail_ws(
     workflow_id: str,
     user: User = Depends(require_ws_auth),
     service: TemporalService = Depends(get_temporal_service),
+    db: DbService = Depends(get_db_service),
 ) -> None:
     """Lightweight WS that pings the client when the workflow state changes."""
     await ws.accept()
@@ -107,10 +108,16 @@ async def workflow_detail_ws(
         detail = await service.get_workflow_detail(workflow_id)
         if not detail:
             return ""
+        # Include DB record's updated_at to detect status changes
+        db_updated = ""
+        wf_record = await db.get_workflow_by_workflow_id(workflow_id)
+        if wf_record:
+            db_updated = str(wf_record.updated_at)
         return _json_hash({
             "status": detail.status,
             "history_length": detail.history_length,
             "run_id": detail.run_id,
+            "db_updated": db_updated,
         })
 
     last_hash = ""
@@ -143,7 +150,7 @@ async def workflow_detail_ws(
             pass
 
 
-# ── Workflow list WS ──
+# ── Workflow list WS (DB-powered) ──
 
 def _get_workflow_types() -> list[str]:
     return [wf.workflow_cls.__name__ for wf in get_all_workflows()]
@@ -159,10 +166,27 @@ def _data_hash(counts: dict, items: list, has_next: bool) -> str:
     return _json_hash({"counts": counts, "items": stable_items, "has_next": has_next})
 
 
+def _record_to_item(record):
+    """Convert a WorkflowRecord ORM object to a WorkflowListItem."""
+    from ui.helpers import duration, relative_time
+    from ui.models import WorkflowListItem
+    return WorkflowListItem(
+        record_id=str(record.id),
+        workflow_id=record.workflow_id,
+        workflow_type=record.workflow_type,
+        workflow_key=record.workflow_key,
+        status=record.status if record.status != "starting" else "running",
+        started=relative_time(record.created_at),
+        closed=relative_time(record.closed_at),
+        duration=duration(record.created_at, record.closed_at),
+        started_by=record.started_by or "",
+    )
+
+
 async def _build_update(
     ws: WebSocket,
     templates: Jinja2Templates,
-    service: TemporalService,
+    db: DbService,
     tab: str,
     page: int,
     wf_type: str | None,
@@ -173,14 +197,21 @@ async def _build_update(
     if tab not in WORKFLOW_TAB_ORDER:
         tab = "running"
 
-    list_coro = service.list_workflows(tab, page, wf_type, search, per_page=per_page)
+    size = per_page or 20
 
-    counts, result = await asyncio.gather(
-        service.get_tab_counts(wf_type, tabs=WORKFLOW_TAB_ORDER),
-        list_coro,
+    counts, (rows, total) = await asyncio.gather(
+        db.count_workflows_by_status(),
+        db.list_workflows(
+            status=tab,
+            workflow_type=wf_type,
+            search=search,
+            page=page,
+            per_page=size,
+        ),
     )
 
-    items = result.items
+    items = [_record_to_item(r) for r in rows]
+    has_next = (page * size) < total
 
     ctx = {
         "request": ws,
@@ -189,11 +220,12 @@ async def _build_update(
         "tabs": WORKFLOW_TAB_ORDER,
         "counts": counts,
         "page": page,
-        "has_next": result.has_next,
+        "has_next": has_next,
         "has_prev": page > 1,
         "wf_type": wf_type,
         "search": search or "",
         "workflow_types": _get_workflow_types(),
+        "per_page": per_page,
     }
 
     tab_bar_html = ""
@@ -215,7 +247,7 @@ async def _build_update(
     return {
         "tab_bar": tab_bar_html,
         "tab_content": tab_content,
-        "hash": _data_hash(counts, items, result.has_next),
+        "hash": _data_hash(counts, items, has_next),
     }
 
 
@@ -223,7 +255,7 @@ async def _build_update(
 async def tasks_ws(
     ws: WebSocket,
     user: User = Depends(require_ws_auth),
-    service: TemporalService = Depends(get_temporal_service),
+    db: DbService = Depends(get_db_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> None:
     await ws.accept()
@@ -255,7 +287,7 @@ async def tasks_ws(
 
             try:
                 payload = await _build_update(
-                    ws, templates, service,
+                    ws, templates, db,
                     state["tab"], state["page"],
                     state["wf_type"], state["search"],
                     per_page=state["per_page"],

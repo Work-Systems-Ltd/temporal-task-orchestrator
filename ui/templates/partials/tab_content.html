@@ -92,14 +92,11 @@
       <tr>
         <th class="th" data-col="id">Workflow ID</th>
         <th class="th" data-col="type">Type</th>
+        <th class="th" data-col="started_by">Started By</th>
         <th class="th" data-col="started">Started</th>
         <th class="th" data-col="stopped">Stopped</th>
         <th class="th" data-col="duration">Duration</th>
         <th class="th" data-col="status">Status</th>
-        <th class="th" data-col="queue">Task Queue</th>
-        <th class="th" data-col="run_id">Run ID</th>
-        <th class="th" data-col="events">Events</th>
-        <th class="th" data-col="parent">Parent</th>
         <th class="th" style="width:1%"></th>
       </tr>
     </thead>
@@ -126,6 +123,9 @@
         <td class="td" data-col="type">
           <span class="tag">{{ item.workflow_type }}</span>
         </td>
+        <td class="td" data-col="started_by">
+          <span class="td-time">{{ item.started_by or '—' }}</span>
+        </td>
         <td class="td" data-col="started">
           <span class="td-time">{{ item.started }}</span>
         </td>
@@ -137,22 +137,6 @@
         </td>
         <td class="td" data-col="status">
           {{ status_badge(item.status) }}
-        </td>
-        <td class="td" data-col="queue">
-          <span class="td-time">{{ item.task_queue }}</span>
-        </td>
-        <td class="td" data-col="run_id">
-          <span class="td-mono" title="{{ item.run_id }}">{{ item.run_id[:12] }}…</span>
-        </td>
-        <td class="td" data-col="events">
-          <span class="td-time">{{ item.history_length }}</span>
-        </td>
-        <td class="td" data-col="parent">
-          {% if item.parent_id %}
-          <a href="{{ request.url_for('workflow_detail', workflow_id=item.parent_id) }}" class="timeline-link">{{ item.parent_id }}</a>
-          {% else %}
-          <span class="text-ghost">—</span>
-          {% endif %}
         </td>
         <td class="td">
           <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -175,6 +159,9 @@
             {{ child.workflow_type }}
           </span>
         </td>
+        <td class="td" data-col="started_by">
+          <span class="td-time">{{ child.started_by or '—' }}</span>
+        </td>
         <td class="td" data-col="started">
           <span class="td-time">{{ child.started }}</span>
         </td>
@@ -186,18 +173,6 @@
         </td>
         <td class="td" data-col="status">
           {{ status_badge(child.status) }}
-        </td>
-        <td class="td" data-col="queue">
-          <span class="td-time">{{ child.task_queue }}</span>
-        </td>
-        <td class="td" data-col="run_id">
-          <span class="td-mono" title="{{ child.run_id }}">{{ child.run_id[:12] }}…</span>
-        </td>
-        <td class="td" data-col="events">
-          <span class="td-time">{{ child.history_length }}</span>
-        </td>
-        <td class="td" data-col="parent">
-          <a href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}" class="timeline-link">{{ item.workflow_id }}</a>
         </td>
         <td class="td">
           <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">

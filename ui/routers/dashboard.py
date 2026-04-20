@@ -8,9 +8,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from ui.auth.dependencies import require_auth
-from ui.dependencies import get_db_service, get_templates, get_temporal_service
+from ui.dependencies import get_db_service, get_templates
 from ui.services.db import DbService
-from ui.services.temporal import TemporalService
 
 router = APIRouter(tags=["dashboard"], dependencies=[Depends(require_auth)])
 
@@ -42,7 +41,6 @@ def _relative_time(dt) -> str:
 async def dashboard(
     request: Request,
     db: DbService = Depends(get_db_service),
-    temporal: TemporalService = Depends(get_temporal_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
     now = datetime.now(timezone.utc)
@@ -54,7 +52,8 @@ async def dashboard(
     completed_today = await db.get_completed_count_since(today_start)
     completed_week = await db.get_completed_count_since(week_start)
     recent_activity = await db.get_recent_activity(limit=8)
-    running_workflows = await temporal.count_pending()
+    wf_counts = await db.count_workflows_by_status()
+    running_workflows = wf_counts.get("running", 0)
 
     # My active tasks — actual records, not just counts
     user = request.state.user

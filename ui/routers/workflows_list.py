@@ -31,10 +31,10 @@ def _record_to_item(record) -> WorkflowListItem:
         workflow_type=record.workflow_type,
         workflow_key=record.workflow_key,
         status=record.status if record.status != "starting" else "running",
-        started_by=record.started_by or "",
-        created_at=relative_time(record.created_at),
-        closed_at=relative_time(record.closed_at),
+        started=relative_time(record.created_at),
+        closed=relative_time(record.closed_at),
         duration=duration(record.created_at, record.closed_at),
+        started_by=record.started_by or "",
     )
 
 
@@ -70,7 +70,7 @@ async def workflows_page(
     items = [_record_to_item(r) for r in rows]
     has_next = (page * size) < total
 
-    stable = [{k: v for k, v in it.model_dump().items() if k not in ("created_at", "closed_at", "duration")} for it in items]
+    stable = [{k: v for k, v in it.model_dump().items() if k not in ("started", "closed", "duration")} for it in items]
     data_hash = hashlib.md5(json.dumps({"counts": counts, "items": stable, "has_next": has_next}, sort_keys=True).encode()).hexdigest()
 
     return templates.TemplateResponse(

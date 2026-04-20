@@ -52,11 +52,10 @@ class WorkflowListItem(BaseModel):
     workflow_type: str
     workflow_key: str
     status: str
-    started_by: str = ""
-    created_at: str = ""
-    closed_at: str = ""
+    started: str = ""
+    closed: str = ""
     duration: str = ""
-    parent_workflow_id: str = ""
+    started_by: str = ""
     children: list[WorkflowListItem] = []
 
 

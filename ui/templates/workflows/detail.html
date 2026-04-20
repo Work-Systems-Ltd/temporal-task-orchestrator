@@ -62,6 +62,12 @@
           <div class="detail-label">Task Queue</div>
           <div class="detail-value mt-1 text-muted">{{ detail.task_queue }}</div>
         </div>
+        {% if wf_record and wf_record.started_by %}
+        <div>
+          <div class="detail-label">Started By</div>
+          <div class="detail-value mt-1">{{ wf_record.started_by }}</div>
+        </div>
+        {% endif %}
       </div>
     </div>
     {# ── Input / Output as expandable sections inside the hero card ── #}
