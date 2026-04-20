@@ -7,9 +7,9 @@
       <tr>
         {% for col in columns %}
         {% if col.sortable %}
-        {{ sort_th(col.label, col.sort_field or col.key, col.css_class) }}
+        {{ sort_th(col.label, col.sort_field or col.key, col.css_class, col.key) }}
         {% else %}
-        <th class="th {{ col.css_class }}">{{ col.label }}</th>
+        <th class="th {{ col.css_class }}" data-col="{{ col.key }}">{{ col.label }}</th>
         {% endif %}
         {% endfor %}
         <th class="th" style="width:1%"></th>
@@ -22,7 +22,7 @@
           style="animation-delay: {{ loop.index0 * 30 }}ms"
           {% if row_href is defined %}data-href="{{ row_href(item) }}"{% endif %}>
         {% for col in columns %}
-        <td class="td {{ col.css_class }}">
+        <td class="td {{ col.css_class }}" data-col="{{ col.key }}">
           {% if col.render and caller is undefined %}
             {{ render_cell(col.render, item, col) }}
           {% else %}

@@ -53,6 +53,11 @@
     {% endif %}
     {% endfor %}
 
+    {# Column picker #}
+    {% if columns | length > 1 %}
+    {% include "partials/table_view/column_picker.html" %}
+    {% endif %}
+
     {# Query builder toggle #}
     {% if query_fields %}
     <button @click="$dispatch('toggle-query-builder')" class="btn btn-secondary text-xs">

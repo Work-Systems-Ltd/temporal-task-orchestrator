@@ -1,7 +1,7 @@
 {# Column picker — toggle visibility and reorder columns #}
 <div class="relative"
      x-data="columnPicker()"
-     data-columns='{{ columns | map(attribute="__dict__") | list | tojson }}'
+     data-columns='[{% for col in columns %}{"key":"{{ col.key }}","label":"{{ col.label }}","hideable":{{ "true" if col.hideable else "false" }}}{% if not loop.last %},{% endif %}{% endfor %}]'
      data-prefix="{{ url_prefix }}">
   <button @click="open = !open" class="btn btn-secondary text-xs">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">

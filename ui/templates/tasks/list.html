@@ -31,18 +31,18 @@
     <table class="w-full text-left">
       <thead class="table-head">
         <tr>
-          {{ sort_th("Task", "title") }}
-          {{ sort_th("Type", "task_type", "hidden sm:table-cell") }}
-          <th class="hidden th sm:table-cell">User</th>
-          <th class="hidden th sm:table-cell">Group</th>
-          <th class="hidden th md:table-cell">Workflow</th>
+          {{ sort_th("Task", "title", "", "title") }}
+          {{ sort_th("Type", "task_type", "hidden sm:table-cell", "task_type") }}
+          <th class="hidden th sm:table-cell" data-col="assigned_user">User</th>
+          <th class="hidden th sm:table-cell" data-col="assigned_group">Group</th>
+          <th class="hidden th md:table-cell" data-col="workflow_id">Workflow</th>
           {% if tab in ('completed', 'cancelled') %}
-          {{ sort_th("Completed", "completed_at") }}
+          {{ sort_th("Completed", "completed_at", "", "created_at") }}
           {% else %}
-          {{ sort_th("Created", "created_at") }}
+          {{ sort_th("Created", "created_at", "", "created_at") }}
           {% endif %}
           {% if tab == 'all' %}
-          <th class="hidden th sm:table-cell">Status</th>
+          <th class="hidden th sm:table-cell" data-col="status">Status</th>
           {% endif %}
           <th class="th" style="width:1%"></th>
         </tr>
@@ -57,7 +57,7 @@
             {% else %}
             data-href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}"
             {% endif %}>
-          <td class="td">
+          <td class="td" data-col="title">
             <div class="flex items-center gap-2">
               {% if item.priority != 'medium' %}{{ priority_badge(item.priority) }}{% endif %}
               <div>
@@ -68,23 +68,23 @@
               </div>
             </div>
           </td>
-          <td class="hidden td sm:table-cell">
+          <td class="hidden td sm:table-cell" data-col="task_type">
             <span class="tag">{{ item.task_type }}</span>
           </td>
-          <td class="hidden td sm:table-cell">
+          <td class="hidden td sm:table-cell" data-col="assigned_user">
             <span class="text-xs {% if item.assigned_user %}text-secondary{% else %}text-ghost{% endif %}">{{ item.assigned_user or "—" }}</span>
           </td>
-          <td class="hidden td sm:table-cell">
+          <td class="hidden td sm:table-cell" data-col="assigned_group">
             <span class="text-xs {% if item.assigned_group %}text-secondary{% else %}text-ghost{% endif %}">{{ item.assigned_group or "—" }}</span>
           </td>
-          <td class="hidden td md:table-cell">
+          <td class="hidden td md:table-cell" data-col="workflow_id">
             <a href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}" class="td-mono timeline-link" title="{{ item.workflow_id }}">{{ item.workflow_id[:20] }}…</a>
           </td>
-          <td class="td">
+          <td class="td" data-col="created_at">
             <span class="td-time">{{ item.completed_at if tab in ('completed', 'cancelled') and item.completed_at else item.created_at }}</span>
           </td>
           {% if tab == 'all' %}
-          <td class="hidden td sm:table-cell">
+          <td class="hidden td sm:table-cell" data-col="status">
             {{ task_status_badge(item.status) }}
           </td>
           {% endif %}
@@ -143,4 +143,5 @@
 {% block scripts %}
 <script src="{{ request.url_for('static', path='js/pages/task-list-ws.js') }}"></script>
 <script src="{{ request.url_for('static', path='js/components/query-builder.js') }}"></script>
+<script src="{{ request.url_for('static', path='js/components/column-picker.js') }}"></script>
 {% endblock %}
