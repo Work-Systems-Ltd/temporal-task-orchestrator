@@ -9,7 +9,19 @@ from fastapi.templating import Jinja2Templates
 from core.tasks import get_task
 from ui.auth.dependencies import require_auth
 from ui.dependencies import get_db_service, get_templates, get_temporal_service
+import json
+from markupsafe import escape
+
 from ui.helpers import duration, relative_time, validate_task_form
+
+
+def _json_attr(data) -> str:
+    """Serialize data to a JSON string safe for use in an HTML attribute."""
+    if data is None:
+        return ""
+    if isinstance(data, str):
+        return str(escape(data))
+    return str(escape(json.dumps(data, indent=2)))
 from ui.models import PendingTaskDetail
 from core.db import DbService
 from ui.services.temporal import TemporalService
@@ -94,6 +106,7 @@ async def workflow_detail(
             "can_rerun": wf.status in RERUNNABLE_STATUSES,
             "relative_time": relative_time,
             "duration": duration,
+            "json_attr": _json_attr,
         },
     )
 
