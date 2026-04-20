@@ -302,8 +302,6 @@ document.addEventListener("keydown", (e: KeyboardEvent) => {
   )
     return;
 
-  if (e.key === "n") window.location.href = "/start";
-  if (e.key === "r") window.location.reload();
   if (e.key === "/") {
     const searchInput =
       document.querySelector<HTMLInputElement>(".search-box-input");
