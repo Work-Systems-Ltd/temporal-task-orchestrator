@@ -5,9 +5,9 @@ import json
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import delete, func, or_, select
 
-from core.db.models import WorkflowRecord
+from core.db.models import TaskRecord, WorkflowRecord
 
 
 RUNNING_STATUSES = {"starting", "running"}
@@ -150,6 +150,44 @@ class WorkflowsMixin:
             await db.commit()
             await db.refresh(record)
             return record
+
+    async def delete_workflow(self, workflow_id: str) -> bool:
+        """Delete a workflow record and all associated tasks from the database.
+
+        Deletes tasks first (which cascade-deletes comments and activity logs),
+        then nullifies parent references on child workflows, then deletes the
+        workflow record itself. Does NOT affect the Temporal execution.
+        """
+        async with self._session() as db:
+            record = (
+                await db.execute(
+                    select(WorkflowRecord).where(WorkflowRecord.workflow_id == workflow_id)
+                )
+            ).scalar_one_or_none()
+            if not record:
+                return False
+
+            # Delete all tasks linked to this workflow (comments/activity cascade via ORM)
+            tasks = (
+                await db.execute(
+                    select(TaskRecord).where(TaskRecord.workflow_id == workflow_id)
+                )
+            ).scalars().all()
+            for task in tasks:
+                await db.delete(task)
+
+            # Nullify parent_id on child workflows so they aren't orphan-blocked
+            children = (
+                await db.execute(
+                    select(WorkflowRecord).where(WorkflowRecord.parent_id == record.id)
+                )
+            ).scalars().all()
+            for child in children:
+                child.parent_id = None
+
+            await db.delete(record)
+            await db.commit()
+            return True
 
     async def get_distinct_workflow_types(self) -> list[str]:
         """Return all distinct workflow_type values."""

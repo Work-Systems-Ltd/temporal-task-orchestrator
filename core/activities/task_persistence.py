@@ -23,6 +23,7 @@ class CreateTaskInput(BaseModel):
     workflow_id: str
     run_id: str = ""
     task_type: str
+    task_kind: str = "human"  # "human" or "system"
     title: str
     description: str = ""
     priority: str = "medium"
@@ -86,6 +87,7 @@ class TaskPersistenceActivities:
                 run_id=data.run_id or None,
                 workflow_record_id=workflow_record_id,
                 task_type=data.task_type,
+                task_kind=data.task_kind,
                 title=data.title,
                 description=data.description or None,
                 status="open",

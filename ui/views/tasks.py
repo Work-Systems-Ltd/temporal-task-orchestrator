@@ -53,6 +53,7 @@ class TaskTableView(GenericTableView[TaskRecord, TaskListItem]):
     ]
 
     filters = [
+        FilterDef(key="kind", label="Kind", field="task_kind"),
         FilterDef(key="type", label="Type", field="task_type"),
         FilterDef(key="priority", label="Priority", field="priority"),
         FilterDef(key="assignment", label="Assignment"),
@@ -68,6 +69,7 @@ class TaskTableView(GenericTableView[TaskRecord, TaskListItem]):
     query_fields = [
         QueryField("title", "Title", "string"),
         QueryField("task_type", "Type", "string"),
+        QueryField("task_kind", "Kind", "enum", enum_values=["human", "system"]),
         QueryField(
             "priority",
             "Priority",
@@ -93,6 +95,7 @@ class TaskTableView(GenericTableView[TaskRecord, TaskListItem]):
             task_id=str(record.id),
             workflow_id=record.workflow_id,
             task_type=record.task_type,
+            task_kind=record.task_kind,
             title=record.title,
             description=record.description or "",
             status=record.status,
@@ -132,6 +135,8 @@ class TaskTableView(GenericTableView[TaskRecord, TaskListItem]):
     async def get_filter_options(
         self, key: str, request: Request, db: DbService
     ) -> list[str]:
+        if key == "kind":
+            return ["human", "system"]
         if key == "type":
             return await db.get_distinct_task_types()
         if key == "priority":

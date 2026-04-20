@@ -3,7 +3,7 @@ from temporalio import workflow
 from core.workflows import WorkSysFlow, register_workflow
 from tasks.human.approval import ApprovalTask
 from tasks.human.approval_input import ApprovalInputTask
-from tasks.system.approval import log_request, process_approval, process_rejection
+from tasks.system.approval import LogRequestTask, ProcessApprovalTask, ProcessRejectionTask
 
 
 @register_workflow(
@@ -21,7 +21,7 @@ class ApprovalWorkflow(WorkSysFlow):
     async def run(self, input: ApprovalInputTask.Model) -> str:
         await self._persist_workflow_started(input)
         try:
-            await self.create_system_task(log_request, input.description)
+            await self.create_system_task(LogRequestTask, input.description)
 
             human_data = await self.create_human_task(
                 ApprovalTask,
@@ -34,9 +34,9 @@ class ApprovalWorkflow(WorkSysFlow):
             comment = human_data.get("comment", "")
 
             if decision == "approve":
-                result = await self.create_system_task(process_approval, input.description, comment)
+                result = await self.create_system_task(ProcessApprovalTask, input.description, comment)
             else:
-                result = await self.create_system_task(process_rejection, input.description, comment)
+                result = await self.create_system_task(ProcessRejectionTask, input.description, comment)
 
             await self._persist_workflow_completed(result)
             return result

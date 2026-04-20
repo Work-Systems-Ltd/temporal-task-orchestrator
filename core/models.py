@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class TaskMeta(BaseModel):
     task_id: str = ""          # UUID from DB, empty until persisted
     task_type: str
+    task_kind: str = "human"   # "human" or "system"
     title: str
     description: str
     assigned_user: str = ""    # user slug

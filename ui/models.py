@@ -128,6 +128,7 @@ class TaskListItem(BaseModel):
     task_id: str
     workflow_id: str
     task_type: str
+    task_kind: str = "human"
     title: str
     description: str = ""
     status: str = "open"

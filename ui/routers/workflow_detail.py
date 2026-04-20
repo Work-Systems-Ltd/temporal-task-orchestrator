@@ -177,3 +177,16 @@ async def rerun_submit(
 
     await service.rerun_workflow(workflow_id, input_value=input_value)
     return RedirectResponse(url=f"/workflow/{workflow_id}", status_code=303)
+
+
+@router.post("/workflow/{workflow_id}/delete")
+async def delete_workflow(
+    request: Request,
+    workflow_id: str,
+    db: DbService = Depends(get_db_service),
+) -> RedirectResponse:
+    """Delete a workflow record and all its tasks from the database."""
+    deleted = await db.delete_workflow(workflow_id)
+    if not deleted:
+        return RedirectResponse(url=f"/workflow/{workflow_id}", status_code=303)
+    return RedirectResponse(url="/workflows", status_code=303)

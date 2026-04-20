@@ -1,7 +1,7 @@
 from temporalio import workflow
 
 from core.workflows import WorkSysFlow, register_workflow
-from tasks.system.ping import ping
+from tasks.system.ping import PingTask
 
 
 @register_workflow(
@@ -19,7 +19,7 @@ class PingWorkflow(WorkSysFlow):
     async def run(self, ip_address: str) -> str:
         await self._persist_workflow_started(ip_address)
         try:
-            result = await self.create_system_task(ping, ip_address)
+            result = await self.create_system_task(PingTask, ip_address)
             await self._persist_workflow_completed(result)
             return result
         except Exception as exc:

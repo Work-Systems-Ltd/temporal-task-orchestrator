@@ -8,7 +8,7 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 from core.models import TaskMeta
-from core.tasks.base import HumanTask
+from core.tasks.base import HumanTask, SystemTask
 
 from abc import ABC
 
@@ -16,6 +16,7 @@ from abc import ABC
 # Import activity input models — these are plain Pydantic models, safe in workflow sandbox
 with workflow.unsafe.imports_passed_through():
     from core.activities.task_persistence import (
+        CancelTaskInput,
         CompleteTaskInput,
         CreateTaskInput,
         UpdateTaskInput,
@@ -73,6 +74,7 @@ class WorkSysFlow(ABC):
             workflow_id=workflow.info().workflow_id,
             run_id=workflow.info().run_id,
             task_type=task_meta.task_type,
+            task_kind=task_meta.task_kind,
             title=task_meta.title,
             description=task_meta.description,
             priority=task_meta.priority,
@@ -231,24 +233,59 @@ class WorkSysFlow(ABC):
 
     async def create_system_task(
         self,
-        activity_fn,
+        task: Type[SystemTask],
         *args,
+        title: str = "",
+        description: str = "",
         start_to_close_timeout: timedelta = timedelta(seconds=10),
         retry_policy: RetryPolicy | None = None,
     ) -> Any:
-        """Execute a system task activity.
+        """Execute a system task activity, persisting it to the database.
 
         Args:
-            activity_fn: The @activity.defn function to execute.
+            task: The SystemTask class (used for task_type resolution and activity lookup).
             *args: Positional arguments passed to the activity.
+            title: Optional task title for the DB record. Defaults to the task label.
+            description: Optional task description for the DB record.
             start_to_close_timeout: Temporal activity timeout.
             retry_policy: Optional Temporal RetryPolicy. Defaults to 3 max attempts.
 
         Returns the activity result directly without waiting for a signal.
         """
-        return await workflow.execute_activity(
-            activity_fn,
-            args=list(args),
-            retry_policy=retry_policy or self._DEFAULT_RETRY_POLICY,
-            start_to_close_timeout=start_to_close_timeout,
+        task_id = str(workflow.uuid4())
+        task_meta = TaskMeta(
+            task_id=task_id,
+            task_type=task.task_type,
+            task_kind="system",
+            title=title or task.label or task.task_type,
+            description=description,
         )
+
+        await self._persist_task_created(task_meta)
+
+        try:
+            activity_fn = task._activity_fn
+            result = await workflow.execute_activity(
+                activity_fn,
+                args=list(args),
+                retry_policy=retry_policy or self._DEFAULT_RETRY_POLICY,
+                start_to_close_timeout=start_to_close_timeout,
+            )
+            await self._persist_task_completed(task_id, None)
+            return result
+        except Exception:
+            await self._persist_task_failed(task_id)
+            raise
+
+    async def _persist_task_failed(self, task_id: str) -> None:
+        """Mark a task as failed in the database via activity."""
+        cancel_input = CancelTaskInput(task_id=task_id)
+        try:
+            await workflow.execute_activity(
+                "cancel_task_record",
+                cancel_input.model_dump_json(),
+                start_to_close_timeout=timedelta(seconds=10),
+                retry_policy=RetryPolicy(maximum_attempts=3),
+            )
+        except Exception:
+            pass  # best-effort; don't mask the original error
