@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import json
 import logging
+from typing import Any, Awaitable, Callable
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
@@ -23,6 +24,127 @@ logger = logging.getLogger(__name__)
 PUSH_INTERVAL = 3
 
 
+# ── Shared helpers ──
+
+async def _poll_and_notify(
+    ws: WebSocket,
+    compute_hash: Callable[[], Awaitable[str]],
+    initial_hash: str = "",
+    interval: float = PUSH_INTERVAL,
+) -> None:
+    """Generic poll loop: compute a hash, send {"type":"refresh"} when it changes.
+
+    Skips the first send if `initial_hash` is provided (prevents reload on connect).
+    """
+    last_hash = initial_hash
+
+    while True:
+        await asyncio.sleep(interval)
+        try:
+            h = await compute_hash()
+            if h != last_hash:
+                last_hash = h
+                await ws.send_json({"type": "refresh"})
+        except WebSocketDisconnect:
+            return
+        except Exception:
+            logger.exception("poll_and_notify error")
+
+
+async def _run_poll_ws(
+    ws: WebSocket,
+    compute_hash: Callable[[], Awaitable[str]],
+    initial_hash: str = "",
+    interval: float = PUSH_INTERVAL,
+) -> None:
+    """Run a simple poll-based WebSocket: push loop + receive loop with nudge support."""
+    push_task = asyncio.create_task(
+        _poll_and_notify(ws, compute_hash, initial_hash, interval)
+    )
+
+    try:
+        while True:
+            msg = await ws.receive_json()
+            if msg.get("type") == "nudge":
+                # Client requests an immediate check (e.g. on visibility change)
+                push_task.cancel()
+                try:
+                    await push_task
+                except asyncio.CancelledError:
+                    pass
+                push_task = asyncio.create_task(
+                    _poll_and_notify(ws, compute_hash, "", interval)
+                )
+    except WebSocketDisconnect:
+        pass
+    finally:
+        push_task.cancel()
+        try:
+            await push_task
+        except asyncio.CancelledError:
+            pass
+
+
+def _json_hash(data: Any) -> str:
+    """Compute an md5 hex hash of JSON-serialised data."""
+    blob = json.dumps(data, sort_keys=True)
+    return hashlib.md5(blob.encode()).hexdigest()
+
+
+# ── Workflow detail WS ──
+
+@router.websocket("/ws/workflow/{workflow_id}")
+async def workflow_detail_ws(
+    ws: WebSocket,
+    workflow_id: str,
+    user: User = Depends(require_ws_auth),
+    service: TemporalService = Depends(get_temporal_service),
+) -> None:
+    """Lightweight WS that pings the client when the workflow state changes."""
+    await ws.accept()
+
+    async def compute_hash() -> str:
+        detail = await service.get_workflow_detail(workflow_id)
+        if not detail:
+            return ""
+        return _json_hash({
+            "status": detail.status,
+            "history_length": detail.history_length,
+            "run_id": detail.run_id,
+        })
+
+    last_hash = ""
+
+    push_task = asyncio.create_task(
+        _poll_and_notify(ws, compute_hash, last_hash)
+    )
+
+    try:
+        while True:
+            msg = await ws.receive_json()
+            if msg.get("type") == "submitted":
+                # Task was just submitted — force a check after a short delay
+                await asyncio.sleep(0.5)
+                push_task.cancel()
+                try:
+                    await push_task
+                except asyncio.CancelledError:
+                    pass
+                push_task = asyncio.create_task(
+                    _poll_and_notify(ws, compute_hash, "")
+                )
+    except WebSocketDisconnect:
+        pass
+    finally:
+        push_task.cancel()
+        try:
+            await push_task
+        except asyncio.CancelledError:
+            pass
+
+
+# ── Workflow list WS ──
+
 def _get_workflow_types() -> list[str]:
     return [wf.workflow_cls.__name__ for wf in get_all_workflows()]
 
@@ -34,8 +156,7 @@ def _data_hash(counts: dict, items: list, has_next: bool) -> str:
         d = item.model_dump() if hasattr(item, "model_dump") else item
         stable = {k: v for k, v in d.items() if k not in ("started", "closed", "duration")}
         stable_items.append(stable)
-    blob = json.dumps({"counts": counts, "items": stable_items, "has_next": has_next}, sort_keys=True)
-    return hashlib.md5(blob.encode()).hexdigest()
+    return _json_hash({"counts": counts, "items": stable_items, "has_next": has_next})
 
 
 async def _build_update(
@@ -96,60 +217,6 @@ async def _build_update(
         "tab_content": tab_content,
         "hash": _data_hash(counts, items, result.has_next),
     }
-
-
-@router.websocket("/ws/workflow/{workflow_id}")
-async def workflow_detail_ws(
-    ws: WebSocket,
-    workflow_id: str,
-    user: User = Depends(require_ws_auth),
-    service: TemporalService = Depends(get_temporal_service),
-) -> None:
-    """Lightweight WS that pings the client when the workflow state changes."""
-    await ws.accept()
-
-    last_hash = ""
-
-    async def push_loop() -> None:
-        nonlocal last_hash
-        while True:
-            await asyncio.sleep(PUSH_INTERVAL)
-            try:
-                detail = await service.get_workflow_detail(workflow_id)
-                if not detail:
-                    continue
-                # Hash key fields that indicate a meaningful change
-                blob = json.dumps({
-                    "status": detail.status,
-                    "history_length": detail.history_length,
-                    "run_id": detail.run_id,
-                }, sort_keys=True)
-                h = hashlib.md5(blob.encode()).hexdigest()
-                if h != last_hash:
-                    last_hash = h
-                    await ws.send_json({"type": "refresh"})
-            except WebSocketDisconnect:
-                return
-            except Exception:
-                logger.exception("workflow_detail_ws push error")
-
-    push_task = asyncio.create_task(push_loop())
-
-    try:
-        while True:
-            msg = await ws.receive_json()
-            if msg.get("type") == "submitted":
-                # Task was just submitted — force a check after a short delay
-                await asyncio.sleep(0.5)
-                last_hash = ""
-    except WebSocketDisconnect:
-        pass
-    finally:
-        push_task.cancel()
-        try:
-            await push_task
-        except asyncio.CancelledError:
-            pass
 
 
 @router.websocket("/ws/tasks")
@@ -240,49 +307,31 @@ async def tasks_ws(
             pass
 
 
+# ── Task list WS (DB-powered) ──
+
 @router.websocket("/ws/task-list")
 async def task_list_ws(
     ws: WebSocket,
     user: User = Depends(require_ws_auth),
     db: DbService = Depends(get_db_service),
 ) -> None:
-    """Lightweight WS that pings the task list page when DB task data changes."""
+    """Poll DB for task count changes; send refresh signal when data differs."""
     await ws.accept()
 
-    last_hash = ""
-
-    async def push_loop() -> None:
-        nonlocal last_hash
-        while True:
-            await asyncio.sleep(PUSH_INTERVAL)
-            try:
-                counts = await db.count_tasks_by_status(
-                    user_slug=user.slug,
-                    user_group_slugs=user.group_slugs,
-                    is_admin=user.is_admin,
-                )
-                blob = json.dumps(counts, sort_keys=True)
-                h = hashlib.md5(blob.encode()).hexdigest()
-                if h != last_hash:
-                    last_hash = h
-                    await ws.send_json({"type": "refresh"})
-            except WebSocketDisconnect:
-                return
-            except Exception:
-                logger.exception("task_list_ws push error")
-
-    push_task = asyncio.create_task(push_loop())
-
+    # Wait for the client to send its initial hash before starting the poll loop.
+    # This prevents a reload on first connect.
     try:
-        while True:
-            msg = await ws.receive_json()
-            if msg.get("type") == "nudge":
-                last_hash = ""
-    except WebSocketDisconnect:
-        pass
-    finally:
-        push_task.cancel()
-        try:
-            await push_task
-        except asyncio.CancelledError:
-            pass
+        init_msg = await asyncio.wait_for(ws.receive_json(), timeout=5.0)
+    except (asyncio.TimeoutError, WebSocketDisconnect):
+        return
+    initial_hash = init_msg.get("hash", "")
+
+    async def compute_hash() -> str:
+        counts = await db.count_tasks_by_status(
+            user_slug=user.slug,
+            user_group_slugs=user.group_slugs,
+            is_admin=user.is_admin,
+        )
+        return _json_hash(counts)
+
+    await _run_poll_ws(ws, compute_hash, initial_hash)

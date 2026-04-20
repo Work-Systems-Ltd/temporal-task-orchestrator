@@ -31,7 +31,7 @@
 {% endmacro %}
 
 {% block content %}
-<div class="animate-slide-up">
+<div class="animate-slide-up" data-task-id="{{ task.id }}">
 
   {# ── Back nav ── #}
   <div class="mb-4">
@@ -238,63 +238,6 @@
   </div>
 </div>
 
-<script>
-function commentForm() {
-  return {
-    content: '',
-    isInternal: false,
-    submitting: false,
-    error: '',
-    async submit() {
-      this.submitting = true;
-      this.error = '';
-      try {
-        const resp = await fetch('/tasks/{{ task.id }}/comments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: this.content, is_internal: this.isInternal }),
-        });
-        const data = await resp.json();
-        if (data.ok) {
-          this.content = '';
-          this.isInternal = false;
-          window.location.reload();
-        } else {
-          this.error = data.error || 'Failed to add comment';
-        }
-      } catch (e) {
-        this.error = 'Network error';
-      }
-      this.submitting = false;
-    },
-  };
-}
-
-function statusActions() {
-  return {
-    loading: false,
-    error: '',
-    async changeStatus(status) {
-      this.loading = true;
-      this.error = '';
-      try {
-        const resp = await fetch('/tasks/{{ task.id }}/status', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status }),
-        });
-        const data = await resp.json();
-        if (data.ok) {
-          window.location.reload();
-        } else {
-          this.error = data.error || 'Failed to update status';
-        }
-      } catch (e) {
-        this.error = 'Network error';
-      }
-      this.loading = false;
-    },
-  };
-}
-</script>
+{% block scripts %}
+<script src="{{ request.url_for('static', path='js/task-detail.js') }}"></script>
 {% endblock %}
