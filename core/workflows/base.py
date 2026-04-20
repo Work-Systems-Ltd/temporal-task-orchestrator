@@ -124,7 +124,7 @@ class WorkSysFlow(ABC):
             run_id=info.run_id,
             workflow_type=info.workflow_type,
             workflow_key=self._workflow_key or info.workflow_type,
-            parent_workflow_id=info.parent_workflow_id or "",
+            parent_workflow_id=info.parent_id or "",
             input_data=input_str,
             task_queue=info.task_queue,
         )

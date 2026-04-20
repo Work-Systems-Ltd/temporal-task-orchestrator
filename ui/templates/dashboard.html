@@ -59,9 +59,11 @@
     {% endfor %}
   </div>
 
+  <div class="space-y-6">
+
   {# ── My Tasks (table) ── #}
   {% if my_task_rows %}
-  <div class="mb-6">
+  <div>
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-sm font-semibold text-primary">My Tasks</h2>
       <a href="/tasks?assignment=mine" class="text-xs text-faint hover:text-secondary">View all</a>
@@ -138,12 +140,12 @@
   </div>
 
   {# ── Recently Completed ── #}
-  {% if completed_rows %}
-  <div class="mt-6">
+  <div>
     <div class="flex items-center justify-between mb-3">
       <h2 class="text-sm font-semibold text-primary">Recently Completed</h2>
       <a href="/tasks?tab=completed" class="text-xs text-faint hover:text-secondary">View all</a>
     </div>
+    {% if completed_rows %}
     <div class="table-container">
       <table class="w-full">
         <thead class="table-head">
@@ -175,8 +177,14 @@
         </tbody>
       </table>
     </div>
+    {% else %}
+    <div class="table-container">
+      <p class="text-xs text-ghost py-6 text-center">No completed tasks yet</p>
+    </div>
+    {% endif %}
   </div>
-  {% endif %}
+
+  </div>
 
 </div>
 
