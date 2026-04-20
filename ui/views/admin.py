@@ -4,7 +4,6 @@ from __future__ import annotations
 from fastapi import Request
 
 from core.db import DbService, Group, User
-from ui.helpers import relative_time
 from ui.models import GroupListItem, UserListItem
 
 from .table_view import GenericTableView

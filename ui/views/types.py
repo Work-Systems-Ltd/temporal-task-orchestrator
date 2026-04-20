@@ -12,6 +12,7 @@ class Column:
     label: str  # Header text
     css_class: str = ""  # e.g. "hidden sm:table-cell" for responsive hiding
     sortable: bool = False  # Whether this column can be sorted
+    sort_field: str = ""  # ORM column name for sorting (defaults to key if empty)
     render: str | None = None  # Jinja2 macro name for custom cell rendering
 
 

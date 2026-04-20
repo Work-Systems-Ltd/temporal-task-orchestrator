@@ -37,9 +37,9 @@ class WorkflowTableView(GenericTableView[WorkflowRecord, WorkflowListItem]):
 
     columns = [
         Column(key="workflow_id", label="Workflow ID", sortable=True, render="workflow_id_cell"),
-        Column(key="workflow_type", label="Type", css_class="hidden sm:table-cell"),
+        Column(key="workflow_type", label="Type", css_class="hidden sm:table-cell", sortable=True, sort_field="workflow_type"),
         Column(key="started_by", label="Started By", css_class="hidden sm:table-cell"),
-        Column(key="started", label="Started", sortable=True),
+        Column(key="started", label="Started", sortable=True, sort_field="created_at"),
         Column(key="closed", label="Stopped", css_class="hidden md:table-cell"),
         Column(key="duration", label="Duration", css_class="hidden md:table-cell"),
         Column(key="status", label="Status", render="status_badge_cell"),
