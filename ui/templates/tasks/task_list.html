@@ -134,7 +134,7 @@
     {% include "partials/tab_bar.html" %}
   </div>
 
-  <script src="{{ request.url_for('static', path='js/col-preload.js') }}"></script>
+  <script src="{{ request.url_for('static', path='js/pages/col-preload.js') }}"></script>
   <div data-tab-content>
     {% include "partials/tab_content.html" %}
   </div>
@@ -143,5 +143,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="/static/js/task-list.js"></script>
+<script src="/static/js/pages/task-list.js"></script>
 {% endblock %}
