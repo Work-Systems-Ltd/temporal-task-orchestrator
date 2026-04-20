@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import asyncio
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from core.tasks import get_task
 from ui.auth.dependencies import require_auth
 from ui.dependencies import get_db_service, get_templates, get_temporal_service
-from ui.helpers import validate_task_form
+from ui.helpers import duration, relative_time, validate_task_form
 from ui.models import PendingTaskDetail
 from core.db import DbService
 from ui.services.temporal import TemporalService
@@ -17,86 +17,83 @@ from ui.services.temporal import TemporalService
 router = APIRouter(tags=["workflow_detail"], dependencies=[Depends(require_auth)])
 
 RERUNNABLE_STATUSES = {"failed", "terminated", "timed_out", "cancelled"}
-
-
-async def _noop() -> None:
-    return None
+RUNNING_STATUSES = {"starting", "running"}
 
 
 @router.get("/workflow/{workflow_id}", response_class=HTMLResponse)
 async def workflow_detail(
     request: Request,
     workflow_id: str,
-    run_id: str | None = Query(None),
-    service: TemporalService = Depends(get_temporal_service),
     db: DbService = Depends(get_db_service),
+    service: TemporalService = Depends(get_temporal_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
-    detail = await service.get_workflow_detail(workflow_id, run_id=run_id)
-    if not detail:
-        return RedirectResponse(url="/", status_code=303)
+    # Primary data source: database
+    wf = await db.get_workflow_by_workflow_id(workflow_id)
+    if not wf:
+        return RedirectResponse(url="/workflows", status_code=303)
 
-    is_running = detail.status == "running"
-    is_child = detail.parent_id is not None
+    is_running = wf.status in RUNNING_STATUSES
+    is_child = wf.parent_id is not None
 
-    # Load DB record for extra metadata (started_by, etc.)
-    wf_record = await db.get_workflow_by_workflow_id(workflow_id)
-
-    timeline_result, graph, run_history = await asyncio.gather(
-        service.get_workflow_timeline(workflow_id, run_id=run_id),
-        service.get_workflow_graph(workflow_id, detail),
-        service.get_run_history(workflow_id),
+    # Load tasks and children from DB
+    tasks, children = await asyncio.gather(
+        db.get_tasks_by_workflow_id(workflow_id),
+        db.get_workflow_children(workflow_id),
     )
 
-    timeline, stats = timeline_result
+    # Resolve parent for the link
+    parent = None
+    if wf.parent_id:
+        parent = await db.get_workflow_by_record_id(wf.parent_id)
 
-    # Determine which run number this is (newest = 1)
-    total_runs = len(run_history)
-    current_run_id = detail.run_id
-    run_number = next(
-        (i + 1 for i, r in enumerate(run_history) if r.run_id == current_run_id),
-        1,
-    )
-
-    # Collect pending tasks from this workflow + all descendants
-    raw_pending = await service.get_all_pending_tasks(graph, workflow_id) if is_running else []
-
-    # Build PendingTaskDetail models with attached form instances
+    # Pending tasks: only query Temporal for running workflows
     pending_tasks: list[PendingTaskDetail] = []
-    for pt in raw_pending:
-        try:
-            task = get_task(pt.task_type)
-            form = task.Form()
-        except KeyError:
-            form = None
-        pending_tasks.append(PendingTaskDetail(
-            workflow_id=pt.workflow_id,
-            task_type=pt.task_type,
-            title=pt.title,
-            description=pt.description,
-            assigned_user=pt.assigned_user,
-            assigned_group=pt.assigned_group,
-            started=pt.started,
-            form=form,
-            errors={},
-        ))
+    if is_running:
+        running_ids = [workflow_id]
+        running_ids.extend(
+            c.workflow_id for c in children if c.status in RUNNING_STATUSES
+        )
+
+        async def _fetch_pending(wid: str) -> PendingTaskDetail | None:
+            try:
+                meta = await service.get_pending_task(wid)
+                if not meta:
+                    return None
+                task_def = get_task(meta.task_type)
+                form = task_def.Form()
+            except (KeyError, Exception):
+                return None
+            return PendingTaskDetail(
+                workflow_id=wid,
+                task_type=meta.task_type,
+                title=meta.title,
+                description=meta.description,
+                assigned_user=meta.assigned_user or "",
+                assigned_group=meta.assigned_group or "",
+                started="",
+                form=form,
+                errors={},
+            )
+
+        results = await asyncio.gather(*[_fetch_pending(wid) for wid in running_ids])
+        pending_tasks = [r for r in results if r]
 
     return templates.TemplateResponse(
         "workflows/detail.html",
         {
             "request": request,
-            "detail": detail,
-            "wf_record": wf_record,
+            "wf": wf,
+            "tasks": tasks,
+            "children": children,
+            "parent": parent,
             "pending_tasks": pending_tasks,
-            "timeline": timeline,
-            "stats": stats,
-            "graph": graph,
             "is_child": is_child,
+            "is_running": is_running,
             "workflow_id": workflow_id,
-            "can_rerun": detail.status in RERUNNABLE_STATUSES,
-            "run_history": run_history,
-            "run_number": run_number,
-            "total_runs": total_runs,
+            "can_rerun": wf.status in RERUNNABLE_STATUSES,
+            "relative_time": relative_time,
+            "duration": duration,
         },
     )
 
@@ -105,22 +102,22 @@ async def workflow_detail(
 async def rerun_form(
     request: Request,
     workflow_id: str,
+    db: DbService = Depends(get_db_service),
     service: TemporalService = Depends(get_temporal_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
-    detail = await service.get_workflow_detail(workflow_id)
-    if not detail or detail.status not in RERUNNABLE_STATUSES:
+    wf = await db.get_workflow_by_workflow_id(workflow_id)
+    if not wf or wf.status not in RERUNNABLE_STATUSES:
         return RedirectResponse(url=f"/workflow/{workflow_id}", status_code=303)
 
-    wf_def = service.get_workflow_def_by_type(detail.workflow_type)
+    wf_def = service.get_workflow_def_by_type(wf.workflow_type)
     if not wf_def:
         return RedirectResponse(url=f"/workflow/{workflow_id}", status_code=303)
 
-    # Pre-populate the form with the original input
-    original_input = await service.get_workflow_input(workflow_id)
+    # Pre-populate the form with the original input from DB
     form = None
-    if wf_def.input_task and original_input:
-        form = wf_def.input_task.Form(data=original_input)
+    if wf_def.input_task and wf.input_data:
+        form = wf_def.input_task.Form(data=wf.input_data)
     elif wf_def.input_task:
         form = wf_def.input_task.Form()
 
@@ -132,7 +129,7 @@ async def rerun_form(
             "form": form,
             "errors": {},
             "workflow_id": workflow_id,
-            "original_input": original_input,
+            "original_input": wf.input_data,
         },
     )
 
@@ -142,13 +139,14 @@ async def rerun_submit(
     request: Request,
     workflow_id: str,
     service: TemporalService = Depends(get_temporal_service),
+    db: DbService = Depends(get_db_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse | RedirectResponse:
-    detail = await service.get_workflow_detail(workflow_id)
-    if not detail or detail.status not in RERUNNABLE_STATUSES:
+    wf = await db.get_workflow_by_workflow_id(workflow_id)
+    if not wf or wf.status not in RERUNNABLE_STATUSES:
         return RedirectResponse(url=f"/workflow/{workflow_id}", status_code=303)
 
-    wf_def = service.get_workflow_def_by_type(detail.workflow_type)
+    wf_def = service.get_workflow_def_by_type(wf.workflow_type)
     if not wf_def:
         return RedirectResponse(url=f"/workflow/{workflow_id}", status_code=303)
 

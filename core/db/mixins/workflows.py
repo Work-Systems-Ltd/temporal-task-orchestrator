@@ -24,6 +24,12 @@ class WorkflowsMixin:
             stmt = select(WorkflowRecord).where(WorkflowRecord.workflow_id == workflow_id)
             return (await db.execute(stmt)).scalar_one_or_none()
 
+    async def get_workflow_by_record_id(self, record_id: uuid.UUID) -> WorkflowRecord | None:
+        """Get a workflow record by its internal UUID primary key."""
+        async with self._session() as db:
+            stmt = select(WorkflowRecord).where(WorkflowRecord.id == record_id)
+            return (await db.execute(stmt)).scalar_one_or_none()
+
     async def list_workflows(
         self,
         *,

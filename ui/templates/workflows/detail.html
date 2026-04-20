@@ -1,10 +1,16 @@
-{% from "partials/macros.html" import status_badge, task_type_badge %}
+{% from "partials/macros.html" import status_badge %}
 {% from "partials/task_form_inline.html" import inline_task_form %}
 {% extends "layouts/base.html" %}
-{% block title %}{{ detail.workflow_type }} — Task Console{% endblock %}
+{% block title %}{{ wf.workflow_type }} — Task Console{% endblock %}
+
+{% macro task_status_badge(status) %}
+{% set colors = {"open": "blue", "in_progress": "amber", "on_hold": "zinc", "completed": "emerald", "cancelled": "red"} %}
+{% set labels = {"open": "Open", "in_progress": "In Progress", "on_hold": "On Hold", "completed": "Completed", "cancelled": "Cancelled"} %}
+<span class="pill pill-{{ colors.get(status, 'zinc') }}">{{ labels.get(status, status) }}</span>
+{% endmacro %}
 
 {% block content %}
-<div x-data="{ copied: false }" class="animate-slide-up stagger-in" data-workflow-ws="{{ workflow_id }}">
+<div x-data="{ copied: false }" class="animate-slide-up stagger-in">
 
   <a href="{{ request.url_for('workflows_page') }}" class="back-link">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -13,24 +19,21 @@
     Back to workflows
   </a>
 
-  {# ═══ HEADER ═══ #}
-  <div data-ws-section="hero">
-  <div class="card mb-5 overflow-hidden">
+  {# ═══ HEADER CARD ═══ #}
+  <div class="card mb-6 overflow-hidden">
     {# ── Top bar: status + actions ── #}
     <div class="flex items-center justify-between px-5 py-2.5" style="background: var(--color-surface-subtle); border-bottom: 1px solid var(--color-border);">
       <div class="flex items-center gap-2">
-        {{ status_badge(detail.status) }}
+        {{ status_badge(wf.status if wf.status != "starting" else "running") }}
         {% if is_child %}<span class="tag">Subtask</span>{% endif %}
-        {% if total_runs > 1 %}<span class="tag">run {{ run_number }}/{{ total_runs }}</span>{% endif %}
       </div>
       <div class="flex items-center gap-2">
-        {% if is_child %}
-        <a href="{{ request.url_for('workflow_detail', workflow_id=detail.parent_id) }}" class="btn btn-ghost text-xs">Parent workflow</a>
+        {% if is_child and parent %}
+        <a href="{{ request.url_for('workflow_detail', workflow_id=parent.workflow_id) }}" class="btn btn-ghost text-xs">Parent workflow</a>
         {% endif %}
         {% if can_rerun %}
         <a href="{{ request.url_for('rerun_form', workflow_id=workflow_id) }}" class="btn btn-secondary">Rerun</a>
         {% endif %}
-        {% if wf_record %}
         <div x-data="{ confirmDelete: false }">
           <button @click="confirmDelete = true" class="btn btn-icon btn-icon-danger text-xs">
             <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -54,14 +57,15 @@
             </div>
           </template>
         </div>
-        {% endif %}
       </div>
     </div>
+
     {# ── Main content ── #}
     <div class="p-5">
-      <h1 class="text-lg font-semibold text-primary">{{ detail.workflow_type | replace("Workflow", "") | trim }}</h1>
-      <p class="mt-1 text-sm text-muted">{{ detail.workflow_type }}</p>
-      {# ── Metadata row ── #}
+      <h1 class="text-lg font-semibold text-primary">{{ wf.workflow_type | replace("Workflow", "") | trim }}</h1>
+      <p class="mt-1 text-sm text-muted">{{ wf.workflow_type }}</p>
+
+      {# ── Metadata grid ── #}
       <div class="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
         <div>
           <div class="detail-label">Workflow ID</div>
@@ -75,31 +79,43 @@
         </div>
         <div>
           <div class="detail-label">Started</div>
-          <div class="detail-value mt-1">{{ detail.started }}</div>
+          <div class="detail-value mt-1">{{ relative_time(wf.created_at) }}</div>
         </div>
-        {% if detail.duration != "—" %}
+        {% set wf_duration = duration(wf.created_at, wf.closed_at) %}
+        {% if wf_duration != "—" %}
         <div>
           <div class="detail-label">Duration</div>
-          <div class="detail-value mt-1">{{ detail.duration }}</div>
+          <div class="detail-value mt-1">{{ wf_duration }}</div>
         </div>
         {% endif %}
+        {% if wf.task_queue %}
         <div>
           <div class="detail-label">Task Queue</div>
-          <div class="detail-value mt-1 text-muted">{{ detail.task_queue }}</div>
+          <div class="detail-value mt-1 text-muted">{{ wf.task_queue }}</div>
         </div>
-        {% if wf_record and wf_record.started_by %}
+        {% endif %}
+        {% if wf.started_by %}
         <div>
           <div class="detail-label">Started By</div>
-          <div class="detail-value mt-1">{{ wf_record.started_by }}</div>
+          <div class="detail-value mt-1">{{ wf.started_by }}</div>
         </div>
         {% endif %}
       </div>
     </div>
-    {# ── Input / Output as expandable sections inside the hero card ── #}
-    {% if stats.workflow_input or stats.workflow_output %}
-    <div class="border-t border-border" data-ws-section="io">
+
+    {# ── Error banner ── #}
+    {% if wf.error_message %}
+    <div class="border-t border-border px-5 py-3" style="background: var(--color-pill-red-bg)">
+      <div class="text-[10px] font-medium uppercase tracking-wider mb-1" style="color: var(--color-pill-red-text)">Error</div>
+      <div class="timeline-error" style="margin-left:0">{{ wf.error_message }}</div>
+    </div>
+    {% endif %}
+
+    {# ── Input / Output ── #}
+    {% if wf.input_data or wf.output_data %}
+    <div class="border-t border-border">
       <div class="grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-border">
-        {% if stats.workflow_input %}
+        {% if wf.input_data %}
         <div x-data="{ copied: false }">
           <div class="json-viewer" style="border:none;border-radius:0">
             <div class="json-viewer-label flex items-center justify-between">
@@ -108,12 +124,12 @@
                       class="text-[10px] font-normal normal-case tracking-normal transition-colors" :style="copied ? 'color: var(--color-pill-emerald-text)' : 'color: var(--color-text-ghost)'"
                       x-text="copied ? 'Copied' : 'Copy'"></button>
             </div>
-            <script type="application/json" data-json-raw>{{ stats.workflow_input | tojson }}</script>
-            <div data-json-viewer="{{ stats.workflow_input | e }}"></div>
+            <script type="application/json" data-json-raw>{{ wf.input_data | tojson }}</script>
+            <div data-json-viewer="{{ wf.input_data | tojson | e }}"></div>
           </div>
         </div>
         {% endif %}
-        {% if stats.workflow_output %}
+        {% if wf.output_data %}
         <div x-data="{ copied: false }">
           <div class="json-viewer" style="border:none;border-radius:0">
             <div class="json-viewer-label flex items-center justify-between">
@@ -122,8 +138,8 @@
                       class="text-[10px] font-normal normal-case tracking-normal transition-colors" :style="copied ? 'color: var(--color-pill-emerald-text)' : 'color: var(--color-text-ghost)'"
                       x-text="copied ? 'Copied' : 'Copy'"></button>
             </div>
-            <script type="application/json" data-json-raw>{{ stats.workflow_output | tojson }}</script>
-            <div data-json-viewer="{{ stats.workflow_output | e }}"></div>
+            <script type="application/json" data-json-raw>{{ wf.output_data | tojson }}</script>
+            <div data-json-viewer="{{ wf.output_data | tojson | e }}"></div>
           </div>
         </div>
         {% endif %}
@@ -131,216 +147,144 @@
     </div>
     {% endif %}
   </div>
-  </div>
 
-  {# ═══ GRAPH MACRO ═══ #}
-  {% macro render_subtree(node, is_root) %}
-  <div class="wf-graph-subtree">
-    <a href="{% if node.node_type == 'activity' %}#{% else %}{{ request.url_for('workflow_detail', workflow_id=node.workflow_id) }}{% endif %}"
-       {% if node.node_type == 'activity' or node.is_current %}onclick="event.preventDefault()" style="cursor:default"{% endif %}
-       class="wf-graph-node {% if is_root %}wf-graph-node-root{% endif %} {% if node.is_current %}wf-graph-node-current{% endif %}">
-      <span class="wf-graph-node-label">{{ node.label | replace("Workflow", "") | trim }}</span>
-      {% if node.node_type != 'activity' %}
-      <span class="wf-graph-node-id">{{ node.workflow_id }}</span>
-      {% endif %}
-      <span class="wf-graph-node-pill">{{ status_badge(node.status) }}</span>
-      {% if node.duration and node.duration != "—" %}
-      <span class="wf-graph-node-meta">{{ node.duration }}</span>
-      {% elif node.started %}
-      <span class="wf-graph-node-meta">{{ node.started }}</span>
-      {% endif %}
-    </a>
-    {% if node.children %}
-    <div class="wf-graph-trunk"></div>
-    <div class="wf-graph-branches">
-      {% for child in node.children %}
-      <div class="wf-graph-branch">
-        <div class="wf-graph-branch-line"></div>
-        {{ render_subtree(child, false) }}
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </div>
-  {% endmacro %}
-
-  {# ═══ TASK LIST + PIPELINE TABS ═══ #}
-  <div data-ws-section="pending" x-data="{ tab: 'tasks' }">
-  {% if timeline or pending_tasks %}
-
-  <div class="flex items-center justify-between mb-4">
-    <div class="tab-bar" style="margin-bottom:0;border-bottom:none">
-      <button @click="tab = 'tasks'" class="tab-item" :class="tab === 'tasks' && 'tab-item-active'" type="button">
-        Tasks
-        {% if pending_tasks %}
-        <span class="count-badge" :class="tab === 'tasks' ? 'count-badge-active' : 'count-badge-muted'">{{ pending_tasks | length }}</span>
-        {% endif %}
-      </button>
-      {% if graph %}
-      <button @click="tab = 'pipeline'" class="tab-item" :class="tab === 'pipeline' && 'tab-item-active'" type="button">
-        Pipeline
-      </button>
-      {% endif %}
-    </div>
-    {% if stats.total_time != "—" %}
-    <span class="text-xs font-mono tabular-nums text-ghost">{{ stats.total_time }}</span>
-    {% endif %}
-  </div>
-
-  {# ── Tasks tab ── #}
-  <div x-show="tab === 'tasks'" class="card mb-5">
-    <div class="divide-y divide-border">
-
-      {# ── All timeline events ── #}
-      {% for event in timeline %}
-      <div x-data="{ open: false }">
-        <div class="wf-task-grid" @click="open = !open">
-          <div class="wf-col-status">{{ status_badge(event.status) }}</div>
-          <div class="wf-col-kind"><span class="tag">{{ event.kind | default('system') | capitalize }}</span></div>
-          <div class="wf-col-name">
-            <div class="td-title">{{ event.label | replace("Workflow", "") | trim }}</div>
-            {% if event.detail and event.status != 'failed' and event.kind != 'human' %}
-            <div class="td-subtitle">{{ event.detail }}</div>
-            {% endif %}
-          </div>
-          <div class="wf-col-meta">
-            {% if event.assigned_user %}<span class="pill pill-blue">{{ event.assigned_user }}</span>{% endif %}
-            {% if event.assigned_group %}<span class="pill pill-emerald">{{ event.assigned_group }}</span>{% endif %}
-            {% if event.duration %}<span class="timeline-duration">{{ event.duration }}</span>{% endif %}
-          </div>
-          <div class="wf-col-time"><span class="td-time">{{ event.event_time }}</span></div>
-          <div class="wf-col-action">
-            <svg class="accordion-chevron" :class="open && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
-          </div>
-        </div>
-        <div x-show="open" x-cloak x-collapse>
-          <div class="px-5 py-4 border-t border-border" style="background: var(--color-bg-raised)">
-            {% if event.kind == 'human' and event.input_data %}
-            <div class="text-[10px] font-medium uppercase tracking-wider text-ghost mb-1.5">Submitted Data</div>
-            <div class="json-viewer" style="border:none;border-radius:0.5rem">
-              <div data-json-viewer="{{ event.input_data | e }}"></div>
+  {# ═══ PENDING TASKS (from Temporal) ═══ #}
+  {% if pending_tasks %}
+  <div class="mb-6">
+    <h2 class="text-sm font-semibold text-primary mb-3">Pending</h2>
+    <div class="card">
+      <div class="divide-y divide-border">
+        {% for pt in pending_tasks %}
+        <div x-data="{ expanded: {{ 'true' if pending_tasks | length == 1 else 'false' }}, submitting: false }">
+          <div class="wf-task-grid" @click="expanded = !expanded" :style="expanded ? 'background: var(--color-surface-active)' : ''">
+            <div class="wf-col-status">{{ status_badge("pending") }}</div>
+            <div class="wf-col-kind"><span class="tag">Human</span></div>
+            <div class="wf-col-name">
+              <div class="td-title">{{ pt.title }}</div>
+              {% if pt.description %}
+              <div class="td-subtitle">{{ pt.description }}</div>
+              {% endif %}
             </div>
-            {% endif %}
-            {% if event.detail and event.status == 'failed' %}
-            <div class="{% if event.input_data %}mt-3{% endif %} text-[10px] font-medium uppercase tracking-wider text-ghost mb-1.5">Error</div>
-            <div class="timeline-error">{{ event.detail }}</div>
-            {% elif event.detail and event.kind != 'human' %}
-            <div class="text-[10px] font-medium uppercase tracking-wider text-ghost mb-1.5">Detail</div>
-            <div class="text-sm text-secondary">{{ event.detail }}</div>
-            {% endif %}
-            {% if event.link %}
-            <div class="{% if event.detail or event.input_data %}mt-3{% endif %}">
-              <a href="{{ event.link }}" class="btn btn-secondary">
-                View workflow
-                <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            <div class="wf-col-meta">
+              {% if pt.assigned_user %}<span class="pill pill-blue">{{ pt.assigned_user }}</span>{% endif %}
+              {% if pt.assigned_group %}<span class="pill pill-emerald">{{ pt.assigned_group }}</span>{% endif %}
+            </div>
+            <div class="wf-col-time"></div>
+            <div class="wf-col-action">
+              <a href="/task/{{ pt.workflow_id }}" class="btn btn-icon" title="Open full page" onclick="event.stopPropagation()">
+                <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                 </svg>
               </a>
-            </div>
-            {% endif %}
-            {% if not event.detail and not event.link and not event.input_data %}
-            <span class="text-xs text-ghost">No additional details</span>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-
-      {# ── Pending human tasks ── #}
-      {% for pt in pending_tasks %}
-      <div x-data="{ expanded: {{ 'true' if pending_tasks | length == 1 else 'false' }}, submitting: false }">
-        <div class="wf-task-grid" @click="expanded = !expanded" :style="expanded ? 'background: var(--color-surface-active)' : ''">
-          <div class="wf-col-status">{{ status_badge("pending") }}</div>
-          <div class="wf-col-kind"><span class="tag">Human</span></div>
-          <div class="wf-col-name">
-            <div class="td-title">{{ pt.title }}</div>
-            {% if pt.description %}
-            <div class="td-subtitle">{{ pt.description }}</div>
-            {% endif %}
-          </div>
-          <div class="wf-col-meta">
-            {% if pt.assigned_user %}<span class="pill pill-blue">{{ pt.assigned_user }}</span>{% endif %}
-            {% if pt.assigned_group %}<span class="pill pill-emerald">{{ pt.assigned_group }}</span>{% endif %}
-          </div>
-          <div class="wf-col-time"><span class="td-time">{{ pt.started }}</span></div>
-          <div class="wf-col-action">
-            <a href="/task/{{ pt.workflow_id }}" class="btn btn-icon" title="Open full page" onclick="event.stopPropagation()">
-              <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              <svg class="accordion-chevron" :class="expanded && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
               </svg>
-            </a>
-            <svg class="accordion-chevron" :class="expanded && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
+            </div>
           </div>
-        </div>
-        {% if pt.form %}
-        <div x-show="expanded" x-cloak x-collapse>
-          <div class="px-5 py-4 border-t border-border" style="background: var(--color-bg-raised)">
-            {{ inline_task_form(pt.form, pt.errors, pt.workflow_id, request.state.csrf_token, inline=true) }}
+          {% if pt.form %}
+          <div x-show="expanded" x-cloak x-collapse>
+            <div class="px-5 py-4 border-t border-border" style="background: var(--color-bg-raised)">
+              {{ inline_task_form(pt.form, pt.errors, pt.workflow_id, request.state.csrf_token, inline=true) }}
+            </div>
           </div>
+          {% endif %}
         </div>
-        {% endif %}
+        {% endfor %}
       </div>
-      {% endfor %}
-
-      {# ── Waiting ── #}
-      {% if detail.status == "running" and not pending_tasks %}
+    </div>
+  </div>
+  {% elif is_running %}
+  <div class="mb-6">
+    <div class="card">
       <div class="flex items-center gap-3 px-5 py-3">
         {{ status_badge("pending") }}
         <span class="text-sm text-faint">Waiting for next step…</span>
       </div>
-      {% endif %}
-
     </div>
   </div>
+  {% endif %}
 
-  {# ── Pipeline tab ── #}
-  {% if graph %}
-  <div x-show="tab === 'pipeline'" x-cloak class="card mb-5">
-    <div class="px-5 py-5 overflow-x-auto">
-      <div class="wf-graph">
-        {{ render_subtree(graph, true) }}
+  {# ═══ TASKS (from database) ═══ #}
+  {% if tasks %}
+  <div class="mb-6">
+    <h2 class="text-sm font-semibold text-primary mb-3">Tasks</h2>
+    <div class="card">
+      <div class="divide-y divide-border">
+        {% for task in tasks %}
+        <div x-data="{ open: false }">
+          <div class="wf-task-grid" @click="open = !open">
+            <div class="wf-col-status">{{ task_status_badge(task.status) }}</div>
+            <div class="wf-col-kind"><span class="tag">{{ task.task_kind | default("human") | capitalize }}</span></div>
+            <div class="wf-col-name">
+              <div class="td-title">{{ task.title }}</div>
+              {% if task.description %}
+              <div class="td-subtitle">{{ task.description }}</div>
+              {% endif %}
+            </div>
+            <div class="wf-col-meta">
+              {% if task.assigned_user %}<span class="pill pill-blue">{{ task.assigned_user }}</span>{% endif %}
+              {% if task.assigned_group %}<span class="pill pill-emerald">{{ task.assigned_group }}</span>{% endif %}
+              {% set task_dur = duration(task.created_at, task.completed_at) %}
+              {% if task_dur != "—" %}<span class="timeline-duration">{{ task_dur }}</span>{% endif %}
+            </div>
+            <div class="wf-col-time"><span class="td-time">{{ relative_time(task.created_at) }}</span></div>
+            <div class="wf-col-action">
+              <svg class="accordion-chevron" :class="open && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </div>
+          </div>
+          <div x-show="open" x-cloak x-collapse>
+            <div class="px-5 py-4 border-t border-border" style="background: var(--color-bg-raised)">
+              {% if task.form_data %}
+              <div class="text-[10px] font-medium uppercase tracking-wider text-ghost mb-1.5">Submitted Data</div>
+              <div class="json-viewer" style="border:none;border-radius:0.5rem">
+                <div data-json-viewer="{{ task.form_data | tojson | e }}"></div>
+              </div>
+              {% endif %}
+              {% if task.completed_by %}
+              <div class="{% if task.form_data %}mt-3{% endif %} text-[10px] font-medium uppercase tracking-wider text-ghost mb-1">Completed By</div>
+              <div class="text-sm text-secondary">{{ task.completed_by }}</div>
+              {% endif %}
+              {% if not task.form_data and not task.completed_by %}
+              <span class="text-xs text-ghost">No additional details</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
       </div>
     </div>
   </div>
   {% endif %}
 
-  {% endif %}
-  </div>
-
-  {# ═══ RUN HISTORY ═══ #}
-  {% if total_runs > 1 %}
-  <div data-ws-section="details">
-  <div class="card">
-    <div class="card-header">
-      <h2 class="text-xs font-medium uppercase tracking-wider text-faint">Run History</h2>
-    </div>
-    <div class="divide-y divide-border">
-      {% for run in run_history %}
-      {% set is_current = run.run_id == detail.run_id %}
-      {% if is_current %}
-      <div class="flex items-center gap-2 px-5 py-2.5" style="background: var(--color-surface-subtle);">
-        {{ status_badge(run.status) }}
-        <span class="text-xs text-muted flex-1">{{ run.started }}</span>
-        {% if run.duration != "—" %}<span class="timeline-duration">{{ run.duration }}</span>{% endif %}
-        <span class="text-[10px] font-medium uppercase tracking-wider text-faint">current</span>
+  {# ═══ CHILD WORKFLOWS (from database) ═══ #}
+  {% if children %}
+  <div class="mb-6">
+    <h2 class="text-sm font-semibold text-primary mb-3">Child Workflows</h2>
+    <div class="card">
+      <div class="divide-y divide-border">
+        {% for child in children %}
+        <a href="{{ request.url_for('workflow_detail', workflow_id=child.workflow_id) }}"
+           class="flex items-center gap-3 px-5 py-3 group" style="transition: background .15s ease"
+           onmouseenter="this.style.background='var(--color-surface-hover)'" onmouseleave="this.style.background=''">
+          {{ status_badge(child.status if child.status != "starting" else "running") }}
+          <div class="flex-1 min-w-0">
+            <div class="td-title">{{ child.workflow_type | replace("Workflow", "") | trim }}</div>
+            <div class="td-subtitle">{{ child.workflow_id }}</div>
+          </div>
+          {% set child_dur = duration(child.created_at, child.closed_at) %}
+          {% if child_dur != "—" %}
+          <span class="timeline-duration">{{ child_dur }}</span>
+          {% endif %}
+          <span class="td-time">{{ relative_time(child.created_at) }}</span>
+          <svg class="row-chevron" style="opacity:1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </a>
+        {% endfor %}
       </div>
-      {% else %}
-      <a href="{{ request.url_for('workflow_detail', workflow_id=workflow_id) }}?run_id={{ run.run_id }}" class="flex items-center gap-2 px-5 py-2.5 table-row-clickable" style="color:inherit;text-decoration:none">
-        {{ status_badge(run.status) }}
-        <span class="text-xs text-muted flex-1">{{ run.started }}</span>
-        {% if run.duration != "—" %}<span class="timeline-duration">{{ run.duration }}</span>{% endif %}
-        <svg class="h-3 w-3 text-ghost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-        </svg>
-      </a>
-      {% endif %}
-      {% endfor %}
     </div>
-  </div>
   </div>
   {% endif %}
 
