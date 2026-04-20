@@ -10,7 +10,7 @@
 {% endmacro %}
 
 {% block content %}
-<div x-data="{ copied: false }" class="animate-slide-up stagger-in">
+<div x-data="{ copied: false }" class="animate-slide-up stagger-in" data-workflow-ws="{{ workflow_id }}">
 
   <a href="{{ request.url_for('workflows_page') }}" class="back-link">
     <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -150,7 +150,7 @@
 
   {# ═══ PENDING TASKS (from Temporal) ═══ #}
   {% if pending_tasks %}
-  <div class="mb-6">
+  <div class="mb-6" data-ws-section="pending">
     <h2 class="text-sm font-semibold text-primary mb-3">Pending</h2>
     <div class="card">
       <div class="divide-y divide-border">
@@ -194,7 +194,7 @@
     </div>
   </div>
   {% elif is_running %}
-  <div class="mb-6">
+  <div class="mb-6" data-ws-section="pending">
     <div class="card">
       <div class="flex items-center gap-3 px-5 py-3">
         {{ status_badge("pending") }}
