@@ -54,11 +54,10 @@
   ] %}
   <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-8">
     {% for label, value, color, href in stats %}
-    <a href="{{ href }}" class="dash-counter">
-      <div class="flex items-center gap-2.5">
-        <span class="dash-counter-dot" style="background: {{ pill_colors[color] }}"></span>
-        <span class="dash-counter-value tabular-nums" data-countup="{{ value }}">0</span>
-      </div>
+    <a href="{{ href }}" class="dash-counter"
+       onmouseenter="this.querySelector('.dash-counter-value').style.color='{{ pill_colors[color] }}'"
+       onmouseleave="this.querySelector('.dash-counter-value').style.color=''">
+      <span class="dash-counter-value tabular-nums" data-countup="{{ value }}">0</span>
       <span class="dash-counter-label">{{ label }}</span>
     </a>
     {% endfor %}
