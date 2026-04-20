@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import func, or_, select, update
+from sqlalchemy.orm import joinedload
 
 from ui.auth.models import TaskActivityLog, TaskComment, TaskRecord
 
@@ -272,6 +273,17 @@ class TasksMixin:
             return comment
 
     # ── Activity Log ──
+
+    async def get_recent_activity(self, limit: int = 8) -> list[TaskActivityLog]:
+        """Get the most recent activity across all tasks, with task info."""
+        async with self._session() as db:
+            stmt = (
+                select(TaskActivityLog)
+                .options(joinedload(TaskActivityLog.task))
+                .order_by(TaskActivityLog.created_at.desc())
+                .limit(limit)
+            )
+            return list((await db.execute(stmt)).scalars().unique().all())
 
     async def get_task_activity(self, task_id: str) -> list[TaskActivityLog]:
         """Get the activity log for a task, newest first."""

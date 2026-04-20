@@ -6,7 +6,7 @@
  * a <style> tag to hide unchecked columns immediately.
  */
 
-import { ALL_COLUMNS, COL_STORAGE_KEY, DEFAULT_COLUMNS } from "./shared/constants";
+import { ALL_COLUMNS, COL_STORAGE_KEY, DEFAULT_COLUMNS } from "../shared/constants";
 
 (function preloadColumns() {
   try {

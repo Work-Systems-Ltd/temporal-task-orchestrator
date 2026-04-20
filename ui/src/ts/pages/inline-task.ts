@@ -2,9 +2,9 @@
  * Inline task submission + WebSocket-driven live updates for the workflow detail page.
  */
 
-import { fetchHtml } from "./api/client";
-import { submitTask } from "./api/tasks";
-import { createSocket, type SocketHandle } from "./api/ws";
+import { fetchHtml } from "../api/client";
+import { submitTask } from "../api/tasks";
+import { createSocket, type SocketHandle } from "../api/ws";
 
 declare const Alpine: any;
 

@@ -8,8 +8,8 @@
  * Sends the server-rendered data hash on connect so the server can seed
  * its comparison value and avoid a spurious first refresh.
  */
-import { fetchHtml } from "./api/client";
-import { createSocket, type SocketHandle } from "./api/ws";
+import { fetchHtml } from "../api/client";
+import { createSocket, type SocketHandle } from "../api/ws";
 
 declare const Alpine: any;
 
