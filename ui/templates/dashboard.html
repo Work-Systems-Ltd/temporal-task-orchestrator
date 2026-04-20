@@ -137,6 +137,47 @@
     {% endif %}
   </div>
 
+  {# ── Recently Completed ── #}
+  {% if completed_rows %}
+  <div class="mt-6">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-semibold text-primary">Recently Completed</h2>
+      <a href="/tasks?tab=completed" class="text-xs text-faint hover:text-secondary">View all</a>
+    </div>
+    <div class="table-container">
+      <table class="w-full">
+        <thead class="table-head">
+          <tr>
+            <th class="th text-left">Task</th>
+            <th class="th text-left hidden sm:table-cell">Completed by</th>
+            <th class="th text-left">Completed</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          {% for task in completed_rows %}
+          <tr class="table-row table-row-clickable group" data-href="/tasks/{{ task.id }}/detail" tabindex="0">
+            <td class="td">
+              <div class="td-title">{{ task.title }}</div>
+              {% if task.description %}
+              <div class="td-subtitle">{{ task.description }}</div>
+              {% endif %}
+            </td>
+            <td class="td hidden sm:table-cell">
+              {% if task.completed_by %}
+              <span class="text-sm text-secondary">{{ task.completed_by }}</span>
+              {% else %}
+              <span class="text-xs text-ghost">—</span>
+              {% endif %}
+            </td>
+            <td class="td td-time">{{ relative_time(task.completed_at) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
 </div>
 
 {% endblock %}

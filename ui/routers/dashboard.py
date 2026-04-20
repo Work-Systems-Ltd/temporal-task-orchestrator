@@ -83,6 +83,15 @@ async def dashboard(
             )
             my_task_rows.extend(ip_rows)
 
+    # Recently completed
+    completed_rows, _ = await db.list_tasks(
+        status="completed",
+        page=1,
+        per_page=5,
+        sort="completed_at",
+        order="desc",
+    )
+
     return templates.TemplateResponse(
         "dashboard.html",
         {
@@ -93,6 +102,7 @@ async def dashboard(
             "completed_week": completed_week,
             "recent_activity": recent_activity,
             "my_task_rows": my_task_rows,
+            "completed_rows": completed_rows,
             "running_workflows": running_workflows,
             "relative_time": _relative_time,
         },
