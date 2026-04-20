@@ -1471,15 +1471,11 @@
   /* ── Modal ── */
   .modal-backdrop {
     @apply fixed inset-0;
-    background: rgba(0, 0, 0, 0.4);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.5);
   }
   .modal-panel {
     @apply relative w-full max-w-md rounded-xl p-6;
-    background: var(--color-dropdown-bg);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
+    background: var(--color-bg);
     border: 1px solid var(--color-border);
     box-shadow: 0 8px 32px var(--color-glass-shadow);
   }
@@ -1500,11 +1496,19 @@
     accent-color: var(--color-text-primary);
   }
   .btn-danger {
+    @apply px-4 py-1.5 border border-transparent;
     background: var(--color-pill-red-text);
-    border-color: transparent;
+    color: #ffffff;
+  }
+  .dark .btn-danger {
+    color: #18181b;
   }
   .btn-danger:hover {
     opacity: 0.88;
+  }
+  .btn-danger:active {
+    opacity: 0.78;
+    transform: scale(0.98);
   }
   .btn-icon-danger {
     color: var(--color-pill-red-text);
