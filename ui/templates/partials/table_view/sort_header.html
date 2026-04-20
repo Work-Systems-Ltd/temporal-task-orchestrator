@@ -1,0 +1,32 @@
+{# Sortable column header macro.
+   Usage: {{ sort_th("Label", "orm_field", "hidden sm:table-cell") }}
+   Non-sortable: {{ sort_th("Label", css_class="hidden sm:table-cell") }}
+
+   Requires these variables in the template context:
+     sort_by, url_prefix, tab, filters, filter_values,
+     search, advanced_filters, filter_logic, per_page, view
+#}
+
+{% set _sort_parts = sort_by.split(":") if sort_by else [] %}
+{% set _cur_field = _sort_parts[0] if _sort_parts | length > 0 else "" %}
+{% set _cur_order = _sort_parts[1] if _sort_parts | length > 1 else "desc" %}
+
+{% macro sort_th(label, sort_field="", css_class="") %}
+{% if sort_field %}
+  {% set is_active = _cur_field == sort_field %}
+  {% set next_order = "asc" if (is_active and _cur_order == "desc") else "desc" %}
+  {% set href %}{{ url_prefix }}?tab={{ tab }}&sort_by={{ sort_field }}:{{ next_order }}{% for f in filters %}{% if filter_values.get(f.key) %}&{{ f.key }}={{ filter_values[f.key] }}{% endif %}{% endfor %}{% if search %}&q={{ search }}{% endif %}{% for af in advanced_filters %}&filter={{ af }}{% endfor %}{% if filter_logic != "and" %}&filter_logic={{ filter_logic }}{% endif %}{% if per_page and per_page != view.default_per_page %}&per_page={{ per_page }}{% endif %}{% endset %}
+  <th class="th {{ css_class }}">
+    <a href="{{ href | trim }}" class="th-sortable{% if is_active %} th-sort-active{% endif %}">
+      {{ label }}
+      {% if is_active %}
+      <svg class="th-sort-icon{% if _cur_order == 'asc' %} th-sort-asc{% endif %}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+      </svg>
+      {% endif %}
+    </a>
+  </th>
+{% else %}
+  <th class="th {{ css_class }}">{{ label }}</th>
+{% endif %}
+{% endmacro %}

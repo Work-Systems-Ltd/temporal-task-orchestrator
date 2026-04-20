@@ -26,16 +26,21 @@
 
   {% if items %}
   {# ── Task table (custom rendering) ── #}
+  {% from "partials/table_view/sort_header.html" import sort_th with context %}
   <div class="table-container" style="overflow:hidden" data-ws-section="task-table">
     <table class="w-full text-left">
       <thead class="table-head">
         <tr>
-          <th class="th">Task</th>
-          <th class="hidden th sm:table-cell">Type</th>
+          {{ sort_th("Task", "title") }}
+          {{ sort_th("Type", "task_type", "hidden sm:table-cell") }}
           <th class="hidden th sm:table-cell">User</th>
           <th class="hidden th sm:table-cell">Group</th>
           <th class="hidden th md:table-cell">Workflow</th>
-          <th class="th">{{ "Completed" if tab in ('completed', 'cancelled') else "Created" }}</th>
+          {% if tab in ('completed', 'cancelled') %}
+          {{ sort_th("Completed", "completed_at") }}
+          {% else %}
+          {{ sort_th("Created", "created_at") }}
+          {% endif %}
           {% if tab == 'all' %}
           <th class="hidden th sm:table-cell">Status</th>
           {% endif %}
