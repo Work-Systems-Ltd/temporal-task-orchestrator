@@ -1,0 +1,14 @@
+{# Generic tab bar — renders tabs from tab_config with count badges #}
+<div class="tab-bar mb-4" data-ws-section="tab-bar">
+  {% for t in tab_config.order %}
+  <a href="{{ url_prefix }}?tab={{ t }}"
+     class="tab-item {% if tab == t %}tab-item-active{% endif %}">
+    {{ tab_config.labels.get(t, t | capitalize) }}
+    {% if tab_counts.get(t, 0) > 0 %}
+    <span class="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full
+                  {% if tab == t %}bg-accent/20 text-accent{% else %}bg-surface text-muted{% endif %}
+                  px-1.5 text-[11px] font-medium tabular-nums">{{ tab_counts[t] }}</span>
+    {% endif %}
+  </a>
+  {% endfor %}
+</div>

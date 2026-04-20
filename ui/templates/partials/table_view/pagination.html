@@ -1,0 +1,32 @@
+{# Generic pagination footer #}
+<div class="mt-4 flex items-center justify-between border-t border-border pt-4">
+  <div class="flex items-center gap-3">
+    <span class="text-xs tabular-nums text-faint">
+      {% set start = (page - 1) * per_page + 1 %}
+      {% set end = start + (items | length) - 1 %}
+      {{ start }}–{{ end }} of {{ total }}
+    </span>
+    <div class="flex items-center gap-1.5">
+      <span class="text-[11px] text-ghost">Show</span>
+      {% for size in [10, 20, 50, 100] %}
+      <a href="{{ url_prefix }}?tab={{ tab }}&per_page={{ size }}{% for f in filters %}{% if filter_values.get(f.key) %}&{{ f.key }}={{ filter_values[f.key] }}{% endif %}{% endfor %}{% if search %}&q={{ search }}{% endif %}"
+         class="page-size {% if per_page == size %}page-size-active{% endif %}">{{ size }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="flex items-center gap-1.5">
+    {% if has_prev %}
+    <a href="{{ url_prefix }}?tab={{ tab }}&page={{ page - 1 }}&per_page={{ per_page }}{% for f in filters %}{% if filter_values.get(f.key) %}&{{ f.key }}={{ filter_values[f.key] }}{% endif %}{% endfor %}{% if search %}&q={{ search }}{% endif %}"
+       class="btn btn-page">Previous</a>
+    {% else %}
+    <span class="btn btn-page btn-page-disabled">Previous</span>
+    {% endif %}
+    <span class="text-xs tabular-nums text-faint">{{ page }} / {{ total_pages }}</span>
+    {% if has_next %}
+    <a href="{{ url_prefix }}?tab={{ tab }}&page={{ page + 1 }}&per_page={{ per_page }}{% for f in filters %}{% if filter_values.get(f.key) %}&{{ f.key }}={{ filter_values[f.key] }}{% endif %}{% endfor %}{% if search %}&q={{ search }}{% endif %}"
+       class="btn btn-page">Next</a>
+    {% else %}
+    <span class="btn btn-page btn-page-disabled">Next</span>
+    {% endif %}
+  </div>
+</div>

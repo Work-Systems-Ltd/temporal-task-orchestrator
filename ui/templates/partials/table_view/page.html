@@ -1,0 +1,19 @@
+{# Generic table view page — assembles all partials #}
+
+{% include "partials/table_view/tab_bar.html" %}
+{% include "partials/table_view/filters_bar.html" %}
+
+{% if query_fields %}
+{% include "partials/table_view/query_builder.html" %}
+{% endif %}
+
+{% if items %}
+  {% block table %}
+  {% include "partials/table_view/table.html" %}
+  {% endblock %}
+  {% include "partials/table_view/pagination.html" %}
+{% else %}
+  {% block empty_state %}
+  {% include "partials/table_view/empty_state.html" %}
+  {% endblock %}
+{% endif %}

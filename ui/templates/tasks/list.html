@@ -1,5 +1,5 @@
 {% extends "layouts/base.html" %}
-{% block title %}Tasks — Task Console{% endblock %}
+{% block title %}{{ page_title }} — Task Console{% endblock %}
 
 {% macro priority_badge(priority) %}
 {% set priority_colors = {"critical": "red", "high": "amber", "medium": "blue", "low": "zinc"} %}
@@ -14,159 +14,18 @@
 <span class="pill pill-{{ color }}">{{ labels.get(status, status) }}</span>
 {% endmacro %}
 
-{% macro filter_url(overrides) -%}
-{%- set ns = namespace(parts=[]) -%}
-{%- set params = {"tab": tab, "type": task_type or "", "assignment": assignment or "", "priority": priority or "", "q": search or "", "sort_by": sort_by if sort_by and sort_by != "created_at:desc" else "", "per_page": per_page|string if per_page and per_page != 20 else ""} -%}
-{%- for k, v in overrides.items() -%}{%- if params.update({k: v}) is none -%}{%- endif -%}{%- endfor -%}
-{%- for k, v in params.items() -%}{%- if v -%}{%- if ns.parts.append(k ~ "=" ~ v) is none -%}{%- endif -%}{%- endif -%}{%- endfor -%}
-/tasks{%- if ns.parts %}?{{ ns.parts | join("&") }}{%- endif -%}
-{%- endmacro %}
-
 {% block content %}
 <div class="animate-slide-up" data-initial-hash="{{ data_hash }}">
 
-  {# ── Status tabs ── #}
-  <div class="tab-bar mb-4" data-ws-section="tab-bar">
-    {% for t in tab_order %}
-    <a href="{{ filter_url({"tab": t, "page": ""}) }}"
-       class="tab-item {% if tab == t %}tab-item-active{% endif %}">
-      {{ tab_labels.get(t, t) }}
-      {% if tab_counts.get(t, 0) > 0 %}
-      <span class="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full
-                    {% if tab == t %}bg-accent/20 text-accent{% else %}bg-surface text-muted{% endif %}
-                    px-1.5 text-[11px] font-medium tabular-nums">{{ tab_counts[t] }}</span>
-      {% endif %}
-    </a>
-    {% endfor %}
-  </div>
+  {% include "partials/table_view/tab_bar.html" %}
+  {% include "partials/table_view/filters_bar.html" %}
 
-  {# ── Search + Filters bar ── #}
-  <div class="mb-4 flex flex-wrap items-center gap-2">
-    <form method="get" action="/tasks" class="flex flex-1 items-center gap-2">
-      <input type="hidden" name="tab" value="{{ tab }}" />
-      {% if assignment %}<input type="hidden" name="assignment" value="{{ assignment }}" />{% endif %}
-      {% if task_type %}<input type="hidden" name="type" value="{{ task_type }}" />{% endif %}
-      {% if priority %}<input type="hidden" name="priority" value="{{ priority }}" />{% endif %}
-      {% if sort_by and sort_by != 'created_at:desc' %}<input type="hidden" name="sort_by" value="{{ sort_by }}" />{% endif %}
-      <div class="search-box">
-        <input type="text" name="q" value="{{ search }}" placeholder="Search tasks..."
-               class="search-box-input" />
-        <svg class="search-box-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-        </svg>
-        {% if search %}
-        <a href="{{ filter_url({"q": ""}) }}" class="search-box-clear" title="Clear search">
-          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-          </svg>
-        </a>
-        {% else %}
-        <div class="search-box-kbd"><kbd>/</kbd></div>
-        {% endif %}
-      </div>
-    </form>
+  {% if query_fields %}
+  {% include "partials/table_view/query_builder.html" %}
+  {% endif %}
 
-    <div class="flex shrink-0 flex-wrap items-center gap-2">
-      {# Task type filter #}
-      {% if task_types %}
-      <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
-        <button @click="open = !open" class="btn btn-secondary text-xs">
-          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
-          </svg>
-          {% if task_type %}{{ task_type }}{% else %}All types{% endif %}
-          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
-        <div x-show="open" @click.away="open = false" x-cloak
-             x-transition:enter="transition ease-out duration-100"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-75"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-95"
-             class="dropdown-menu origin-top-right">
-          <a href="{{ filter_url({"type": ""}) }}" class="dropdown-item {% if not task_type %}dropdown-item-active{% endif %}">
-            {% if not task_type %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
-            All types
-          </a>
-          {% for tt in task_types %}
-          <a href="{{ filter_url({"type": tt}) }}" class="dropdown-item {% if task_type == tt %}dropdown-item-active{% endif %}">
-            {% if task_type == tt %}<svg class="dropdown-check" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" /></svg>{% endif %}
-            {{ tt }}
-          </a>
-          {% endfor %}
-        </div>
-      </div>
-      {% endif %}
-
-      {# Priority filter #}
-      <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
-        <button @click="open = !open" class="btn btn-secondary text-xs">
-          {% if priority %}{{ priority | capitalize }}{% else %}Priority{% endif %}
-          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
-        <div x-show="open" @click.away="open = false" x-cloak
-             x-transition:enter="transition ease-out duration-100"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             class="dropdown-menu origin-top-right">
-          <a href="{{ filter_url({"priority": ""}) }}" class="dropdown-item {% if not priority %}dropdown-item-active{% endif %}">All</a>
-          {% for p in priority_options %}
-          <a href="{{ filter_url({"priority": p}) }}" class="dropdown-item {% if priority == p %}dropdown-item-active{% endif %}">{{ p | capitalize }}</a>
-          {% endfor %}
-        </div>
-      </div>
-
-      {# Assignment filter #}
-      <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
-        <button @click="open = !open" class="btn btn-secondary text-xs">
-          {% if assignment == 'mine' %}My tasks{% elif assignment == 'my_groups' %}My groups{% elif assignment == 'unassigned' %}Unassigned{% else %}Assignment{% endif %}
-          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
-        <div x-show="open" @click.away="open = false" x-cloak
-             x-transition:enter="transition ease-out duration-100"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             class="dropdown-menu origin-top-right">
-          <a href="{{ filter_url({"assignment": ""}) }}" class="dropdown-item {% if not assignment %}dropdown-item-active{% endif %}">All</a>
-          <a href="{{ filter_url({"assignment": "mine"}) }}" class="dropdown-item {% if assignment == 'mine' %}dropdown-item-active{% endif %}">My tasks</a>
-          <a href="{{ filter_url({"assignment": "my_groups"}) }}" class="dropdown-item {% if assignment == 'my_groups' %}dropdown-item-active{% endif %}">My groups</a>
-          <a href="{{ filter_url({"assignment": "unassigned"}) }}" class="dropdown-item {% if assignment == 'unassigned' %}dropdown-item-active{% endif %}">Unassigned</a>
-        </div>
-      </div>
-
-      {# Sort #}
-      <div class="relative" x-data="{ open: false }" @keydown.escape.window="open = false">
-        <button @click="open = !open" class="btn btn-secondary text-xs">
-          <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 7.5 7.5 3m0 0L12 7.5M7.5 3v13.5m13.5-4.5L16.5 16.5m0 0L12 12m4.5 4.5V3" />
-          </svg>
-          Sort
-          <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
-        <div x-show="open" @click.away="open = false" x-cloak
-             x-transition:enter="transition ease-out duration-100"
-             x-transition:enter-start="opacity-0 scale-95"
-             x-transition:enter-end="opacity-100 scale-100"
-             class="dropdown-menu origin-top-right">
-          {% for opt in sort_options %}
-          <a href="{{ filter_url({"sort_by": opt.value}) }}" class="dropdown-item {% if sort_by == opt.value %}dropdown-item-active{% endif %}">{{ opt.label }}</a>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {# ── Task table ── #}
   {% if items %}
+  {# ── Task table (custom rendering) ── #}
   <div class="table-container" style="overflow:hidden" data-ws-section="task-table">
     <table class="w-full text-left">
       <thead class="table-head">
@@ -235,36 +94,7 @@
     </table>
   </div>
 
-  {# ── Pagination ── #}
-  <div class="mt-4 flex items-center justify-between border-t border-border pt-4">
-    <div class="flex items-center gap-3">
-      <span class="text-xs tabular-nums text-faint">
-        {% set start = (page - 1) * per_page + 1 %}
-        {% set end = start + (items | length) - 1 %}
-        {{ start }}–{{ end }} of {{ total }}
-      </span>
-      <div class="flex items-center gap-1.5">
-        <span class="text-[11px] text-ghost">Show</span>
-        {% for size in [10, 20, 50, 100] %}
-        <a href="{{ filter_url({"per_page": size|string, "page": ""}) }}"
-           class="page-size {% if per_page == size %}page-size-active{% endif %}">{{ size }}</a>
-        {% endfor %}
-      </div>
-    </div>
-    <div class="flex items-center gap-1.5">
-      {% if has_prev %}
-      <a href="{{ filter_url({"page": (page - 1)|string}) }}" class="btn btn-page">Previous</a>
-      {% else %}
-      <span class="btn btn-page btn-page-disabled">Previous</span>
-      {% endif %}
-      <span class="text-xs tabular-nums text-faint">{{ page }} / {{ total_pages }}</span>
-      {% if has_next %}
-      <a href="{{ filter_url({"page": (page + 1)|string}) }}" class="btn btn-page">Next</a>
-      {% else %}
-      <span class="btn btn-page btn-page-disabled">Next</span>
-      {% endif %}
-    </div>
-  </div>
+  {% include "partials/table_view/pagination.html" %}
 
   {% else %}
   {# ── Empty state ── #}
@@ -307,4 +137,5 @@
 
 {% block scripts %}
 <script src="{{ request.url_for('static', path='js/pages/task-list-ws.js') }}"></script>
+<script src="{{ request.url_for('static', path='js/components/query-builder.js') }}"></script>
 {% endblock %}

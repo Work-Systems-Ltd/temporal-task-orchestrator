@@ -1,0 +1,89 @@
+{# Advanced query builder — collapsible filter panel #}
+<div x-data="queryBuilder()" @toggle-query-builder.window="open = !open"
+     data-fields='{{ query_fields | map(attribute="__dict__") | list | tojson }}'>
+
+  <div x-show="open" x-cloak x-transition
+       class="mb-4 rounded-lg border border-border p-4">
+
+    {# Active filter conditions #}
+    <div class="space-y-2">
+      <template x-for="(cond, index) in conditions" :key="index">
+        <div class="flex flex-wrap items-center gap-2">
+          {# Field selector #}
+          <select x-model="cond.field" @change="cond.op = getOperators(cond.field)[0]?.value || 'eq'; cond.value = ''"
+                  class="rounded border border-border bg-surface px-2 py-1.5 text-xs text-primary">
+            <template x-for="f in fields" :key="f.key">
+              <option :value="f.key" x-text="f.label"></option>
+            </template>
+          </select>
+
+          {# Operator selector #}
+          <select x-model="cond.op"
+                  class="rounded border border-border bg-surface px-2 py-1.5 text-xs text-primary">
+            <template x-for="op in getOperators(cond.field)" :key="op.value">
+              <option :value="op.value" x-text="op.label"></option>
+            </template>
+          </select>
+
+          {# Value input — varies by field type and operator #}
+          <template x-if="!['null', 'notnull'].includes(cond.op)">
+            <div>
+              {# Enum: show select #}
+              <template x-if="getFieldType(cond.field) === 'enum'">
+                <select x-model="cond.value"
+                        class="rounded border border-border bg-surface px-2 py-1.5 text-xs text-primary">
+                  <option value="">Select...</option>
+                  <template x-for="v in getEnumValues(cond.field)" :key="v">
+                    <option :value="v" x-text="v"></option>
+                  </template>
+                </select>
+              </template>
+              {# Date: show date input #}
+              <template x-if="getFieldType(cond.field) === 'date'">
+                <input type="date" x-model="cond.value"
+                       class="rounded border border-border bg-surface px-2 py-1.5 text-xs text-primary" />
+              </template>
+              {# String/number: show text input #}
+              <template x-if="!['enum', 'date'].includes(getFieldType(cond.field))">
+                <input type="text" x-model="cond.value" placeholder="Value..."
+                       class="rounded border border-border bg-surface px-2 py-1.5 text-xs text-primary w-32" />
+              </template>
+            </div>
+          </template>
+
+          {# Remove button #}
+          <button @click="removeCondition(index)" class="text-ghost hover:text-red-400 transition-colors">
+            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </template>
+    </div>
+
+    {# Add condition + logic toggle + apply/clear #}
+    <div class="mt-3 flex flex-wrap items-center gap-2">
+      <button @click="addCondition()" class="btn btn-secondary text-xs">
+        <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Add condition
+      </button>
+
+      <template x-if="conditions.length > 1">
+        <div class="flex items-center gap-1 text-xs">
+          <span class="text-ghost">Logic:</span>
+          <button @click="logic = 'and'" class="px-2 py-0.5 rounded text-xs"
+                  :class="logic === 'and' ? 'bg-accent/20 text-accent' : 'text-muted hover:text-secondary'">AND</button>
+          <button @click="logic = 'or'" class="px-2 py-0.5 rounded text-xs"
+                  :class="logic === 'or' ? 'bg-accent/20 text-accent' : 'text-muted hover:text-secondary'">OR</button>
+        </div>
+      </template>
+
+      <div class="ml-auto flex items-center gap-2">
+        <button @click="clear()" class="btn btn-secondary text-xs" x-show="conditions.length > 0">Clear</button>
+        <button @click="apply()" class="btn btn-primary text-xs" x-show="conditions.length > 0">Apply</button>
+      </div>
+    </div>
+  </div>
+</div>

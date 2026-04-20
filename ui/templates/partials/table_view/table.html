@@ -1,0 +1,43 @@
+{# Generic table — iterates columns and dispatches to per-cell macros #}
+<div class="table-container" style="overflow:hidden" data-ws-section="task-table">
+  <table class="w-full text-left">
+    <thead class="table-head">
+      <tr>
+        {% for col in columns %}
+        <th class="th {{ col.css_class }}">{{ col.label }}</th>
+        {% endfor %}
+        <th class="th" style="width:1%"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-border">
+      {% for item in items %}
+      <tr class="group table-row table-row-clickable animate-slide-up"
+          tabindex="0" role="link"
+          style="animation-delay: {{ loop.index0 * 30 }}ms"
+          {% if row_href is defined %}data-href="{{ row_href(item) }}"{% endif %}>
+        {% for col in columns %}
+        <td class="td {{ col.css_class }}">
+          {% if col.render and caller is undefined %}
+            {# Custom render macro — must be defined by the per-view template #}
+            {{ render_cell(col.render, item, col) }}
+          {% else %}
+            {# Default: display field value as text #}
+            {% set val = item[col.key] if item is mapping else item.__dict__.get(col.key, '') %}
+            {% if val is string %}
+              <span class="text-xs text-secondary">{{ val or "—" }}</span>
+            {% else %}
+              <span class="text-xs text-secondary">{{ val }}</span>
+            {% endif %}
+          {% endif %}
+        </td>
+        {% endfor %}
+        <td class="td">
+          <svg class="row-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
