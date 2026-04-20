@@ -55,7 +55,6 @@ class TaskTableView(GenericTableView[TaskRecord, TaskListItem]):
     filters = [
         FilterDef(key="kind", label="Kind", field="task_kind"),
         FilterDef(key="type", label="Type", field="task_type"),
-        FilterDef(key="priority", label="Priority", field="priority"),
         FilterDef(key="assignment", label="Assignment"),
     ]
 
@@ -139,8 +138,6 @@ class TaskTableView(GenericTableView[TaskRecord, TaskListItem]):
             return ["human", "system"]
         if key == "type":
             return await db.get_distinct_task_types()
-        if key == "priority":
-            return ["critical", "high", "medium", "low"]
         if key == "assignment":
             return ["mine", "my_groups", "unassigned"]
         return []
