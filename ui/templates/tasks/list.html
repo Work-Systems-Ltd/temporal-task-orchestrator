@@ -167,20 +167,18 @@
 
   {# ── Task table ── #}
   {% if items %}
-  <div class="table-container" data-ws-section="task-table">
+  <div class="table-container" style="overflow:hidden" data-ws-section="task-table">
     <table class="w-full text-left">
       <thead class="table-head">
         <tr>
           <th class="th">Task</th>
           <th class="hidden th sm:table-cell">Type</th>
-          <th class="hidden th sm:table-cell">Priority</th>
-          <th class="hidden th sm:table-cell">Status</th>
           <th class="hidden th sm:table-cell">User</th>
           <th class="hidden th sm:table-cell">Group</th>
           <th class="hidden th md:table-cell">Workflow</th>
-          <th class="th">Created</th>
-          {% if tab in ('completed', 'cancelled', 'all') %}
-          <th class="hidden th md:table-cell">Completed</th>
+          <th class="th">{{ "Completed" if tab in ('completed', 'cancelled') else "Created" }}</th>
+          {% if tab == 'all' %}
+          <th class="hidden th sm:table-cell">Status</th>
           {% endif %}
           <th class="th" style="width:1%"></th>
         </tr>
@@ -196,39 +194,34 @@
             data-href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}"
             {% endif %}>
           <td class="td">
-            <div class="td-title">{{ item.title }}</div>
-            {% if item.description %}
-            <div class="td-subtitle">{{ item.description[:100] }}{% if item.description|length > 100 %}...{% endif %}</div>
-            {% endif %}
+            <div class="flex items-center gap-2">
+              {% if item.priority != 'medium' %}{{ priority_badge(item.priority) }}{% endif %}
+              <div>
+                <div class="td-title">{{ item.title }}</div>
+                {% if item.description %}
+                <div class="td-subtitle">{{ item.description[:80] }}{% if item.description|length > 80 %}...{% endif %}</div>
+                {% endif %}
+              </div>
+            </div>
           </td>
           <td class="hidden td sm:table-cell">
             <span class="tag">{{ item.task_type }}</span>
           </td>
           <td class="hidden td sm:table-cell">
-            {{ priority_badge(item.priority) }}
+            <span class="text-xs {% if item.assigned_user %}text-secondary{% else %}text-ghost{% endif %}">{{ item.assigned_user or "—" }}</span>
           </td>
           <td class="hidden td sm:table-cell">
-            {{ task_status_badge(item.status) }}
-          </td>
-          <td class="hidden td sm:table-cell">
-            <span class="{% if item.assigned_user %}text-secondary{% else %}text-ghost{% endif %} text-xs">
-              {{ item.assigned_user or "—" }}
-            </span>
-          </td>
-          <td class="hidden td sm:table-cell">
-            <span class="{% if item.assigned_group %}text-secondary{% else %}text-ghost{% endif %} text-xs">
-              {{ item.assigned_group or "—" }}
-            </span>
+            <span class="text-xs {% if item.assigned_group %}text-secondary{% else %}text-ghost{% endif %}">{{ item.assigned_group or "—" }}</span>
           </td>
           <td class="hidden td md:table-cell">
-            <a href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}" class="td-mono timeline-link" title="{{ item.workflow_id }}">{{ item.workflow_id[:24] }}{% if item.workflow_id|length > 24 %}...{% endif %}</a>
+            <a href="{{ request.url_for('workflow_detail', workflow_id=item.workflow_id) }}" class="td-mono timeline-link" title="{{ item.workflow_id }}">{{ item.workflow_id[:20] }}…</a>
           </td>
           <td class="td">
-            <span class="td-time">{{ item.created_at }}</span>
+            <span class="td-time">{{ item.completed_at if tab in ('completed', 'cancelled') and item.completed_at else item.created_at }}</span>
           </td>
-          {% if tab in ('completed', 'cancelled', 'all') %}
-          <td class="hidden td md:table-cell">
-            <span class="td-time">{{ item.completed_at or "—" }}</span>
+          {% if tab == 'all' %}
+          <td class="hidden td sm:table-cell">
+            {{ task_status_badge(item.status) }}
           </td>
           {% endif %}
           <td class="td">
