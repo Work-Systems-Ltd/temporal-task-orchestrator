@@ -41,109 +41,128 @@
 
   {# ── Counters ── #}
   {% set stats = [
-    ("Open",           summary.get("open", 0),        "blue",    "/tasks?tab=open"),
-    ("In Progress",    summary.get("in_progress", 0), "amber",   "/tasks?tab=in_progress"),
-    ("Completed",      summary.get("completed", 0),   "emerald", "/tasks?tab=completed"),
-    ("Done today",     completed_today,                "emerald", ""),
-    ("Done this week", completed_week,                 "emerald", ""),
-    ("Workflows",      running_workflows,              "blue",    "/workflows"),
+    ("Open",        summary.get("open", 0),        "blue",    "/tasks?tab=open"),
+    ("In Progress", summary.get("in_progress", 0), "amber",   "/tasks?tab=in_progress"),
+    ("Completed",   summary.get("completed", 0),   "emerald", "/tasks?tab=completed"),
+    ("Workflows",   running_workflows,              "blue",    "/workflows"),
   ] %}
-  <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6 mb-8">
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-8">
     {% for label, value, color, href in stats %}
-    <{% if href %}a href="{{ href }}"{% else %}div{% endif %}
+    <a href="{{ href }}"
        class="dash-counter"
-       {% if href %}onmouseenter="this.querySelector('.dash-counter-value').style.color='{{ pill_colors[color] }}'" onmouseleave="this.querySelector('.dash-counter-value').style.color=''"{% endif %}>
+       onmouseenter="this.querySelector('.dash-counter-value').style.color='{{ pill_colors[color] }}'"
+       onmouseleave="this.querySelector('.dash-counter-value').style.color=''">
       <span class="dash-counter-value tabular-nums" data-countup="{{ value }}">0</span>
       <span class="dash-counter-label">{{ label }}</span>
-    </{% if href %}a{% else %}div{% endif %}>
+    </a>
     {% endfor %}
   </div>
 
-  <div class="space-y-6">
+  {# ── Two-column layout: My Tasks + Activity ── #}
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-6">
 
-  {# ── My Tasks (table) ── #}
-  {% if my_task_rows %}
-  <div>
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="text-sm font-semibold text-primary">My Tasks</h2>
-      <a href="/tasks?assignment=mine" class="text-xs text-faint hover:text-secondary">View all</a>
-    </div>
-    <div class="table-container">
-      <table class="w-full">
-        <thead class="table-head">
-          <tr>
-            <th class="th text-left">Task</th>
-            <th class="th text-left hidden sm:table-cell">Status</th>
-            <th class="th text-left hidden sm:table-cell">Priority</th>
-            <th class="th text-left">Created</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-border">
-          {% for task in my_task_rows %}
-          <tr class="table-row table-row-clickable group" data-href="/tasks/{{ task.id }}/detail" tabindex="0">
-            <td class="td">
-              <div class="td-title">{{ task.title }}</div>
-              {% if task.description %}
-              <div class="td-subtitle">{{ task.description }}</div>
-              {% endif %}
-            </td>
-            <td class="td hidden sm:table-cell">{{ task_status_badge(task.status) }}</td>
-            <td class="td hidden sm:table-cell">
-              {% set pc = {"critical": "red", "high": "amber", "medium": "blue", "low": "zinc"} %}
-              <span class="pill pill-{{ pc.get(task.priority, 'zinc') }}">{{ task.priority | capitalize }}</span>
-            </td>
-            <td class="td td-time">{{ relative_time(task.created_at) }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-  {% endif %}
-
-  {# ── Recent Activity (full width) ── #}
-  <div>
-    <h2 class="text-sm font-semibold text-primary mb-3">Recent Activity</h2>
-    {% if recent_activity %}
-    <div class="table-container">
-      <div class="divide-y divide-border">
-        {% for entry in recent_activity %}
-        <div class="flex items-center gap-3 px-4 py-3" style="transition: background .15s ease" onmouseenter="this.style.background='var(--color-surface-hover)'" onmouseleave="this.style.background=''">
-          <div class="shrink-0">{{ activity_icon(entry.action) }}</div>
-          <div class="flex-1 min-w-0">
-            <span class="text-sm text-secondary">
-              {% if entry.action == "created" %}
-              <span class="font-medium text-primary">{{ entry.task.title }}</span> created{% if entry.actor %} by {{ entry.actor }}{% endif %}
-              {% elif entry.action == "status_changed" %}
-              <span class="font-medium text-primary">{{ entry.task.title }}</span> {{ entry.old_value }} → {{ entry.new_value }}{% if entry.actor %} by {{ entry.actor }}{% endif %}
-              {% elif entry.action == "reassigned" %}
-              <span class="font-medium text-primary">{{ entry.task.title }}</span> reassigned{% if entry.new_value %} to {{ entry.new_value }}{% endif %}
-              {% elif entry.action == "commented" %}
-              {{ entry.actor }} commented on <span class="font-medium text-primary">{{ entry.task.title }}</span>
-              {% elif entry.action == "completed" %}
-              <span class="font-medium text-primary">{{ entry.task.title }}</span> completed{% if entry.actor %} by {{ entry.actor }}{% endif %}
-              {% else %}
-              {{ entry.action }} on <span class="font-medium text-primary">{{ entry.task.title }}</span>
-              {% endif %}
-            </span>
-          </div>
-          <span class="text-[11px] text-ghost tabular-nums shrink-0">{{ relative_time(entry.created_at) }}</span>
-        </div>
-        {% endfor %}
+    {# ── My Tasks (3/5 width) ── #}
+    <div class="lg:col-span-3">
+      <div class="dash-section-header">
+        <h2 class="dash-section-title">My Tasks</h2>
+        {% if my_task_rows %}
+        <a href="/tasks?assignment=mine" class="dash-section-link">View all &rarr;</a>
+        {% endif %}
       </div>
+      {% if my_task_rows %}
+      <div class="table-container">
+        <table class="w-full">
+          <thead class="table-head">
+            <tr>
+              <th class="th text-left">Task</th>
+              <th class="th text-left hidden sm:table-cell">Status</th>
+              <th class="th text-left hidden sm:table-cell">Priority</th>
+              <th class="th text-left">Created</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {% for task in my_task_rows %}
+            <tr class="table-row table-row-clickable group" data-href="/tasks/{{ task.id }}/detail" tabindex="0">
+              <td class="td">
+                <div class="td-title">{{ task.title }}</div>
+                {% if task.description %}
+                <div class="td-subtitle">{{ task.description }}</div>
+                {% endif %}
+              </td>
+              <td class="td hidden sm:table-cell">{{ task_status_badge(task.status) }}</td>
+              <td class="td hidden sm:table-cell">
+                {% set pc = {"critical": "red", "high": "amber", "medium": "blue", "low": "zinc"} %}
+                <span class="pill pill-{{ pc.get(task.priority, 'zinc') }}">{{ task.priority | capitalize }}</span>
+              </td>
+              <td class="td td-time">{{ relative_time(task.created_at) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="table-container">
+        <div class="flex flex-col items-center py-10">
+          <svg class="h-6 w-6 text-faint mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <p class="text-xs text-ghost">All caught up</p>
+        </div>
+      </div>
+      {% endif %}
     </div>
-    {% else %}
-    <div class="table-container">
-      <p class="text-xs text-ghost py-6 text-center">No recent activity</p>
+
+    {# ── Recent Activity (2/5 width) ── #}
+    <div class="lg:col-span-2">
+      <div class="dash-section-header">
+        <h2 class="dash-section-title">Activity</h2>
+      </div>
+      {% if recent_activity %}
+      <div class="table-container">
+        <div class="divide-y divide-border">
+          {% for entry in recent_activity %}
+          <div class="dash-activity-row">
+            <div class="shrink-0">{{ activity_icon(entry.action) }}</div>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm text-secondary truncate">
+                {% if entry.action == "created" %}
+                <span class="font-medium text-primary">{{ entry.task.title }}</span> created
+                {% elif entry.action == "status_changed" %}
+                <span class="font-medium text-primary">{{ entry.task.title }}</span> {{ entry.old_value }} → {{ entry.new_value }}
+                {% elif entry.action == "reassigned" %}
+                <span class="font-medium text-primary">{{ entry.task.title }}</span> reassigned{% if entry.new_value %} to {{ entry.new_value }}{% endif %}
+                {% elif entry.action == "commented" %}
+                {{ entry.actor }} commented on <span class="font-medium text-primary">{{ entry.task.title }}</span>
+                {% elif entry.action == "completed" %}
+                <span class="font-medium text-primary">{{ entry.task.title }}</span> completed
+                {% else %}
+                {{ entry.action }} on <span class="font-medium text-primary">{{ entry.task.title }}</span>
+                {% endif %}
+              </div>
+              <div class="text-[11px] text-ghost tabular-nums mt-0.5">
+                {% if entry.actor %}{{ entry.actor }} · {% endif %}{{ relative_time(entry.created_at) }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="table-container">
+        <p class="text-xs text-ghost py-6 text-center">No recent activity</p>
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
+
   </div>
 
   {# ── Recently Completed ── #}
   <div>
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="text-sm font-semibold text-primary">Recently Completed</h2>
-      <a href="/tasks?tab=completed" class="text-xs text-faint hover:text-secondary">View all</a>
+    <div class="dash-section-header">
+      <h2 class="dash-section-title">Recently Completed</h2>
+      {% if completed_rows %}
+      <a href="/tasks?tab=completed" class="dash-section-link">View all &rarr;</a>
+      {% endif %}
     </div>
     {% if completed_rows %}
     <div class="table-container">
@@ -182,8 +201,6 @@
       <p class="text-xs text-ghost py-6 text-center">No completed tasks yet</p>
     </div>
     {% endif %}
-  </div>
-
   </div>
 
 </div>
