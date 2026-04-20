@@ -222,12 +222,16 @@
               {% endif %}
             </div>
             <div class="wf-col-meta">
-              {% if task.assigned_user %}<span class="pill pill-blue">{{ task.assigned_user }}</span>{% endif %}
-              {% if task.assigned_group %}<span class="pill pill-emerald">{{ task.assigned_group }}</span>{% endif %}
-              {% set task_dur = duration(task.created_at, task.completed_at) %}
-              {% if task_dur != "—" %}<span class="timeline-duration">{{ task_dur }}</span>{% endif %}
+              {% if task.assigned_user %}<span class="text-xs text-secondary">{{ task.assigned_user }}</span>{% endif %}
+              {% if task.assigned_user and task.assigned_group %}<span class="text-ghost">/</span>{% endif %}
+              {% if task.assigned_group %}<span class="text-xs text-muted">{{ task.assigned_group }}</span>{% endif %}
+              {% if not task.assigned_user and not task.assigned_group %}<span class="text-xs text-ghost">—</span>{% endif %}
             </div>
-            <div class="wf-col-time"><span class="td-time">{{ relative_time(task.created_at) }}</span></div>
+            <div class="wf-col-time">
+              {% set task_dur = duration(task.created_at, task.completed_at) %}
+              {% if task_dur != "—" %}<span class="timeline-duration mr-1.5">{{ task_dur }}</span>{% endif %}
+              <span class="td-time">{{ relative_time(task.created_at) }}</span>
+            </div>
             <div class="wf-col-action">
               <svg class="accordion-chevron" :class="open && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
