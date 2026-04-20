@@ -14,6 +14,7 @@ class Column:
     sortable: bool = False  # Whether this column can be sorted
     sort_field: str = ""  # ORM column name for sorting (defaults to key if empty)
     render: str | None = None  # Jinja2 macro name for custom cell rendering
+    hideable: bool = True  # Whether the user can hide this column via the column picker
 
 
 @dataclass

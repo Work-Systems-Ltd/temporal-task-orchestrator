@@ -39,7 +39,7 @@ class TaskTableView(GenericTableView[TaskRecord, TaskListItem]):
     )
 
     columns = [
-        Column(key="title", label="Task", sortable=True, render="task_title_cell"),
+        Column(key="title", label="Task", sortable=True, render="task_title_cell", hideable=False),
         Column(key="task_type", label="Type", css_class="hidden sm:table-cell", sortable=True, sort_field="task_type"),
         Column(key="assigned_user", label="User", css_class="hidden sm:table-cell"),
         Column(key="assigned_group", label="Group", css_class="hidden sm:table-cell"),

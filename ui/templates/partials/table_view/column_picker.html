@@ -1,0 +1,42 @@
+{# Column picker — toggle visibility and reorder columns #}
+<div class="relative"
+     x-data="columnPicker()"
+     data-columns='{{ columns | map(attribute="__dict__") | list | tojson }}'
+     data-prefix="{{ url_prefix }}">
+  <button @click="open = !open" class="btn btn-secondary text-xs">
+    <svg class="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m6-15v15m-10.875 0h15.75c.621 0 1.125-.504 1.125-1.125V5.625c0-.621-.504-1.125-1.125-1.125H4.125C3.504 4.5 3 5.004 3 5.625v12.75c0 .621.504 1.125 1.125 1.125Z" />
+    </svg>
+    Columns
+  </button>
+  <div x-show="open" @click.away="open = false" x-cloak
+       x-transition:enter="transition ease-out duration-100"
+       x-transition:enter-start="opacity-0 scale-95"
+       x-transition:enter-end="opacity-100 scale-100"
+       class="dropdown-menu origin-top-right" style="width: 15rem">
+    <div class="dropdown-heading">Columns</div>
+    <template x-for="(col, idx) in cols" :key="col.key">
+      <div class="flex items-center gap-1 px-2 py-1">
+        <div class="flex flex-col gap-0.5 shrink-0">
+          <button @click="moveUp(idx)" class="text-ghost hover:text-secondary" :class="idx === 0 ? 'opacity-25 pointer-events-none' : ''">
+            <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" /></svg>
+          </button>
+          <button @click="moveDown(idx)" class="text-ghost hover:text-secondary" :class="idx === cols.length - 1 ? 'opacity-25 pointer-events-none' : ''">
+            <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+          </button>
+        </div>
+        <label class="flex flex-1 items-center gap-2 px-1 py-1 text-xs cursor-pointer rounded"
+               :class="col.visible ? 'text-secondary' : 'text-ghost'">
+          <input type="checkbox" class="modal-check"
+                 :checked="col.visible"
+                 :disabled="!col.hideable"
+                 @change="toggle(col.key)" />
+          <span x-text="col.label"></span>
+        </label>
+      </div>
+    </template>
+    <div class="border-t border-border px-3 py-2">
+      <button @click="reset()" class="text-[11px] text-faint hover:text-secondary">Reset to default</button>
+    </div>
+  </div>
+</div>
