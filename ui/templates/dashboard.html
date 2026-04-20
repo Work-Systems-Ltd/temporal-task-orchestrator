@@ -17,6 +17,20 @@
 {% endif %}
 {% endmacro %}
 
+{% macro task_status_badge(status) %}
+{% set colors = {"open": "blue", "in_progress": "amber", "on_hold": "zinc", "completed": "emerald", "cancelled": "red"} %}
+{% set labels = {"open": "Open", "in_progress": "In Progress", "on_hold": "On Hold", "completed": "Completed", "cancelled": "Cancelled"} %}
+<span class="pill pill-{{ colors.get(status, 'zinc') }}">{{ labels.get(status, status) }}</span>
+{% endmacro %}
+
+{% set pill_colors = {
+  "blue":    "var(--color-pill-blue-text)",
+  "amber":   "var(--color-pill-amber-text)",
+  "zinc":    "var(--color-pill-zinc-text)",
+  "red":     "var(--color-pill-red-text)",
+  "emerald": "var(--color-pill-emerald-text)",
+} %}
+
 {% block content %}
 <div class="animate-slide-up">
 
@@ -34,18 +48,10 @@
     ("Done today",     completed_today,                "emerald", ""),
     ("Workflows",      running_workflows,              "blue",    "/workflows"),
   ] %}
-  {% set pill_colors = {
-    "blue":    "var(--color-pill-blue-text)",
-    "amber":   "var(--color-pill-amber-text)",
-    "zinc":    "var(--color-pill-zinc-text)",
-    "red":     "var(--color-pill-red-text)",
-    "emerald": "var(--color-pill-emerald-text)",
-  } %}
   <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6 mb-8">
     {% for label, value, color, href in stats %}
     <{% if href %}a href="{{ href }}"{% else %}div{% endif %}
        class="dash-counter"
-       style="transition: color .2s ease"
        {% if href %}onmouseenter="this.querySelector('.dash-counter-value').style.color='{{ pill_colors[color] }}'" onmouseleave="this.querySelector('.dash-counter-value').style.color=''"{% endif %}>
       <span class="dash-counter-value tabular-nums" data-countup="{{ value }}">0</span>
       <span class="dash-counter-label">{{ label }}</span>
@@ -53,148 +59,82 @@
     {% endfor %}
   </div>
 
-  {# ── Row 2: Status Breakdown + My Tasks ── #}
-  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-6">
-
-    <div class="card">
-      <div class="card-header">
-        <h3 class="card-title">Status Breakdown</h3>
-      </div>
-      <div class="card-body">
-        {% set total = summary.get("total", 0) %}
-        {% if total > 0 %}
-        {% set statuses = [
-          ("Open",       summary.get("open", 0),        "blue"),
-          ("In Progress",summary.get("in_progress", 0), "amber"),
-          ("On Hold",    summary.get("on_hold", 0),     "zinc"),
-          ("Completed",  summary.get("completed", 0),   "emerald"),
-          ("Cancelled",  summary.get("cancelled", 0),   "red"),
-        ] %}
-        <div class="space-y-3">
-          {% for label, count, color in statuses %}
-          {% set pct = (count / total * 100) | round(1) if total > 0 else 0 %}
-          <div>
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs text-secondary">{{ label }}</span>
-              <span class="text-xs tabular-nums text-muted">{{ count }} <span class="text-ghost">({{ pct }}%)</span></span>
-            </div>
-            <div class="h-2 w-full rounded-full overflow-hidden" style="background: var(--color-surface-active)">
-              <div class="h-full rounded-full" data-bar-width="{{ pct }}%" style="width: 0%; background: {{ pill_colors[color] }}; transition: width .6s cubic-bezier(.16,1,.3,1)"></div>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <p class="text-xs text-ghost py-6 text-center">No tasks yet</p>
-        {% endif %}
-      </div>
+  {# ── My Tasks (table) ── #}
+  {% if my_task_rows %}
+  <div class="mb-6">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-semibold text-primary">My Tasks</h2>
+      <a href="/tasks?assignment=mine" class="text-xs text-faint hover:text-secondary">View all</a>
     </div>
-
-    {# ── My Tasks ── #}
-    <div class="card">
-      <div class="card-header flex items-center justify-between">
-        <h3 class="card-title">My Tasks</h3>
-        {% if my_tasks.get("all", 0) > 0 %}
-        <a href="/tasks?assignment=mine" class="text-xs text-faint hover:text-secondary">View all</a>
-        {% endif %}
-      </div>
-      <div class="card-body">
-        {% set my_total = my_tasks.get("all", 0) %}
-        {% if my_total > 0 %}
-        {% set my_active = [
-          ("Open",        my_tasks.get("open", 0),        "blue",    "/tasks?tab=open&assignment=mine"),
-          ("In Progress", my_tasks.get("in_progress", 0), "amber",   "/tasks?tab=in_progress&assignment=mine"),
-          ("On Hold",     my_tasks.get("on_hold", 0),     "zinc",    "/tasks?tab=on_hold&assignment=mine"),
-        ] %}
-        <div class="space-y-4">
-          {% for label, count, color, href in my_active %}
-          {% if count > 0 %}
-          <a href="{{ href }}" class="flex items-center justify-between group" style="transition: all .15s ease">
-            <span class="pill pill-{{ color }}">{{ label }}</span>
-            <span class="text-sm font-semibold tabular-nums text-primary">{{ count }}</span>
-          </a>
-          {% endif %}
+    <div class="table-container">
+      <table class="w-full">
+        <thead class="table-head">
+          <tr>
+            <th class="th text-left">Task</th>
+            <th class="th text-left hidden sm:table-cell">Status</th>
+            <th class="th text-left hidden sm:table-cell">Priority</th>
+            <th class="th text-left">Created</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border">
+          {% for task in my_task_rows %}
+          <tr class="table-row table-row-clickable group" data-href="/tasks/{{ task.id }}/detail" tabindex="0">
+            <td class="td">
+              <div class="td-title">{{ task.title }}</div>
+              {% if task.description %}
+              <div class="td-subtitle">{{ task.description }}</div>
+              {% endif %}
+            </td>
+            <td class="td hidden sm:table-cell">{{ task_status_badge(task.status) }}</td>
+            <td class="td hidden sm:table-cell">
+              {% set pc = {"critical": "red", "high": "amber", "medium": "blue", "low": "zinc"} %}
+              <span class="pill pill-{{ pc.get(task.priority, 'zinc') }}">{{ task.priority | capitalize }}</span>
+            </td>
+            <td class="td td-time">{{ relative_time(task.created_at) }}</td>
+          </tr>
           {% endfor %}
-          {% set my_done = my_tasks.get("completed", 0) + my_tasks.get("cancelled", 0) %}
-          {% if my_done > 0 %}
-          <div class="flex items-center justify-between pt-3" style="border-top: 1px solid var(--color-border)">
-            <span class="text-xs text-faint">Closed</span>
-            <span class="text-xs tabular-nums text-muted">{{ my_done }}</span>
-          </div>
-          {% endif %}
-        </div>
-        {% else %}
-        <p class="text-xs text-ghost py-6 text-center">No tasks assigned to you</p>
-        {% endif %}
-      </div>
+        </tbody>
+      </table>
     </div>
-
   </div>
+  {% endif %}
 
-  {# ── Row 3: Recent Activity + Quick Actions ── #}
-  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-
-    <div class="card">
-      <div class="card-header">
-        <h3 class="card-title">Recent Activity</h3>
-      </div>
-      <div class="card-body">
-        {% if recent_activity %}
-        <div class="space-y-3">
-          {% for entry in recent_activity %}
-          <div class="flex items-start gap-3">
-            <div class="mt-0.5 shrink-0">{{ activity_icon(entry.action) }}</div>
-            <div class="flex-1 min-w-0">
-              <div class="text-sm text-secondary truncate">
-                {% if entry.action == "created" %}
-                <span class="font-medium">{{ entry.task.title }}</span> created{% if entry.actor %} by {{ entry.actor }}{% endif %}
-                {% elif entry.action == "status_changed" %}
-                <span class="font-medium">{{ entry.task.title }}</span> {{ entry.old_value }} → {{ entry.new_value }}{% if entry.actor %} by {{ entry.actor }}{% endif %}
-                {% elif entry.action == "reassigned" %}
-                <span class="font-medium">{{ entry.task.title }}</span> reassigned{% if entry.new_value %} to {{ entry.new_value }}{% endif %}
-                {% elif entry.action == "commented" %}
-                {{ entry.actor }} commented on <span class="font-medium">{{ entry.task.title }}</span>
-                {% elif entry.action == "completed" %}
-                <span class="font-medium">{{ entry.task.title }}</span> completed{% if entry.actor %} by {{ entry.actor }}{% endif %}
-                {% else %}
-                {{ entry.action }} on <span class="font-medium">{{ entry.task.title }}</span>
-                {% endif %}
-              </div>
-              <div class="text-[11px] text-ghost">{{ relative_time(entry.created_at) }}</div>
-            </div>
+  {# ── Recent Activity (full width) ── #}
+  <div>
+    <h2 class="text-sm font-semibold text-primary mb-3">Recent Activity</h2>
+    {% if recent_activity %}
+    <div class="table-container">
+      <div class="divide-y divide-border">
+        {% for entry in recent_activity %}
+        <div class="flex items-center gap-3 px-4 py-3" style="transition: background .15s ease" onmouseenter="this.style.background='var(--color-surface-hover)'" onmouseleave="this.style.background=''">
+          <div class="shrink-0">{{ activity_icon(entry.action) }}</div>
+          <div class="flex-1 min-w-0">
+            <span class="text-sm text-secondary">
+              {% if entry.action == "created" %}
+              <span class="font-medium text-primary">{{ entry.task.title }}</span> created{% if entry.actor %} by {{ entry.actor }}{% endif %}
+              {% elif entry.action == "status_changed" %}
+              <span class="font-medium text-primary">{{ entry.task.title }}</span> {{ entry.old_value }} → {{ entry.new_value }}{% if entry.actor %} by {{ entry.actor }}{% endif %}
+              {% elif entry.action == "reassigned" %}
+              <span class="font-medium text-primary">{{ entry.task.title }}</span> reassigned{% if entry.new_value %} to {{ entry.new_value }}{% endif %}
+              {% elif entry.action == "commented" %}
+              {{ entry.actor }} commented on <span class="font-medium text-primary">{{ entry.task.title }}</span>
+              {% elif entry.action == "completed" %}
+              <span class="font-medium text-primary">{{ entry.task.title }}</span> completed{% if entry.actor %} by {{ entry.actor }}{% endif %}
+              {% else %}
+              {{ entry.action }} on <span class="font-medium text-primary">{{ entry.task.title }}</span>
+              {% endif %}
+            </span>
           </div>
-          {% endfor %}
+          <span class="text-[11px] text-ghost tabular-nums shrink-0">{{ relative_time(entry.created_at) }}</span>
         </div>
-        {% else %}
-        <p class="text-xs text-ghost py-6 text-center">No recent activity</p>
-        {% endif %}
+        {% endfor %}
       </div>
     </div>
-
-    <div class="card">
-      <div class="card-header">
-        <h3 class="card-title">Quick Actions</h3>
-      </div>
-      <div class="card-body p-0">
-        <a href="/tasks?tab=open" class="picker-item group" style="border-radius: 0; border: none; border-bottom: 1px solid var(--color-border)">
-          <span class="text-sm text-secondary group-hover:text-primary">View open tasks</span>
-          <svg class="h-3.5 w-3.5 text-ghost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-        </a>
-        <a href="/tasks?tab=open&assignment=mine" class="picker-item group" style="border-radius: 0; border: none; border-bottom: 1px solid var(--color-border)">
-          <span class="text-sm text-secondary group-hover:text-primary">My assigned tasks</span>
-          <svg class="h-3.5 w-3.5 text-ghost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-        </a>
-        <a href="/start" class="picker-item group" style="border-radius: 0; border: none; border-bottom: 1px solid var(--color-border)">
-          <span class="text-sm text-secondary group-hover:text-primary">Start a workflow</span>
-          <svg class="h-3.5 w-3.5 text-ghost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-        </a>
-        <a href="/workflows" class="picker-item group" style="border-radius: 0; border: none">
-          <span class="text-sm text-secondary group-hover:text-primary">View workflows</span>
-          <svg class="h-3.5 w-3.5 text-ghost" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-        </a>
-      </div>
+    {% else %}
+    <div class="table-container">
+      <p class="text-xs text-ghost py-6 text-center">No recent activity</p>
     </div>
-
+    {% endif %}
   </div>
 
 </div>

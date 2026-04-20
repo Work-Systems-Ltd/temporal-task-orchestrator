@@ -19,23 +19,29 @@ class OnboardingWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: OnboardingInputTask.Model) -> str:
-        await self.create_system_task(create_onboarding_ticket, input.employee_name)
+        await self._persist_workflow_started(input)
+        try:
+            await self.create_system_task(create_onboarding_ticket, input.employee_name)
 
-        human_data = await self.create_human_task(
-            OnboardingTask,
-            title=f"Onboard: {input.employee_name}",
-            description=f"Complete the onboarding checklist for {input.employee_name}.",
-            assigned_user="admin",
-        )
+            human_data = await self.create_human_task(
+                OnboardingTask,
+                title=f"Onboard: {input.employee_name}",
+                description=f"Complete the onboarding checklist for {input.employee_name}.",
+                assigned_user="admin",
+            )
 
-        team = human_data["team"]
-        equipment = human_data["equipment"]
-        notes = human_data.get("notes", "")
+            team = human_data["team"]
+            equipment = human_data["equipment"]
+            notes = human_data.get("notes", "")
 
-        await self.create_system_task(provision_equipment, input.employee_name, equipment)
-        await self.create_system_task(setup_accounts, input.employee_name, team)
+            await self.create_system_task(provision_equipment, input.employee_name, equipment)
+            await self.create_system_task(setup_accounts, input.employee_name, team)
 
-        result = f"Onboarding complete for {input.employee_name}: team={team}, equipment={equipment}"
-        if notes:
-            result += f", notes={notes}"
-        return result
+            result = f"Onboarding complete for {input.employee_name}: team={team}, equipment={equipment}"
+            if notes:
+                result += f", notes={notes}"
+            await self._persist_workflow_completed(result)
+            return result
+        except Exception as exc:
+            await self._persist_workflow_failed(str(exc))
+            raise

@@ -71,6 +71,8 @@ def register_workflow(
                 f"(set to a HumanTask class or None)"
             )
 
+        cls._workflow_key = key
+
         _WORKFLOW_REGISTRY[key] = WorkflowDef(
             key=key,
             label=label,

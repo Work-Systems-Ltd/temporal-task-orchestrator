@@ -20,6 +20,11 @@ with workflow.unsafe.imports_passed_through():
         CreateTaskInput,
         UpdateTaskInput,
     )
+    from core.activities.workflow_persistence import (
+        CompleteWorkflowInput,
+        CreateWorkflowInput,
+        FailWorkflowInput,
+    )
 
 
 class WorkSysFlow(ABC):
@@ -30,6 +35,7 @@ class WorkSysFlow(ABC):
     """
 
     input_task: ClassVar[Type[HumanTask] | None]
+    _workflow_key: ClassVar[str] = ""
 
     def __init__(self) -> None:
         self._human_task_complete: bool = False
@@ -92,6 +98,77 @@ class WorkSysFlow(ABC):
         await workflow.execute_activity(
             "complete_task_record",
             complete_input.model_dump_json(),
+            start_to_close_timeout=timedelta(seconds=10),
+            retry_policy=RetryPolicy(maximum_attempts=5),
+        )
+
+    async def _persist_workflow_started(self, input_data: Any = None) -> None:
+        """Persist a new workflow record to the database via activity."""
+        info = workflow.info()
+
+        # Serialize input_data to JSON string
+        input_str = ""
+        if input_data is not None:
+            try:
+                if hasattr(input_data, "model_dump_json"):
+                    input_str = input_data.model_dump_json()
+                elif hasattr(input_data, "model_dump"):
+                    input_str = json.dumps(input_data.model_dump())
+                else:
+                    input_str = json.dumps(input_data)
+            except (TypeError, ValueError):
+                input_str = str(input_data)
+
+        create_input = CreateWorkflowInput(
+            workflow_id=info.workflow_id,
+            run_id=info.run_id,
+            workflow_type=info.workflow_type,
+            workflow_key=self._workflow_key or info.workflow_type,
+            parent_workflow_id=info.parent_workflow_id or "",
+            input_data=input_str,
+            task_queue=info.task_queue,
+        )
+        await workflow.execute_activity(
+            "create_workflow_record",
+            create_input.model_dump_json(),
+            start_to_close_timeout=timedelta(seconds=10),
+            retry_policy=RetryPolicy(maximum_attempts=5),
+        )
+
+    async def _persist_workflow_completed(self, output: Any = None) -> None:
+        """Mark workflow as completed in the database via activity."""
+        output_str = ""
+        if output is not None:
+            try:
+                if hasattr(output, "model_dump_json"):
+                    output_str = output.model_dump_json()
+                elif hasattr(output, "model_dump"):
+                    output_str = json.dumps(output.model_dump())
+                else:
+                    output_str = json.dumps(output)
+            except (TypeError, ValueError):
+                output_str = str(output)
+
+        complete_input = CompleteWorkflowInput(
+            workflow_id=workflow.info().workflow_id,
+            output_data=output_str,
+        )
+        await workflow.execute_activity(
+            "complete_workflow_record",
+            complete_input.model_dump_json(),
+            start_to_close_timeout=timedelta(seconds=10),
+            retry_policy=RetryPolicy(maximum_attempts=5),
+        )
+
+    async def _persist_workflow_failed(self, error: str) -> None:
+        """Mark workflow as failed in the database via activity."""
+        fail_input = FailWorkflowInput(
+            workflow_id=workflow.info().workflow_id,
+            error_message=error,
+        )
+        await workflow.execute_activity(
+            "fail_workflow_record",
+            fail_input.model_dump_json(),
             start_to_close_timeout=timedelta(seconds=10),
             retry_policy=RetryPolicy(maximum_attempts=5),
         )

@@ -15,12 +15,6 @@ from ui.services.temporal import TemporalService
 router = APIRouter(tags=["dashboard"], dependencies=[Depends(require_auth)])
 
 
-def _format_dt(dt) -> str:
-    if dt is None:
-        return ""
-    return dt.strftime("%Y-%m-%d %H:%M")
-
-
 def _relative_time(dt) -> str:
     """Return a human-friendly relative time string."""
     if dt is None:
@@ -41,7 +35,7 @@ def _relative_time(dt) -> str:
         return "yesterday"
     if days < 7:
         return f"{days}d ago"
-    return _format_dt(dt)
+    return dt.strftime("%Y-%m-%d %H:%M")
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
@@ -55,27 +49,40 @@ async def dashboard(
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     week_start = today_start - timedelta(days=today_start.weekday())
 
-    # Gather all metrics
     summary = await db.get_task_summary_counts()
     overdue = await db.get_overdue_count()
     completed_today = await db.get_completed_count_since(today_start)
     completed_week = await db.get_completed_count_since(week_start)
-
-    # Recent activity across all tasks
     recent_activity = await db.get_recent_activity(limit=8)
+    running_workflows = await temporal.count_pending()
 
-    # My tasks (current user)
+    # My active tasks — actual records, not just counts
     user = request.state.user
-    my_tasks: dict[str, int] = {}
+    my_task_rows = []
     if user:
-        my_tasks = await db.count_tasks_by_status(
+        my_task_rows, _ = await db.list_tasks(
+            status="open",
             user_slug=user.slug,
             user_group_slugs=user.group_slugs,
             is_admin=user.is_admin,
+            page=1,
+            per_page=5,
+            sort="created_at",
+            order="desc",
         )
-
-    # Running workflows
-    running_workflows = await temporal.count_pending()
+        # Also grab in_progress if we have room
+        if len(my_task_rows) < 5:
+            ip_rows, _ = await db.list_tasks(
+                status="in_progress",
+                user_slug=user.slug,
+                user_group_slugs=user.group_slugs,
+                is_admin=user.is_admin,
+                page=1,
+                per_page=5 - len(my_task_rows),
+                sort="created_at",
+                order="desc",
+            )
+            my_task_rows.extend(ip_rows)
 
     return templates.TemplateResponse(
         "dashboard.html",
@@ -86,9 +93,8 @@ async def dashboard(
             "completed_today": completed_today,
             "completed_week": completed_week,
             "recent_activity": recent_activity,
-            "my_tasks": my_tasks,
+            "my_task_rows": my_task_rows,
             "running_workflows": running_workflows,
-            "format_dt": _format_dt,
             "relative_time": _relative_time,
         },
     )

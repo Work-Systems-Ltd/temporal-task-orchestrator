@@ -123,6 +123,59 @@ class Group(Base):
         return f"<Group {self.name}>"
 
 
+class WorkflowRecord(Base):
+    __tablename__ = "workflows"
+    __table_args__ = (
+        Index("ix_workflows_status_type", "status", "workflow_type"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    workflow_id: Mapped[str] = mapped_column(
+        String(255), unique=True, nullable=False, index=True
+    )
+    run_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    workflow_type: Mapped[str] = mapped_column(String(150), nullable=False, index=True)
+    workflow_key: Mapped[str] = mapped_column(String(150), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(
+        String(50), nullable=False, default="starting", index=True
+    )
+    parent_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workflows.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    started_by: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    closed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    input_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    output_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    task_queue: Mapped[str | None] = mapped_column(String(150), nullable=True)
+
+    children: Mapped[list[WorkflowRecord]] = relationship(
+        back_populates="parent", lazy="noload",
+    )
+    parent: Mapped[WorkflowRecord | None] = relationship(
+        back_populates="children", remote_side="WorkflowRecord.id", lazy="noload",
+    )
+    tasks: Mapped[list[TaskRecord]] = relationship(
+        back_populates="workflow_record", lazy="noload",
+    )
+
+    def __repr__(self) -> str:
+        return f"<WorkflowRecord {self.workflow_id} [{self.status}]>"
+
+
 class TaskRecord(Base):
     __tablename__ = "tasks"
     __table_args__ = (
@@ -135,6 +188,12 @@ class TaskRecord(Base):
     )
     workflow_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     run_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    workflow_record_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workflows.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     task_type: Mapped[str] = mapped_column(String(150), nullable=False, index=True)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -167,6 +226,9 @@ class TaskRecord(Base):
     form_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     task_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
+    workflow_record: Mapped[WorkflowRecord | None] = relationship(
+        back_populates="tasks", lazy="noload",
+    )
     comments: Mapped[list[TaskComment]] = relationship(
         back_populates="task", cascade="all, delete-orphan", lazy="selectin",
         order_by="TaskComment.created_at",

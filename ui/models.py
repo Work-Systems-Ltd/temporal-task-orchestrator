@@ -45,8 +45,23 @@ class PendingTaskItem(BaseModel):
     assigned_group: str = ""
 
 
+class WorkflowListItem(BaseModel):
+    """A workflow record as shown in the DB-powered workflow list."""
+    record_id: str
+    workflow_id: str
+    workflow_type: str
+    workflow_key: str
+    status: str
+    started_by: str = ""
+    created_at: str = ""
+    closed_at: str = ""
+    duration: str = ""
+    parent_workflow_id: str = ""
+    children: list[WorkflowListItem] = []
+
+
 class PaginatedResult(BaseModel):
-    items: list[WorkflowItem] | list[PendingTaskItem]
+    items: list[WorkflowItem] | list[PendingTaskItem] | list[WorkflowListItem]
     has_next: bool
 
 

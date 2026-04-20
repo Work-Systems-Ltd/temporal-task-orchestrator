@@ -7,9 +7,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from ui.auth.dependencies import require_auth
-from ui.dependencies import get_templates, get_temporal_service
+from ui.dependencies import get_db_service, get_templates, get_temporal_service
 from ui.helpers import validate_task_form
 from ui.models import WorkflowPickerItem
+from ui.services.db import DbService
 from ui.services.temporal import TemporalService
 from core.workflows import get_all_workflows, get_workflow
 
@@ -78,6 +79,7 @@ async def start_submit(
     request: Request,
     workflow_key: str,
     service: TemporalService = Depends(get_temporal_service),
+    db: DbService = Depends(get_db_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
     try:
@@ -121,6 +123,24 @@ async def start_submit(
             )
 
     workflow_id = f"{workflow_key}-{uuid.uuid4().hex[:8]}"
+
+    # Serialize input for DB storage
+    input_dict = None
+    if input_value is not None:
+        if hasattr(input_value, "model_dump"):
+            input_dict = input_value.model_dump()
+        elif isinstance(input_value, dict):
+            input_dict = input_value
+        else:
+            input_dict = {"value": input_value}
+
+    await db.create_workflow_placeholder(
+        workflow_id=workflow_id,
+        workflow_key=workflow_key,
+        workflow_type=wf_def.workflow_cls.__name__,
+        started_by=user.slug if user else "",
+        input_data=input_dict,
+    )
     await service.start_workflow(wf_def, input_value, workflow_id)
 
     return RedirectResponse(url="/workflows?started=1", status_code=303)

@@ -19,21 +19,27 @@ class ApprovalWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: ApprovalInputTask.Model) -> str:
-        await self.create_system_task(log_request, input.description)
+        await self._persist_workflow_started(input)
+        try:
+            await self.create_system_task(log_request, input.description)
 
-        human_data = await self.create_human_task(
-            ApprovalTask,
-            title=f"Approve: {input.description}",
-            description=f"Please review this {input.urgency}-priority request and approve or reject it.",
-            assigned_group="admin",
-        )
+            human_data = await self.create_human_task(
+                ApprovalTask,
+                title=f"Approve: {input.description}",
+                description=f"Please review this {input.urgency}-priority request and approve or reject it.",
+                assigned_group="admin",
+            )
 
-        decision = human_data["decision"]
-        comment = human_data.get("comment", "")
+            decision = human_data["decision"]
+            comment = human_data.get("comment", "")
 
-        if decision == "approve":
-            result = await self.create_system_task(process_approval, input.description, comment)
-        else:
-            result = await self.create_system_task(process_rejection, input.description, comment)
+            if decision == "approve":
+                result = await self.create_system_task(process_approval, input.description, comment)
+            else:
+                result = await self.create_system_task(process_rejection, input.description, comment)
 
-        return result
+            await self._persist_workflow_completed(result)
+            return result
+        except Exception as exc:
+            await self._persist_workflow_failed(str(exc))
+            raise

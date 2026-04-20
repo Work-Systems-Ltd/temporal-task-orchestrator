@@ -17,5 +17,11 @@ class PingWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, ip_address: str) -> str:
-        result = await self.create_system_task(ping, ip_address)
-        return result
+        await self._persist_workflow_started(ip_address)
+        try:
+            result = await self.create_system_task(ping, ip_address)
+            await self._persist_workflow_completed(result)
+            return result
+        except Exception as exc:
+            await self._persist_workflow_failed(str(exc))
+            raise

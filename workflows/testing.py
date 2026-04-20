@@ -26,15 +26,22 @@ class TestingWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: TestingInputTask.Model) -> str:
-        results = []
-        for step_key in STEP_ORDER:
-            step_activity = STEPS[step_key]
-            should_fail = input.should_fail and input.fail_at_step == step_key
-            result = await self.create_system_task(
-                step_activity,
-                input.message, should_fail,
-                retry_policy=RetryPolicy(maximum_attempts=1),
-            )
-            results.append(result)
+        await self._persist_workflow_started(input)
+        try:
+            results = []
+            for step_key in STEP_ORDER:
+                step_activity = STEPS[step_key]
+                should_fail = input.should_fail and input.fail_at_step == step_key
+                result = await self.create_system_task(
+                    step_activity,
+                    input.message, should_fail,
+                    retry_policy=RetryPolicy(maximum_attempts=1),
+                )
+                results.append(result)
 
-        return " | ".join(results)
+            result = " | ".join(results)
+            await self._persist_workflow_completed(result)
+            return result
+        except Exception as exc:
+            await self._persist_workflow_failed(str(exc))
+            raise

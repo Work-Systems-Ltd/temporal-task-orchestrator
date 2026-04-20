@@ -28,41 +28,50 @@ class HiringWorkflow(WorkSysFlow):
 
     @workflow.run
     async def run(self, input: HiringInputTask.Model) -> str:
-        # Step 1: Get hiring approved via child workflow
-        approval_result = await workflow.execute_child_workflow(
-            ApprovalWorkflow.run,
-            ApprovalInputTask.Model(
-                description=f"New hire request: {input.employee_name}",
-                urgency=input.urgency,
-            ),
-            id=f"{workflow.info().workflow_id}-approval",
-        )
+        await self._persist_workflow_started(input)
+        try:
+            # Step 1: Get hiring approved via child workflow
+            approval_result = await workflow.execute_child_workflow(
+                ApprovalWorkflow.run,
+                ApprovalInputTask.Model(
+                    description=f"New hire request: {input.employee_name}",
+                    urgency=input.urgency,
+                ),
+                id=f"{workflow.info().workflow_id}-approval",
+            )
 
-        if "REJECTED" in approval_result:
-            return f"Hiring rejected: {approval_result}"
+            if "REJECTED" in approval_result:
+                result = f"Hiring rejected: {approval_result}"
+                await self._persist_workflow_completed(result)
+                return result
 
-        # Step 2: Collect onboarding details via human task
-        onboarding_data = await self.create_human_task(
-            OnboardingInputTask,
-            title="Provide onboarding details",
-            description=f"The hire for {input.employee_name} has been approved. Please provide onboarding details.",
-            assigned_group="admin",
-        )
-        onboarding_input = OnboardingInputTask.Model(**onboarding_data)
+            # Step 2: Collect onboarding details via human task
+            onboarding_data = await self.create_human_task(
+                OnboardingInputTask,
+                title="Provide onboarding details",
+                description=f"The hire for {input.employee_name} has been approved. Please provide onboarding details.",
+                assigned_group="admin",
+            )
+            onboarding_input = OnboardingInputTask.Model(**onboarding_data)
 
-        # Step 3: Run onboarding workflows concurrently
-        onboarding1 = await workflow.start_child_workflow(
-            OnboardingWorkflow.run,
-            onboarding_input,
-            id=f"{workflow.info().workflow_id}-onboarding",
-        )
+            # Step 3: Run onboarding workflows concurrently
+            onboarding1 = await workflow.start_child_workflow(
+                OnboardingWorkflow.run,
+                onboarding_input,
+                id=f"{workflow.info().workflow_id}-onboarding",
+            )
 
-        onboarding2 = await workflow.start_child_workflow(
-            OnboardingWorkflow.run,
-            onboarding_input,
-            id=f"{workflow.info().workflow_id}-onboarding-2",
-        )
+            onboarding2 = await workflow.start_child_workflow(
+                OnboardingWorkflow.run,
+                onboarding_input,
+                id=f"{workflow.info().workflow_id}-onboarding-2",
+            )
 
-        result1, result2 = await asyncio.gather(onboarding1, onboarding2)
+            result1, result2 = await asyncio.gather(onboarding1, onboarding2)
 
-        return f"Hiring complete for {input.employee_name}: {result1} | {result2}"
+            result = f"Hiring complete for {input.employee_name}: {result1} | {result2}"
+            await self._persist_workflow_completed(result)
+            return result
+        except Exception as exc:
+            await self._persist_workflow_failed(str(exc))
+            raise

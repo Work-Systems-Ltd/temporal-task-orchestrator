@@ -10,7 +10,7 @@ from temporalio.worker import Worker
 
 import tasks  # noqa: F401 — trigger task registration
 import workflows  # noqa: F401 — trigger workflow registration
-from core.activities import TaskPersistenceActivities
+from core.activities import TaskPersistenceActivities, WorkflowPersistenceActivities
 from core.tasks.registry import get_all_activities
 from core.workflows import get_all_workflows, validate_registrations
 from ui.config import AppSettings
@@ -30,6 +30,7 @@ def run() -> None:
         engine = create_async_engine(settings.database_url, pool_size=5, max_overflow=10)
         session_factory = async_sessionmaker(engine, expire_on_commit=False)
         persistence = TaskPersistenceActivities(session_factory=session_factory)
+        wf_persistence = WorkflowPersistenceActivities(session_factory=session_factory)
 
         client = await Client.connect(settings.temporal_address)
 
@@ -39,6 +40,9 @@ def run() -> None:
             persistence.complete_task_record,
             persistence.update_task_record,
             persistence.cancel_task_record,
+            wf_persistence.create_workflow_record,
+            wf_persistence.complete_workflow_record,
+            wf_persistence.fail_workflow_record,
         ]
 
         w = Worker(

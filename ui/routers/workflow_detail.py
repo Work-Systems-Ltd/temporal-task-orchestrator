@@ -8,9 +8,10 @@ from fastapi.templating import Jinja2Templates
 
 from core.tasks import get_task
 from ui.auth.dependencies import require_auth
-from ui.dependencies import get_templates, get_temporal_service
+from ui.dependencies import get_db_service, get_templates, get_temporal_service
 from ui.helpers import validate_task_form
 from ui.models import PendingTaskDetail
+from ui.services.db import DbService
 from ui.services.temporal import TemporalService
 
 router = APIRouter(tags=["workflow_detail"], dependencies=[Depends(require_auth)])
@@ -28,6 +29,7 @@ async def workflow_detail(
     workflow_id: str,
     run_id: str | None = Query(None),
     service: TemporalService = Depends(get_temporal_service),
+    db: DbService = Depends(get_db_service),
     templates: Jinja2Templates = Depends(get_templates),
 ) -> HTMLResponse:
     detail = await service.get_workflow_detail(workflow_id, run_id=run_id)
@@ -36,6 +38,9 @@ async def workflow_detail(
 
     is_running = detail.status == "running"
     is_child = detail.parent_id is not None
+
+    # Load DB record for extra metadata (started_by, etc.)
+    wf_record = await db.get_workflow_by_workflow_id(workflow_id)
 
     timeline_result, graph, run_history = await asyncio.gather(
         service.get_workflow_timeline(workflow_id, run_id=run_id),
@@ -81,6 +86,7 @@ async def workflow_detail(
         {
             "request": request,
             "detail": detail,
+            "wf_record": wf_record,
             "pending_tasks": pending_tasks,
             "timeline": timeline,
             "stats": stats,

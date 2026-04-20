@@ -7,10 +7,10 @@ from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from .mixins import GroupsMixin, SessionsMixin, TasksMixin, UsersMixin
+from .mixins import GroupsMixin, SessionsMixin, TasksMixin, UsersMixin, WorkflowsMixin
 
 
-class DbService(UsersMixin, GroupsMixin, SessionsMixin, TasksMixin):
+class DbService(UsersMixin, GroupsMixin, SessionsMixin, TasksMixin, WorkflowsMixin):
     """Unified service for all database interactions.
 
     Implementation is split across mixins:
