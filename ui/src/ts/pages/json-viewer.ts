@@ -87,7 +87,12 @@ function createJsonViewer(element: HTMLElement, content: string): EditorView {
 // Mount all viewers on page load
 function mountViewers(): void {
   document.querySelectorAll<HTMLElement>("[data-json-viewer]").forEach((el) => {
-    const raw = el.getAttribute("data-json-viewer") || "{}";
+    // Prefer reading from a sibling <script type="application/json"> tag
+    // to avoid HTML attribute escaping issues
+    const scriptTag = el.parentElement?.querySelector("script[data-json-raw]");
+    const raw = scriptTag
+      ? scriptTag.textContent || "{}"
+      : el.getAttribute("data-json-viewer") || "{}";
     el.removeAttribute("data-json-viewer");
     el.textContent = "";
     createJsonViewer(el, raw);

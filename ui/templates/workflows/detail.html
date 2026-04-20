@@ -125,7 +125,7 @@
                       x-text="copied ? 'Copied' : 'Copy'"></button>
             </div>
             <script type="application/json" data-json-raw>{{ wf.input_data | tojson }}</script>
-            <div data-json-viewer="{{ json_attr(wf.input_data) }}"></div>
+            <div data-json-viewer=""></div>
           </div>
         </div>
         {% endif %}
@@ -139,7 +139,7 @@
                       x-text="copied ? 'Copied' : 'Copy'"></button>
             </div>
             <script type="application/json" data-json-raw>{{ wf.output_data | tojson }}</script>
-            <div data-json-viewer="{{ json_attr(wf.output_data) }}"></div>
+            <div data-json-viewer=""></div>
           </div>
         </div>
         {% endif %}
@@ -239,7 +239,8 @@
               {% if task.form_data %}
               <div class="text-[10px] font-medium uppercase tracking-wider text-ghost mb-1.5">Submitted Data</div>
               <div class="json-viewer" style="border:none;border-radius:0.5rem">
-                <div data-json-viewer="{{ json_attr(task.form_data) }}"></div>
+                <script type="application/json" data-json-raw>{{ task.form_data | tojson }}</script>
+                <div data-json-viewer=""></div>
               </div>
               {% endif %}
               {% if task.completed_by %}
