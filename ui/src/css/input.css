@@ -1675,15 +1675,15 @@
   .dash-counter {
     display: flex;
     flex-direction: column;
-    padding: 1rem 1.25rem;
+    gap: 0.5rem;
+    padding: 0.875rem 1rem;
     text-decoration: none;
     border-radius: 0.5rem;
-    border: 1px solid var(--color-border);
-    background: var(--color-bg);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background: var(--color-bg-raised);
+    transition: background 0.2s ease;
   }
   .dash-counter-value {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     line-height: 1;
     font-weight: 600;
     letter-spacing: -0.025em;
@@ -1691,7 +1691,6 @@
     transition: color 0.2s ease;
   }
   .dash-counter-label {
-    margin-top: 0.5rem;
     font-size: 11px;
     font-weight: 500;
     text-transform: uppercase;
@@ -1700,8 +1699,7 @@
   }
   a.dash-counter { cursor: pointer; }
   a.dash-counter:hover {
-    border-color: var(--color-border-hover);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    background: var(--color-bg-overlay);
   }
   a.dash-counter:hover .dash-counter-label {
     color: var(--color-text-secondary);
@@ -1725,7 +1723,7 @@
     color: var(--color-text-secondary);
   }
   .dash-activity-row {
-    @apply flex items-center gap-3 px-4 py-3;
+    @apply flex items-center gap-3 px-4 py-2.5;
     transition: background 0.15s ease;
   }
   .dash-activity-row:hover {

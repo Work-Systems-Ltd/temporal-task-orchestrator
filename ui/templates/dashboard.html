@@ -3,17 +3,17 @@
 
 {% macro activity_icon(action) %}
 {% if action == "created" %}
-<svg class="h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+<svg class="h-3.5 w-3.5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
 {% elif action == "status_changed" %}
-<svg class="h-4 w-4 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" /></svg>
+<svg class="h-3.5 w-3.5 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" /></svg>
 {% elif action == "reassigned" %}
-<svg class="h-4 w-4 text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
+<svg class="h-3.5 w-3.5 text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
 {% elif action == "commented" %}
-<svg class="h-4 w-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" /></svg>
+<svg class="h-3.5 w-3.5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" /></svg>
 {% elif action == "completed" %}
-<svg class="h-4 w-4 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+<svg class="h-3.5 w-3.5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
 {% else %}
-<svg class="h-4 w-4 text-zinc-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" /></svg>
+<svg class="h-3.5 w-3.5 text-zinc-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" /></svg>
 {% endif %}
 {% endmacro %}
 
@@ -29,6 +29,12 @@
   "zinc":    "var(--color-pill-zinc-text)",
   "red":     "var(--color-pill-red-text)",
   "emerald": "var(--color-pill-emerald-text)",
+} %}
+
+{% set pill_bgs = {
+  "blue":    "var(--color-pill-blue-bg)",
+  "amber":   "var(--color-pill-amber-bg)",
+  "emerald": "var(--color-pill-emerald-bg)",
 } %}
 
 {% block content %}
@@ -48,11 +54,11 @@
   ] %}
   <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 mb-8">
     {% for label, value, color, href in stats %}
-    <a href="{{ href }}"
-       class="dash-counter"
-       onmouseenter="this.querySelector('.dash-counter-value').style.color='{{ pill_colors[color] }}'"
-       onmouseleave="this.querySelector('.dash-counter-value').style.color=''">
-      <span class="dash-counter-value tabular-nums" data-countup="{{ value }}">0</span>
+    <a href="{{ href }}" class="dash-counter">
+      <div class="flex items-center gap-2.5">
+        <span class="dash-counter-dot" style="background: {{ pill_colors[color] }}"></span>
+        <span class="dash-counter-value tabular-nums" data-countup="{{ value }}">0</span>
+      </div>
       <span class="dash-counter-label">{{ label }}</span>
     </a>
     {% endfor %}
@@ -76,7 +82,7 @@
             <tr>
               <th class="th text-left">Task</th>
               <th class="th text-left hidden sm:table-cell">Status</th>
-              <th class="th text-left hidden sm:table-cell">Priority</th>
+              <th class="th text-left hidden md:table-cell">Priority</th>
               <th class="th text-left">Created</th>
             </tr>
           </thead>
@@ -90,7 +96,7 @@
                 {% endif %}
               </td>
               <td class="td hidden sm:table-cell">{{ task_status_badge(task.status) }}</td>
-              <td class="td hidden sm:table-cell">
+              <td class="td hidden md:table-cell">
                 {% set pc = {"critical": "red", "high": "amber", "medium": "blue", "low": "zinc"} %}
                 <span class="pill pill-{{ pc.get(task.priority, 'zinc') }}">{{ task.priority | capitalize }}</span>
               </td>
@@ -106,7 +112,13 @@
           <svg class="h-6 w-6 text-faint mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
-          <p class="text-xs text-ghost">All caught up</p>
+          <p class="text-xs text-ghost mb-3">All caught up</p>
+          <a href="{{ request.url_for('start_picker') }}" class="btn btn-secondary text-xs">
+            <svg class="h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Start a workflow
+          </a>
         </div>
       </div>
       {% endif %}
@@ -124,7 +136,7 @@
           <div class="dash-activity-row">
             <div class="shrink-0">{{ activity_icon(entry.action) }}</div>
             <div class="flex-1 min-w-0">
-              <div class="text-sm text-secondary truncate">
+              <div class="text-xs text-secondary truncate">
                 {% if entry.action == "created" %}
                 <span class="font-medium text-primary">{{ entry.task.title }}</span> created
                 {% elif entry.action == "status_changed" %}
@@ -139,7 +151,7 @@
                 {{ entry.action }} on <span class="font-medium text-primary">{{ entry.task.title }}</span>
                 {% endif %}
               </div>
-              <div class="text-[11px] text-ghost tabular-nums mt-0.5">
+              <div class="text-[10px] text-ghost tabular-nums mt-0.5">
                 {% if entry.actor %}{{ entry.actor }} · {% endif %}{{ relative_time(entry.created_at) }}
               </div>
             </div>
@@ -157,14 +169,12 @@
   </div>
 
   {# ── Recently Completed ── #}
+  {% if completed_rows %}
   <div>
     <div class="dash-section-header">
       <h2 class="dash-section-title">Recently Completed</h2>
-      {% if completed_rows %}
       <a href="/tasks?tab=completed" class="dash-section-link">View all &rarr;</a>
-      {% endif %}
     </div>
-    {% if completed_rows %}
     <div class="table-container">
       <table class="w-full">
         <thead class="table-head">
@@ -196,12 +206,8 @@
         </tbody>
       </table>
     </div>
-    {% else %}
-    <div class="table-container">
-      <p class="text-xs text-ghost py-6 text-center">No completed tasks yet</p>
-    </div>
-    {% endif %}
   </div>
+  {% endif %}
 
 </div>
 

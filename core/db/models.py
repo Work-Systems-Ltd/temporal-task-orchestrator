@@ -6,7 +6,7 @@ import uuid
 from functools import cached_property
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, String, Table, Text, func
+from sqlalchemy import Boolean, CheckConstraint, Column, DateTime, ForeignKey, Index, String, Table, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -171,6 +171,10 @@ class WorkflowRecord(Base):
     tasks: Mapped[list[TaskRecord]] = relationship(
         back_populates="workflow_record", lazy="noload",
     )
+    notes: Mapped[list[Note]] = relationship(
+        back_populates="workflow", cascade="all, delete-orphan", lazy="noload",
+        order_by="Note.created_at",
+    )
 
     def __repr__(self) -> str:
         return f"<WorkflowRecord {self.workflow_id} [{self.status}]>"
@@ -240,6 +244,10 @@ class TaskRecord(Base):
         back_populates="task", cascade="all, delete-orphan", lazy="noload",
         order_by="TaskActivityLog.created_at.desc()",
     )
+    notes: Mapped[list[Note]] = relationship(
+        back_populates="task", cascade="all, delete-orphan", lazy="noload",
+        order_by="Note.created_at",
+    )
 
     def __repr__(self) -> str:
         return f"<TaskRecord {self.id} [{self.status}] {self.title[:30]}>"
@@ -295,6 +303,47 @@ class TaskActivityLog(Base):
 
     def __repr__(self) -> str:
         return f"<TaskActivityLog {self.action} on {self.task_id}>"
+
+
+class Note(Base):
+    __tablename__ = "notes"
+    __table_args__ = (
+        Index("ix_notes_task_id", "task_id"),
+        Index("ix_notes_workflow_id", "workflow_id"),
+        CheckConstraint(
+            "(task_id IS NOT NULL AND workflow_id IS NULL) OR "
+            "(task_id IS NULL AND workflow_id IS NOT NULL)",
+            name="chk_note_parent",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    task_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("tasks.id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    workflow_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workflows.id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    author: Mapped[str] = mapped_column(String(150), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    task: Mapped[TaskRecord | None] = relationship(back_populates="notes")
+    workflow: Mapped[WorkflowRecord | None] = relationship(back_populates="notes")
+
+    def __repr__(self) -> str:
+        return f"<Note {self.id} by {self.author}>"
 
 
 class Session(Base):
