@@ -11,7 +11,7 @@ from ui.auth.dependencies import require_auth
 from ui.config import TASK_PRIORITY_ORDER, TASK_SORT_OPTIONS, TASK_TAB_LABELS, TASK_TAB_ORDER
 from ui.dependencies import get_db_service, get_templates, get_temporal_service
 from ui.models import AssigneeOption, AssigneesResponse, ReassignResult, TaskListItem
-from ui.services.db import DbService
+from core.db import DbService
 from ui.services.temporal import TemporalService
 
 router = APIRouter(tags=["tasks_page"], dependencies=[Depends(require_auth)])

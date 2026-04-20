@@ -10,10 +10,10 @@ from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
 
 from ui.auth.dependencies import require_ws_auth
-from ui.auth.models import User
+from core.db.models import User
 from ui.config import WORKFLOW_TAB_ORDER
 from ui.dependencies import get_db_service, get_templates, get_temporal_service
-from ui.services.db import DbService
+from core.db import DbService
 from ui.services.temporal import TemporalService
 from core.workflows import get_all_workflows
 

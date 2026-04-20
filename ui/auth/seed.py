@@ -16,8 +16,8 @@ import logging
 import bcrypt
 from sqlalchemy import select
 
-from .database import dispose_engine, get_session_factory, init_engine
-from .models import Group, User
+from core.db.engine import dispose_engine, get_session_factory, init_engine
+from core.db.models import Group, User
 
 logger = logging.getLogger(__name__)
 

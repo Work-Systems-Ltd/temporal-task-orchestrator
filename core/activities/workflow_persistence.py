@@ -58,7 +58,7 @@ class WorkflowPersistenceActivities:
         router), update it.  Otherwise create a new record (e.g. for child
         workflows started directly by Temporal).
         """
-        from ui.auth.models import TaskRecord, WorkflowRecord
+        from core.db.models import TaskRecord, WorkflowRecord
 
         data = CreateWorkflowInput.model_validate_json(raw_input)
 
@@ -131,7 +131,7 @@ class WorkflowPersistenceActivities:
     @activity.defn
     async def complete_workflow_record(self, raw_input: str) -> None:
         """Mark a workflow as completed, storing optional output data."""
-        from ui.auth.models import WorkflowRecord
+        from core.db.models import WorkflowRecord
 
         data = CompleteWorkflowInput.model_validate_json(raw_input)
         now = datetime.now(timezone.utc)
@@ -162,7 +162,7 @@ class WorkflowPersistenceActivities:
     @activity.defn
     async def fail_workflow_record(self, raw_input: str) -> None:
         """Mark a workflow as failed, storing the error message."""
-        from ui.auth.models import WorkflowRecord
+        from core.db.models import WorkflowRecord
 
         data = FailWorkflowInput.model_validate_json(raw_input)
         now = datetime.now(timezone.utc)

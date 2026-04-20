@@ -43,9 +43,9 @@
   {% set stats = [
     ("Open",           summary.get("open", 0),        "blue",    "/tasks?tab=open"),
     ("In Progress",    summary.get("in_progress", 0), "amber",   "/tasks?tab=in_progress"),
-    ("On Hold",        summary.get("on_hold", 0),     "zinc",    "/tasks?tab=on_hold"),
-    ("Overdue",        overdue,                        "red",     ""),
+    ("Completed",      summary.get("completed", 0),   "emerald", "/tasks?tab=completed"),
     ("Done today",     completed_today,                "emerald", ""),
+    ("Done this week", completed_week,                 "emerald", ""),
     ("Workflows",      running_workflows,              "blue",    "/workflows"),
   ] %}
   <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6 mb-8">

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from fastapi import HTTPException, Request, WebSocket, WebSocketException, status
 
-from .models import User
-from .session import load_user_from_session
+from core.db.models import User
+from ui.auth.session import load_user_from_session
 
 
 class LoginRequiredError(HTTPException):

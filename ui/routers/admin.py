@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 
 from ui.auth.dependencies import require_admin
 from ui.dependencies import get_db_service, get_templates
-from ui.services.db import DbService
+from core.db import DbService
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 

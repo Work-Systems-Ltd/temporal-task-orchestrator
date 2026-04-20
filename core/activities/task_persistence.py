@@ -64,7 +64,7 @@ class TaskPersistenceActivities:
     @activity.defn
     async def create_task_record(self, raw_input: str) -> str:
         """Insert a new task record with status='open'. Returns the task_id."""
-        from ui.auth.models import TaskRecord, WorkflowRecord
+        from core.db.models import TaskRecord, WorkflowRecord
 
         data = CreateTaskInput.model_validate_json(raw_input)
 
@@ -104,7 +104,7 @@ class TaskPersistenceActivities:
     @activity.defn
     async def complete_task_record(self, raw_input: str) -> None:
         """Mark a task as completed, storing the submitted form data."""
-        from ui.auth.models import TaskRecord
+        from core.db.models import TaskRecord
 
         data = CompleteTaskInput.model_validate_json(raw_input)
         now = datetime.now(timezone.utc)
@@ -129,7 +129,7 @@ class TaskPersistenceActivities:
     @activity.defn
     async def update_task_record(self, raw_input: str) -> None:
         """Update mutable fields on a task record (reassignment, status, priority)."""
-        from ui.auth.models import TaskRecord
+        from core.db.models import TaskRecord
 
         data = UpdateTaskInput.model_validate_json(raw_input)
         now = datetime.now(timezone.utc)
@@ -160,7 +160,7 @@ class TaskPersistenceActivities:
     @activity.defn
     async def cancel_task_record(self, raw_input: str) -> None:
         """Mark a task as cancelled."""
-        from ui.auth.models import TaskRecord
+        from core.db.models import TaskRecord
 
         data = CancelTaskInput.model_validate_json(raw_input)
         now = datetime.now(timezone.utc)

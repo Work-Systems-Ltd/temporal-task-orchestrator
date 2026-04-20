@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 
 from ui.auth.dependencies import require_auth
 from ui.dependencies import get_db_service, get_templates
-from ui.services.db import DbService
+from core.db import DbService
 
 router = APIRouter(tags=["dashboard"], dependencies=[Depends(require_auth)])
 
@@ -83,9 +83,12 @@ async def dashboard(
             )
             my_task_rows.extend(ip_rows)
 
-    # Recently completed
+    # Recently completed — pass user context for access control
     completed_rows, _ = await db.list_tasks(
         status="completed",
+        user_slug=user.slug if user else "",
+        user_group_slugs=user.group_slugs if user else None,
+        is_admin=user.is_admin if user else False,
         page=1,
         per_page=5,
         sort="completed_at",

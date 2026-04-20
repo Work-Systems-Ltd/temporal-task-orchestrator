@@ -1,7 +1,7 @@
 from fastapi.templating import Jinja2Templates
 from starlette.requests import HTTPConnection
 
-from ui.services.db import DbService
+from core.db import DbService
 from ui.services.temporal import TemporalService
 
 

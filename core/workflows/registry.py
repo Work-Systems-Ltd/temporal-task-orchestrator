@@ -106,8 +106,8 @@ async def validate_assignments() -> None:
 
     from sqlalchemy import select
 
-    from ui.auth.database import get_session_factory
-    from ui.auth.models import Group, User, _slugify
+    from core.db.engine import get_session_factory
+    from core.db.models import Group, User, _slugify
 
     logger = logging.getLogger(__name__)
 

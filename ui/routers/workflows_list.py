@@ -13,7 +13,7 @@ from ui.config import WORKFLOW_TAB_ORDER
 from ui.dependencies import get_db_service, get_templates
 from ui.helpers import duration, relative_time
 from ui.models import WorkflowListItem
-from ui.services.db import DbService
+from core.db import DbService
 from core.workflows import get_all_workflows
 
 router = APIRouter(tags=["workflows_list"], dependencies=[Depends(require_auth)])

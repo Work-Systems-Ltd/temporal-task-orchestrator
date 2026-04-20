@@ -3,7 +3,7 @@ import asyncio
 from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from ui.auth.models import Base
+from core.db.models import Base
 from ui.config import AppSettings
 
 target_metadata = Base.metadata

@@ -8,10 +8,10 @@ from fastapi.templating import Jinja2Templates
 import bcrypt
 
 from ui.dependencies import get_db_service, get_templates
-from ui.services.db import DbService
+from core.db import DbService
 
 from .dependencies import get_current_user
-from .models import User
+from core.db.models import User
 from .session import create_session, delete_session
 
 router = APIRouter(tags=["auth"])

@@ -11,7 +11,7 @@ from ui.auth.dependencies import require_auth
 from ui.dependencies import get_db_service, get_templates, get_temporal_service
 from ui.helpers import validate_task_form
 from ui.models import PendingTaskDetail
-from ui.services.db import DbService
+from core.db import DbService
 from ui.services.temporal import TemporalService
 
 router = APIRouter(tags=["workflow_detail"], dependencies=[Depends(require_auth)])

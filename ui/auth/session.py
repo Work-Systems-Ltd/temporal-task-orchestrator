@@ -9,9 +9,9 @@ from sqlalchemy import delete, select
 from starlette.requests import HTTPConnection
 from starlette.responses import Response
 
-from .database import get_session_factory
-from .models import Session as SessionModel
-from .models import User
+from core.db.engine import get_session_factory
+from core.db.models import Session as SessionModel
+from core.db.models import User
 
 COOKIE_NAME = "session_id"
 SESSION_MAX_AGE = timedelta(days=7)

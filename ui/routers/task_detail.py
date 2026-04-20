@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 
 from ui.auth.dependencies import require_auth
 from ui.dependencies import get_db_service, get_templates
-from ui.services.db import DbService
+from core.db import DbService
 
 router = APIRouter(tags=["task_detail"], dependencies=[Depends(require_auth)])
 
@@ -38,7 +38,7 @@ async def task_detail(
     activity = await db.get_task_activity(task_id)
 
     # Determine valid status transitions
-    from ui.services.db.mixins.tasks import VALID_TRANSITIONS
+    from core.db.mixins.tasks import VALID_TRANSITIONS
     valid_transitions = list(VALID_TRANSITIONS.get(task.status, set()))
 
     return templates.TemplateResponse(

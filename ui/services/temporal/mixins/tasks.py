@@ -48,8 +48,8 @@ class TasksMixin:
         if not meta.assigned_user and not meta.assigned_group:
             return meta
 
-        from ui.auth.database import get_session_factory
-        from ui.auth.models import Group, User, _slugify
+        from core.db.engine import get_session_factory
+        from core.db.models import Group, User, _slugify
 
         factory = get_session_factory()
         async with factory() as db:

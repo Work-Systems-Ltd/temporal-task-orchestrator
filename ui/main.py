@@ -13,13 +13,13 @@ import tasks  # noqa: F401 — trigger task registration
 import workflows  # noqa: F401 — trigger workflow registration
 from core.workflows import validate_assignments, validate_registrations
 from ui.auth.csrf import get_csrf_token, set_csrf_cookie, validate_csrf
-from ui.auth.database import dispose_engine, get_session_factory, init_engine
+from core.db.engine import dispose_engine, get_session_factory, init_engine
 from ui.auth.dependencies import LoginRequiredError
 from ui.auth.routes import router as auth_router
 from ui.auth.session import load_user_from_session
 from ui.config import AppSettings
 from ui.routers import admin, dashboard, task_detail, task_list, tasks, tasks_page, workflow_detail, workflows as workflows_router, workflows_list, ws
-from ui.services.db import DbService
+from core.db import DbService
 from ui.services.temporal import TemporalService
 
 logger = logging.getLogger(__name__)
