@@ -94,7 +94,10 @@ function submitInlineTask(event: Event, workflowId: string): void {
 
       if (result.ok || result.gone) {
         _socket?.send({ type: "submitted" });
-        setTimeout(refreshContent, 600);
+        // Redirect to same page — triggers view transition instead of jarring reload
+        setTimeout(() => {
+          window.location.href = window.location.pathname + "?completed=1";
+        }, 500);
         return;
       }
 
